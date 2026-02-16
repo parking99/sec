@@ -995,85 +995,192 @@ async function getOcrWorker(){
   return ocrWorker;
 }
 
+  
   async function runOcrOnCaptured(){
-    if(!capturedDataUrl){
-      setStatus("صوّر اللوحة أولاً");
+    const status = els.ocrStatus;
+
+    // Safety: if no captured image
+    if(!capturedImg){
+      status.className = "ocr-status error";
+      status.innerHTML = "❌ لا توجد صورة جاهزة للقراءة. التقط صورة أولاً.";
+      status.style.display = "block";
       return;
     }
 
-    els.ocrStatus.textContent = "⏳ جاري قراءة اللوحة…";
-    els.ocrStatus.className = "ocr-status processing";
-    els.ocrStatus.style.display = "block";
+    const paint = () => new Promise(r => requestAnimationFrame(() => r()));
+    const setStat = async (html, cls="processing") => {
+      status.className = "ocr-status " + cls;
+      status.innerHTML = html;
+      status.style.display = "block";
+      await paint();
+    };
 
-    try{
-      const w = await getOcrWorker();
+    // Helper: crop center (assumes plate roughly in middle of photo)
+    function cropCenter(srcCanvas, wRatio=0.88, hRatio=0.42){
+      const cw = Math.max(1, Math.floor(srcCanvas.width * wRatio));
+      const ch = Math.max(1, Math.floor(srcCanvas.height * hRatio));
+      const cx = Math.floor((srcCanvas.width - cw) / 2);
+      const cy = Math.floor((srcCanvas.height - ch) / 2);
 
-      const baseImg = new Image();
-      baseImg.src = capturedDataUrl;
-      await new Promise((res, rej) => { baseImg.onload = res; baseImg.onerror = rej; });
+      const out = document.createElement("canvas");
+      out.width = cw; out.height = ch;
+      out.getContext("2d").drawImage(srcCanvas, cx, cy, cw, ch, 0, 0, cw, ch);
+      return out;
+    }
 
-      const baseCanvas = document.createElement("canvas");
-      baseCanvas.width = baseImg.naturalWidth || capturedMeta.w || 1;
-      baseCanvas.height = baseImg.naturalHeight || capturedMeta.h || 1;
-      baseCanvas.getContext("2d").drawImage(baseImg, 0, 0);
+    // Helper: downscale to avoid iOS/memory stalls
+    function downscale(srcCanvas, maxW=1200){
+      if(srcCanvas.width <= maxW) return srcCanvas;
+      const scale = maxW / srcCanvas.width;
+      const out = document.createElement("canvas");
+      out.width = Math.max(1, Math.floor(srcCanvas.width * scale));
+      out.height = Math.max(1, Math.floor(srcCanvas.height * scale));
+      out.getContext("2d").drawImage(srcCanvas, 0, 0, out.width, out.height);
+      return out;
+    }
 
-      const processed = document.createElement("canvas");
-      processed.width = baseCanvas.width;
-      processed.height = baseCanvas.height;
-      processed.getContext("2d").drawImage(baseCanvas, 0, 0);
-      preprocessImage(processed);
+    // Helper: fast grayscale + adaptive-ish threshold (simple)
+    function toBW(srcCanvas){
+      const out = document.createElement("canvas");
+      out.width = srcCanvas.width; out.height = srcCanvas.height;
+      const ctx = out.getContext("2d");
+      ctx.drawImage(srcCanvas, 0, 0);
 
-      const inverted = invertCanvas(processed);
+      const img = ctx.getImageData(0,0,out.width,out.height);
+      const d = img.data;
 
-      const variants = [
-        { name: "أصلي", dataUrl: baseCanvas.toDataURL("image/png") },
-        { name: "معالج", dataUrl: processed.toDataURL("image/png") },
-        { name: "معكوس", dataUrl: inverted.toDataURL("image/png") },
-      ];
-
-      const results = [];
-
-      for(let i=0;i<variants.length;i++){
-        els.ocrStatus.textContent = `⏳ قراءة (${i+1}/3): ${variants[i].name}…`;
-        const out = await Promise.race([ w.recognize(variants[i].dataUrl), timeoutPromise(25000) ]);
-        const raw = (out.data.text || "").trim();
-        if(raw){
-          results.push({ text: raw, confidence: out.data.confidence ?? 0, method: variants[i].name });
-        }
+      // compute mean luminance for threshold
+      let sum = 0;
+      for(let i=0;i<d.length;i+=4){
+        sum += 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
       }
+      const mean = sum / (d.length/4);
+      const thr = Math.max(90, Math.min(170, mean)); // clamp
 
-      if(results.length === 0) throw new Error("NO_TEXT");
-
-      let best = null, bestScore = -1;
-      for(const r of results){
-        const plate = extractPlate(r.text.trim());
-        let score = 0;
-        const norm = plate.replace(/\s+/g," ").trim();
-        if(/^[A-Z]{2,4}\s*\d{3,4}$/.test(norm)) score += 60;
-        if(/[A-Z]{2,4}/.test(norm)) score += 20;
-        if(/\d{3,4}/.test(norm)) score += 20;
-        if(norm.length >= 6) score += 10;
-        score += (Number(r.confidence || 0) / 100) * 20;
-        if(score > bestScore){
-          bestScore = score;
-          best = { plate: norm, ...r, score };
-        }
+      for(let i=0;i<d.length;i+=4){
+        const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        const v = g > thr ? 255 : 0;
+        d[i]=d[i+1]=d[i+2]=v;
       }
+      ctx.putImageData(img,0,0);
+      return out;
+    }
 
-      if(!best || !best.plate || best.plate.length < 3) throw new Error("BAD_PLATE");
+    // Helper: invert black/white (some plates read better)
+    function invert(srcCanvas){
+      const out = document.createElement("canvas");
+      out.width = srcCanvas.width; out.height = srcCanvas.height;
+      const ctx = out.getContext("2d");
+      ctx.drawImage(srcCanvas, 0, 0);
+      const img = ctx.getImageData(0,0,out.width,out.height);
+      const d = img.data;
+      for(let i=0;i<d.length;i+=4){
+        d[i]=255-d[i]; d[i+1]=255-d[i+1]; d[i+2]=255-d[i+2];
+      }
+      ctx.putImageData(img,0,0);
+      return out;
+    }
 
-      els.plate.value = best.plate;
-      els.ocrStatus.innerHTML = `✅ تم قراءة اللوحة: <b style="font-size:18px; letter-spacing:2px;">${best.plate}</b><br><small>الدقة: ${Math.round(best.confidence||0)}% | الطريقة: ${best.method}</small>`;
-      els.ocrStatus.className = "ocr-status success";
+    // Helper: timeout wrapper (prevents "جاري..." forever)
+    function withTimeout(promise, ms){
+      return Promise.race([
+        promise,
+        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
+      ]);
+    }
 
-      setTimeout(() => { closeCamera(); }, 1800);
+    // Build base canvas from captured image (NO dataURL to avoid huge strings)
+    const base = document.createElement("canvas");
+    base.width = capturedImg.naturalWidth || capturedImg.width;
+    base.height = capturedImg.naturalHeight || capturedImg.height;
+    base.getContext("2d").drawImage(capturedImg, 0, 0);
 
-    }catch(err){
-      console.error("OCR Error:", err);
-      els.ocrStatus.innerHTML = `❌ ما قدرت أقرأ اللوحة بشكل واضح.<br><small>جرّب: إضاءة أقوى + قرب الكاميرا + خل اللوحة مستقيمة.</small>`;
-      els.ocrStatus.className = "ocr-status error";
+    // Crop + downscale for speed & stability
+    const cropped = downscale(cropCenter(base), 1200);
+
+    // Variants (order matters)
+    const bw = toBW(cropped);
+    const inv = invert(bw);
+
+    const variants = [
+      { name: "إنجليزي", lang: "eng", psm: "SINGLE_LINE", canvas: cropped, whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 " },
+      { name: "إنجليزي (أبيض/أسود)", lang: "eng", psm: "SINGLE_LINE", canvas: bw, whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 " },
+      { name: "إنجليزي (معكوس)", lang: "eng", psm: "SINGLE_LINE", canvas: inv, whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 " }
+    ];
+
+    await setStat("⏳ تجهيز محرك القراءة...", "processing");
+
+    let w = null;
+    try {
+      w = await getOcrWorker();
+    } catch (e){
+      await setStat("❌ تعذر تشغيل محرك قراءة اللوحات. جرّب تحديث الصفحة أو استخدام كروم.", "error");
+      console.error(e);
+      return;
+    }
+
+    const results = [];
+    const MAX_TOTAL_MS = 45000; // 45s total budget
+    const START = Date.now();
+
+    for(let i=0;i<variants.length;i++){
+      if(Date.now() - START > MAX_TOTAL_MS) break;
+
+      const v = variants[i];
+      const attemptNo = i+1;
+
+      await setStat(`⏳ جاري قراءة اللوحة... (محاولة ${attemptNo}/${variants.length})<br><small>الطريقة: ${v.name}</small>`, "processing");
+
+      try{
+        const params = {};
+        if(v.whitelist) params.tessedit_char_whitelist = v.whitelist;
+
+        // Prefer "canvas directly" (less memory, more stable on iOS)
+        const p = w.recognize(v.canvas, {
+          lang: v.lang,
+          psm: v.psm,
+          ...(Object.keys(params).length ? { params } : {})
+        });
+
+        const r = await withTimeout(p, 16000); // 16s per try
+        const text = (r.data && r.data.text ? r.data.text : "").trim();
+        const conf = (r.data && typeof r.data.confidence === "number") ? r.data.confidence : 0;
+
+        if(text){
+          results.push({ text, confidence: conf, method: v.name, lang: v.lang });
+        }
+      } catch(e){
+        // Continue to next attempt
+        console.warn("OCR attempt failed:", v.name, e);
+      }
+    }
+
+    if(results.length === 0){
+      await setStat("❌ ما قدرت أقرأ اللوحة بشكل واضح.<br><small>جرّب: قرب الكاميرا + إضاءة أقوى + خل اللوحة مستقيمة</small>", "error");
+      return;
+    }
+
+    // Pick best by confidence, then by "has both letters & numbers"
+    results.sort((a,b)=> (b.confidence||0) - (a.confidence||0));
+    let best = results[0];
+    for(const r of results){
+      const p = parsePlateFromText(r.text || "");
+      if(p && /[A-Za-z\u0600-\u06FF]/.test(p) && /\d/.test(p)){
+        best = r;
+        break;
+      }
+    }
+
+    const plate = parsePlateFromText(best.text || "");
+    if(plate){
+      els.plate.value = plate;
+      const confPct = Math.round(best.confidence || 0);
+      await setStat(`✅ تم قراءة اللوحة: <b>${escapeHtml(plate)}</b><br><small>الدقة: ${confPct}% | الطريقة: ${best.method}</small>`, "success");
+    } else {
+      await setStat("❌ تم استخراج نص لكن بدون نتيجة لوحة واضحة.<br><small>جرّب إعادة التصوير مع تقريب أكثر</small>", "error");
     }
   }
+
 
 
 
