@@ -2,1274 +2,342 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>رصد السيارات - النسخة النهائية</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>قارئ اللوحات (Safari iPhone)</title>
   <style>
-    :root { --b:#0f172a; --g:#e2e8f0; --bg:#f8fafc; --w:#fff; --r:#ef4444; --p:#2563eb; --gr:#16a34a; --o:#f97316;}
-    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:var(--bg); color:var(--b); }
-    .wrap { max-width: 1200px; margin: 18px auto; padding: 0 14px; }
-    .card { background:var(--w); border:1px solid var(--g); border-radius:14px; padding:14px; box-shadow: 0 1px 0 rgba(15,23,42,.03); }
-    h1 { font-size: 18px; margin: 0 0 10px; }
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
-    label { display:block; font-size:12px; margin-bottom:6px; color:#334155; font-weight:500; }
-    input, select, textarea { width:100%; box-sizing:border-box; padding:10px; border:1px solid var(--g); border-radius:10px; background:#fff; font-size:14px; }
-    input[readonly] { background:#f1f5f9; }
-    .col { flex: 1 1 220px; min-width: 180px; }
-    .col.small { flex: 1 1 150px; min-width: 140px; }
-    .col.wide { flex: 2 1 320px; min-width: 260px; }
-    .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    button { border:0; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:600; font-size:13px; transition: all 0.2s; }
-    button:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    button:active { transform: translateY(0); }
-    .primary { background: var(--p); color:#fff; }
-    .ghost { background:#fff; border:1px solid var(--g); color:var(--b); }
-    .success { background: var(--gr); color:#fff; }
-    .danger { background: var(--r); color:#fff; }
-    .orange { background: var(--o); color:#fff; }
-    .hint { font-size: 12px; color:#475569; margin-top:8px; }
-    .table-wrap { overflow:auto; border:1px solid var(--g); border-radius:12px; margin-top:12px; }
-    table { width:100%; border-collapse: collapse; min-width: 1050px; background:#fff; }
-    th, td { padding:10px; border-bottom:1px solid var(--g); vertical-align: top; text-align:right; }
-    th { background:#f1f5f9; font-size: 12px; position: sticky; top:0; z-index:1; }
-    td { font-size: 13px; }
-    .pill { display:inline-block; padding:3px 8px; border-radius:999px; background:#eef2ff; font-size:12px; }
-    .imgPrev { width:86px; height:64px; object-fit:cover; border-radius:10px; border:1px solid var(--g); background:#f1f5f9; cursor:pointer; }
-    .meta { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; color:#475569; font-size:12px; }
-    .meta b { color:#0f172a; }
-    .topnote { background:#f1f5f9; border:1px dashed #cbd5e1; padding:10px; border-radius:12px; margin:10px 0; font-size:12px; color:#334155; }
-    
-    /* Camera Modal */
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; }
-    .modal.active { display:flex; }
-    .modal-content { background:#fff; border-radius:14px; padding:20px; max-width:95%; max-height:95%; overflow:auto; position:relative; }
-    .modal-close { position:absolute; top:10px; left:10px; background:var(--r); color:#fff; border:0; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:20px; z-index:10; line-height:36px; text-align:center; }
-    .camera-container { position:relative; display:inline-block; }
-    #cameraVideo { width:100%; max-width:640px; border-radius:10px; background:#000; display:block; }
-    #cameraCanvas { display:none; }
-    
-    /* Visual guide for plate alignment */
-    .plate-guide { 
-      position:absolute; 
-      top:50%; 
-      left:50%; 
-      transform:translate(-50%, -50%);
-      border:3px dashed #22c55e;
-      background:rgba(34, 197, 94, 0.1);
-      width:75%;
-      height:25%;
-      pointer-events:none;
-      border-radius:8px;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
-    }
-    
-    .plate-guide::before {
-      content: "ضع اللوحة هنا";
-      position:absolute;
-      top:-35px;
-      left:50%;
-      transform:translateX(-50%);
-      background:#22c55e;
-      color:#fff;
-      padding:6px 16px;
-      border-radius:8px;
-      font-size:14px;
-      font-weight:700;
-      white-space:nowrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    
-    .camera-controls { margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-    
-    /* OCR Status */
-    .ocr-status { padding:12px; border-radius:10px; margin-top:10px; font-size:14px; text-align:center; }
-    .ocr-status.processing { background:#fef3c7; color:#92400e; border:2px solid #fcd34d; }
-    .ocr-status.success { background:#d1fae5; color:#065f46; border:2px solid #34d399; }
-    .ocr-status.error { background:#fee2e2; color:#991b1b; border:2px solid#fca5a5; }
-    
-    /* Autocomplete */
-    .autocomplete-container { position:relative; }
-    .autocomplete-list { position:absolute; top:100%; right:0; left:0; background:#fff; border:1px solid var(--g); border-radius:10px; margin-top:4px; max-height:200px; overflow-y:auto; z-index:100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display:none; }
-    .autocomplete-list.active { display:block; }
-    .autocomplete-item { padding:10px; cursor:pointer; border-bottom:1px solid var(--g); font-size:13px; }
-    .autocomplete-item:last-child { border-bottom:0; }
-    .autocomplete-item:hover { background:#f1f5f9; }
-    
-    /* Quick Actions */
-    .quick-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-    .quick-btn { padding:6px 12px; font-size:12px; border-radius:8px; border:1px solid var(--g); background:#fff; cursor:pointer; }
-    .quick-btn:hover { background:#f1f5f9; }
-    
-    /* Stats */
-    .stats { display:flex; gap:10px; margin:10px 0; flex-wrap:wrap; }
-    .stat-card { flex:1; min-width:140px; padding:12px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; border-radius:10px; }
-    .stat-card.green { background:linear-gradient(135deg, #16a34a 0%, #059669 100%); }
-    .stat-card.orange { background:linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
-    .stat-value { font-size:24px; font-weight:700; }
-    .stat-label { font-size:11px; opacity:0.9; margin-top:4px; }
-    
-    @media print {
-      .no-print { display:none !important; }
-      body { background:#fff; }
-      .card { box-shadow:none; }
-      .table-wrap { overflow: visible; border:0; }
-      table { min-width:auto; }
-      th { position: static; }
-    }
+    :root{--b:#0f172a;--g:#e2e8f0;--bg:#f8fafc;--w:#fff;--p:#2563eb;--r:#ef4444;--gr:#16a34a;--o:#f97316}
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial;background:var(--bg);color:var(--b)}
+    .wrap{max-width:820px;margin:18px auto;padding:0 14px}
+    .card{background:var(--w);border:1px solid var(--g);border-radius:14px;padding:14px;box-shadow:0 1px 0 rgba(15,23,42,.03)}
+    h1{margin:0 0 10px;font-size:18px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .col{flex:1 1 260px;min-width:220px}
+    button{border:0;padding:11px 14px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px}
+    .primary{background:var(--p);color:#fff}
+    .ghost{background:#fff;border:1px solid var(--g)}
+    .orange{background:var(--o);color:#fff}
+    input[type=file]{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--g);border-radius:12px;background:#fff}
+    .hint{margin-top:8px;font-size:12px;color:#475569;line-height:1.6}
+    .status{margin-top:10px;padding:10px;border-radius:12px;font-size:13px;text-align:center;display:none}
+    .status.processing{display:block;background:#fef3c7;color:#92400e}
+    .status.success{display:block;background:#d1fae5;color:#065f46}
+    .status.error{display:block;background:#fee2e2;color:#991b1b}
+    .preview{margin-top:12px;border:1px solid var(--g);border-radius:14px;overflow:hidden;background:#000}
+    .preview img{display:block;width:100%;height:auto}
+    .pill{display:inline-block;padding:3px 9px;border-radius:999px;background:#eef2ff;font-size:12px}
+    canvas{display:none}
   </style>
 </head>
-
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>🚗 برنامج رصد السيارات - قراءة ذكية بالإنجليزي</h1>
+      <h1>📸 قراءة رقم اللوحة (مخصص لـ iPhone Safari على GitHub Pages)</h1>
 
-      <div class="topnote no-print">
-        <b>✨ تحسينات القراءة:</b> 
-        <span class="pill">قراءة إنجليزية فقط (دقة أعلى)</span> 
-        <span class="pill">5 محاولات مختلفة</span>
-        <span class="pill">تكبير 2X</span>
-        <span class="pill">معالجة متقدمة</span>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats no-print">
-        <div class="stat-card">
-          <div class="stat-value" id="statTotal">0</div>
-          <div class="stat-label">إجمالي المركبات</div>
-        </div>
-        <div class="stat-card green">
-          <div class="stat-value" id="statToday">0</div>
-          <div class="stat-label">اليوم</div>
-        </div>
-        <div class="stat-card orange">
-          <div class="stat-value" id="statWithPhotos">0</div>
-          <div class="stat-label">بصور</div>
-        </div>
-      </div>
-
-      <!-- بيانات رجل الأمن -->
-      <div class="row no-print">
-        <div class="col small">
-          <label>الرقم الوظيفي</label>
-          <input id="empId" inputmode="numeric" placeholder="مثال: 88840" />
-        </div>
-
-        <div class="col wide">
-          <label>اسم رجل الأمن</label>
-          <input id="empName" placeholder="يظهر تلقائيًا بعد البحث" readonly />
-        </div>
-
-        <div class="col small">
-          <label>التاريخ</label>
-          <input id="reportDate" readonly />
-        </div>
-
-        <div class="col small">
-          <label>الوقت</label>
-          <input id="reportTime" readonly />
-        </div>
-
-        <div class="col small">
-          <button class="primary" id="btnLookup" style="width:100%">🔍 بحث</button>
-        </div>
-      </div>
-
-      <div class="meta">
-        <span>الحالة: <b id="status">بانتظار إدخال الرقم الوظيفي</b></span>
-        <span class="no-print">• يتم الحفظ محليًا داخل المتصفح</span>
-      </div>
-
-      <hr style="border:0;border-top:1px solid var(--g);margin:12px 0;" />
-
-      <!-- نموذج إدخال السيارة -->
-      <div class="row no-print">
-        <div class="col small">
-          <label>البرج</label>
-          <select id="tower">
-            <option value="">اختر</option>
-            <option>A</option><option>B</option><option>C</option>
-          </select>
-        </div>
-
-        <div class="col small">
-          <label>الدور</label>
-          <select id="floor">
-            <option value="">اختر</option>
-            <option>LG</option><option>B</option>
-          </select>
-        </div>
-
-        <div class="col autocomplete-container">
-          <label>نوع المركبة</label>
-          <input id="vehicleType" placeholder="مثال: سيدان / SUV / باص..." autocomplete="off" />
-          <div class="autocomplete-list" id="vehicleTypeList"></div>
-        </div>
-
-        <div class="col small autocomplete-container">
-          <label>لون المركبة</label>
-          <input id="vehicleColor" placeholder="مثال: أبيض" autocomplete="off" />
-          <div class="autocomplete-list" id="vehicleColorList"></div>
-        </div>
-
+      <div class="row">
         <div class="col">
-          <label>رقم اللوحة (إنجليزي) 📸</label>
-          <div style="display:flex; gap:8px;">
-            <input id="plate" placeholder="ABC 1234 أو استخدم الكاميرا" style="flex:1; text-transform:uppercase;" />
-            <button class="orange" id="btnCamera" style="min-width:48px; padding:10px; font-size:16px;">📷</button>
-          </div>
-          <div class="hint">💡 القراءة الآن بالإنجليزي فقط - دقة أعلى بكثير!</div>
-        </div>
-
-        <div class="col small">
-          <label>رقم الموقف</label>
-          <input id="spotNo" placeholder="مثال: 152" inputmode="numeric" />
-        </div>
-
-        <div class="col small">
-          <label>رقم العامود</label>
-          <input id="pillarNo" placeholder="مثال: P-09" />
-        </div>
-
-        <div class="col small">
-          <label>مدة التوقف</label>
-          <select id="duration">
-            <option value="">اختر</option>
-            <option>حديثة</option>
-            <option>متوسط المدة</option>
-            <option>قديمة</option>
-          </select>
-        </div>
-
-        <div class="col wide">
-          <label>صورة المركبة (اختياري)</label>
           <input id="photo" type="file" accept="image/*" capture="environment" />
-          <div class="hint">💡 يمكنك التقاط صورة مباشرة أو اختيار من المعرض</div>
+          <div class="hint">
+            <span class="pill">تصوير ثم قراءة</span>
+            • في iPhone Safari الأفضل: قرّب الكاميرا وخلي اللوحة مستقيمة وتعبّي أغلب الإطار.
+          </div>
+        </div>
+        <div class="col" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-start">
+          <button class="primary" id="btnRead" disabled>🔎 اقرأ اللوحة</button>
+          <button class="ghost" id="btnReset">↩️ إعادة</button>
         </div>
       </div>
 
-      <!-- Quick Actions for faster input -->
-      <div class="quick-actions no-print">
-        <div style="font-size:12px; color:#64748b; margin-left:10px;">⚡ إدخال سريع:</div>
-        <button class="quick-btn" data-tower="A" data-floor="LG">A-LG</button>
-        <button class="quick-btn" data-tower="A" data-floor="B">A-B</button>
-        <button class="quick-btn" data-tower="B" data-floor="LG">B-LG</button>
-        <button class="quick-btn" data-tower="B" data-floor="B">B-B</button>
-        <button class="quick-btn" data-tower="C" data-floor="LG">C-LG</button>
-        <button class="quick-btn" data-tower="C" data-floor="B">C-B</button>
+      <div id="status" class="status"></div>
+
+      <div class="preview" id="previewBox" style="display:none">
+        <img id="previewImg" alt="معاينة" />
       </div>
 
-      <div class="btns no-print">
-        <button class="primary" id="btnAdd">➕ إضافة المركبة للتقرير</button>
-        <button class="ghost" id="btnSave">💾 حفظ محلي</button>
-        <button class="ghost" id="btnNew">📄 تقرير جديد</button>
-        <button class="ghost" id="btnExportCSV">📊 تصدير CSV</button>
-        <button class="success" id="btnExportJSON">📦 تصدير JSON</button>
-        <button class="success" id="btnImportJSON">📥 استيراد JSON</button>
-        <input id="importFile" type="file" accept="application/json" style="display:none" />
-        <button class="ghost" id="btnPrint">🖨️ طباعة</button>
-        <button class="danger" id="btnClearAll">🗑️ مسح كل البيانات</button>
+      <div class="hint" style="margin-top:12px">
+        ✅ حلول تعلّق “جاري القراءة” في iPhone Safari:
+        <br>1) هذه النسخة <b>لا تستخدم DataURL</b> (تتجنب ثقل iOS).
+        <br>2) نعمل <b>قص تلقائي للمنتصف + تصغير</b> قبل OCR.
+        <br>3) نستخدم <b>Worker من CDN</b> مع <b>Timeout</b> (إذا علق، يرجع لك برسالة بدل انتظار للأبد).
       </div>
 
-      <!-- عرض الجدول -->
-      <div class="table-wrap">
-        <table id="tbl">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>البرج</th>
-              <th>الدور</th>
-              <th>نوع المركبة</th>
-              <th>اللون</th>
-              <th>رقم اللوحة</th>
-              <th>رقم الموقف</th>
-              <th>رقم العامود</th>
-              <th>مدة التوقف</th>
-              <th>الصورة</th>
-              <th class="no-print">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
-      <div class="hint" style="margin-top:10px;">
-        عند الطباعة يظهر أعلى التقرير: <span class="pill">اسم رجل الأمن</span> + <span class="pill">الرقم الوظيفي</span> + <span class="pill">التاريخ/الوقت</span>.
-      </div>
+      <canvas id="workCanvas"></canvas>
     </div>
   </div>
 
-  <!-- Camera Modal -->
-  <div class="modal" id="cameraModal">
-    <div class="modal-content">
-      <button class="modal-close" id="closeCamera">✕</button>
-      <h2 style="margin-top:0; text-align:center;">📸 قراءة رقم اللوحة (إنجليزي)</h2>
-      <div class="camera-container">
-        <video id="cameraVideo" autoplay playsinline></video>
-        <div class="plate-guide"></div>
-      
-      <img id="platePreview" style="display:none; width:100%; max-width:640px; margin-top:12px; border-radius:10px; border:1px solid var(--g); background:#f1f5f9;" alt="معاينة اللوحة" />
-      <div class="hint" id="previewHint" style="display:none; text-align:center; margin-top:8px;">✅ إذا كانت اللوحة واضحة اضغط <b>اقرأ اللوحة</b>، أو اختر <b>إعادة التصوير</b>.</div>
-</div>
-      <canvas id="cameraCanvas"></canvas>
-      <div class="camera-controls">
-        <button class="primary" id="captureBtn" style="font-size:15px; padding:12px 24px;">📸 التقط وقراءة</button>
-        <button class="orange" id="flashBtn" style="display:none;">💡 فلاش</button>
-        <button class="success" id="readBtn" style="display:none;">🔎 اقرأ اللوحة</button>
-        <button class="ghost" id="retakeBtn" style="display:none;">↩️ إعادة التصوير</button>
-        <button class="ghost" id="cancelCamera">إلغاء</button>
-      </div>
-      <div id="ocrStatus" class="ocr-status" style="display:none;"></div>
-      <div class="hint" style="text-align:center; margin-top:15px;">
-        <b>💡 نصائح للحصول على أفضل نتيجة:</b><br>
-        ✓ ضع اللوحة الإنجليزية في المستطيل الأخضر<br>
-        ✓ تأكد من إضاءة جيدة بدون ظلال<br>
-        ✓ اجعل اللوحة مستقيمة وموازية للكاميرا<br>
-        ✓ انتظر حتى تركز الكاميرا تلقائياً
-      </div>
-    </div>
-  </div>
+  <!-- Tesseract (v5) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-  <!-- Image Preview Modal -->
-  <div class="modal" id="imageModal">
-    <div class="modal-content">
-      <button class="modal-close" id="closeImage">✕</button>
-      <img id="modalImage" style="max-width:100%; max-height:80vh; border-radius:10px;" />
-    </div>
-  </div>
-
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script>
-(() => {
-  const EMPLOYEES = {
-    "88840": "محمد حمد القحطاني",
-    "12345": "أحمد علي السعيد",
-    "67890": "خالد محمد العتيبي",
-  };
-
-  const VEHICLE_TYPES = [
-    "سيدان", "SUV", "باص", "فان", "بيك أب", "دباب", "شاحنة صغيرة", "هاتشباك", "كوبيه", "كروس أوفر"
-  ];
-
-  const VEHICLE_COLORS = [
-    "أبيض", "أسود", "رمادي", "فضي", "أزرق", "أحمر", "بني", "ذهبي", "أخضر", "برتقالي", "أصفر"
-  ];
-
-  const els = {
-    empId: document.getElementById("empId"),
-    empName: document.getElementById("empName"),
-    reportDate: document.getElementById("reportDate"),
-    reportTime: document.getElementById("reportTime"),
-    status: document.getElementById("status"),
-
-    tower: document.getElementById("tower"),
-    floor: document.getElementById("floor"),
-    vehicleType: document.getElementById("vehicleType"),
-    vehicleColor: document.getElementById("vehicleColor"),
-    plate: document.getElementById("plate"),
-    spotNo: document.getElementById("spotNo"),
-    pillarNo: document.getElementById("pillarNo"),
-    duration: document.getElementById("duration"),
-    photo: document.getElementById("photo"),
-
-    btnLookup: document.getElementById("btnLookup"),
-    btnAdd: document.getElementById("btnAdd"),
-    btnSave: document.getElementById("btnSave"),
-    btnNew: document.getElementById("btnNew"),
-    btnExportCSV: document.getElementById("btnExportCSV"),
-    btnExportJSON: document.getElementById("btnExportJSON"),
-    btnImportJSON: document.getElementById("btnImportJSON"),
-    importFile: document.getElementById("importFile"),
-    btnPrint: document.getElementById("btnPrint"),
-    btnClearAll: document.getElementById("btnClearAll"),
-    btnCamera: document.getElementById("btnCamera"),
-
-    tblBody: document.querySelector("#tbl tbody"),
-    
-    cameraModal: document.getElementById("cameraModal"),
-    cameraVideo: document.getElementById("cameraVideo"),
-    cameraCanvas: document.getElementById("cameraCanvas"),
-    platePreview: document.getElementById("platePreview"),
-    previewHint: document.getElementById("previewHint"),
-    readBtn: document.getElementById("readBtn"),
-    retakeBtn: document.getElementById("retakeBtn"),
-    captureBtn: document.getElementById("captureBtn"),
-    closeCamera: document.getElementById("closeCamera"),
-    cancelCamera: document.getElementById("cancelCamera"),
-    ocrStatus: document.getElementById("ocrStatus"),
-    
-    imageModal: document.getElementById("imageModal"),
-    modalImage: document.getElementById("modalImage"),
-    closeImage: document.getElementById("closeImage"),
-
-    vehicleTypeList: document.getElementById("vehicleTypeList"),
-    vehicleColorList: document.getElementById("vehicleColorList"),
-
-    statTotal: document.getElementById("statTotal"),
-    statToday: document.getElementById("statToday"),
-    statWithPhotos: document.getElementById("statWithPhotos"),
-  };
-
-  const STORAGE_KEY = "after_hours_parking_report_v3_eng";
-
-  let report = {
-    guard: { empId: "", name: "" },
-    createdAtISO: "",
-    vehicles: []
-  };
-
-  let cameraStream = null;
-
-  function pad2(n){ return String(n).padStart(2,"0"); }
-
-  function setNow() {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = pad2(d.getMonth()+1);
-    const dd = pad2(d.getDate());
-    const hh = pad2(d.getHours());
-    const mi = pad2(d.getMinutes());
-    els.reportDate.value = `${yyyy}-${mm}-${dd}`;
-    els.reportTime.value = `${hh}:${mi}`;
-  }
-
-  function setStatus(msg){ els.status.textContent = msg; }
-
-  function updateStats(){
-    const total = report.vehicles.length;
-    const today = new Date().toISOString().split('T')[0];
-    const todayCount = report.vehicles.filter(v => v.addedAt && v.addedAt.startsWith(today)).length;
-    const withPhotos = report.vehicles.filter(v => v.photoDataUrl).length;
-    
-    els.statTotal.textContent = total;
-    els.statToday.textContent = todayCount;
-    els.statWithPhotos.textContent = withPhotos;
-  }
-
-  function saveToStorage(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(report));
-    setStatus("تم الحفظ محليًا ✅");
-    updateStats();
-  }
-
-  function loadFromStorage(){
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return false;
-    try {
-      report = JSON.parse(raw);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  function newReport(){
-    report = {
-      guard: { empId: "", name: "" },
-      createdAtISO: "",
-      vehicles: []
-    };
-    els.empId.value = "";
-    els.empName.value = "";
-    setNow();
-    clearVehicleForm();
-    renderTable();
-    setStatus("تقرير جديد جاهز");
-    updateStats();
-  }
-
-  function clearVehicleForm(){
-    els.tower.value = "";
-    els.floor.value = "";
-    els.vehicleType.value = "";
-    els.vehicleColor.value = "";
-    els.plate.value = "";
-    els.spotNo.value = "";
-    els.pillarNo.value = "";
-    els.duration.value = "";
-    els.photo.value = "";
-  }
-
-  function lookupGuard(){
-    const id = (els.empId.value || "").trim();
-    if(!id){
-      els.empName.value = "";
-      setStatus("أدخل الرقم الوظيفي ثم اضغط بحث");
-      return;
-    }
-    const name = EMPLOYEES[id];
-    if(name){
-      els.empName.value = name;
-      setNow();
-      report.guard.empId = id;
-      report.guard.name = name;
-      if(!report.createdAtISO) report.createdAtISO = new Date().toISOString();
-      setStatus("تم العثور على رجل الأمن ✅");
-    } else {
-      els.empName.value = "";
-      report.guard.empId = id;
-      report.guard.name = "";
-      setStatus("لم يتم العثور على الاسم لهذا الرقم");
-    }
-  }
-
-  function readPhotoAsDataUrl(file){
-    return new Promise((resolve, reject) => {
-      if(!file) return resolve("");
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result || "");
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function validateBeforeAdd(){
-    if(!report.guard.empId || !els.empId.value.trim()){
-      setStatus("لازم تدخل الرقم الوظيفي وتبحث أولاً");
-      return false;
-    }
-    if(!els.tower.value || !els.floor.value || !els.plate.value.trim()){
-      setStatus("الرجاء تعبئة (البرج + الدور + رقم اللوحة) على الأقل");
-      return false;
-    }
-    return true;
-  }
-
-  async function addVehicle(){
-    if(!validateBeforeAdd()) return;
-
-    const photoFile = els.photo.files && els.photo.files[0];
-    const photoDataUrl = await readPhotoAsDataUrl(photoFile);
-
-    const item = {
-      tower: els.tower.value,
-      floor: els.floor.value,
-      vehicleType: els.vehicleType.value.trim(),
-      vehicleColor: els.vehicleColor.value.trim(),
-      plate: els.plate.value.trim().toUpperCase(),
-      spotNo: els.spotNo.value.trim(),
-      pillarNo: els.pillarNo.value.trim(),
-      duration: els.duration.value,
-      photoDataUrl,
-      addedAt: new Date().toISOString()
+  <script>
+  (() => {
+    const els = {
+      photo: document.getElementById('photo'),
+      btnRead: document.getElementById('btnRead'),
+      btnReset: document.getElementById('btnReset'),
+      status: document.getElementById('status'),
+      previewBox: document.getElementById('previewBox'),
+      previewImg: document.getElementById('previewImg'),
+      canvas: document.getElementById('workCanvas'),
     };
 
-    report.vehicles.push(item);
-    renderTable();
-    clearVehicleForm();
-    saveToStorage();
-    setStatus("تمت إضافة المركبة ✅");
-    els.plate.focus();
-  }
+    let currentImageBitmap = null;
 
-  function removeVehicle(idx){
-    if(confirm("هل أنت متأكد من حذف هذه المركبة؟")){
-      report.vehicles.splice(idx, 1);
-      renderTable();
-      saveToStorage();
-      setStatus("تم حذف السطر");
+    function setStatus(type, msg){
+      els.status.className = 'status ' + (type || '');
+      els.status.textContent = msg || '';
+      if(!type) els.status.style.display = 'none';
     }
-  }
 
-  function renderTable(){
-    els.tblBody.innerHTML = "";
-    report.vehicles.forEach((v, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i+1}</td>
-        <td>${escapeHtml(v.tower)}</td>
-        <td>${escapeHtml(v.floor)}</td>
-        <td>${escapeHtml(v.vehicleType)}</td>
-        <td>${escapeHtml(v.vehicleColor)}</td>
-        <td><b>${escapeHtml(v.plate)}</b></td>
-        <td>${escapeHtml(v.spotNo)}</td>
-        <td>${escapeHtml(v.pillarNo)}</td>
-        <td>${escapeHtml(v.duration)}</td>
-        <td>${v.photoDataUrl ? `<img class="imgPrev" src="${v.photoDataUrl}" alt="صورة المركبة" data-index="${i}">` : "-"}</td>
-        <td class="no-print"><button class="danger" data-del="${i}">حذف</button></td>
-      `;
-      els.tblBody.appendChild(tr);
-    });
+    function arabicIndicToWestern(s){
+      const map = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+      return (s||'').split('').map(ch => map[ch] || ch).join('');
+    }
 
-    els.tblBody.querySelectorAll("button[data-del]").forEach(btn => {
-      btn.addEventListener("click", () => removeVehicle(Number(btn.dataset.del)));
-    });
+    function normalizeText(text){
+      let t = arabicIndicToWestern(String(text||''));
+      // keep only letters/digits/spaces + arabic
+      t = t.replace(/[^A-Za-z0-9\u0600-\u06FF\s]/g, ' ');
+      t = t.replace(/\s+/g,' ').trim();
+      // common OCR digit confusions
+      t = t.replace(/[OoQ]/g,'0').replace(/[Il|]/g,'1').replace(/[Zz]/g,'2').replace(/[Ss]/g,'5').replace(/[Bb]/g,'8');
+      return t;
+    }
 
-    els.tblBody.querySelectorAll("img.imgPrev").forEach(img => {
-      img.addEventListener("click", () => {
-        const idx = Number(img.dataset.index);
-        if(report.vehicles[idx] && report.vehicles[idx].photoDataUrl){
-          els.modalImage.src = report.vehicles[idx].photoDataUrl;
-          els.imageModal.classList.add("active");
+    function extractPlate(text){
+      const t = normalizeText(text);
+      // Prefer: 3 letters + 4 digits OR 4 digits + 3 letters
+      const patterns = [
+        /([A-Z]{2,4})\s*(\d{3,4})/i,
+        /(\d{3,4})\s*([A-Z]{2,4})/i,
+        /([\u0600-\u06FF]{2,4})\s*(\d{3,4})/,
+        /(\d{3,4})\s*([\u0600-\u06FF]{2,4})/,
+      ];
+      for(const p of patterns){
+        const m = t.match(p);
+        if(m){
+          return (m[1] + ' ' + m[2]).toUpperCase().trim();
         }
-      });
-    });
+      }
+      // fallback
+      return t.toUpperCase();
+    }
 
-    updateStats();
-  }
-
-  function exportCSV(){
-    const headers = [
-      "رقم التقرير","الرقم الوظيفي","اسم رجل الأمن","تاريخ","وقت",
-      "البرج","الدور","نوع المركبة","لون المركبة","رقم اللوحة","رقم الموقف","رقم العامود","مدة التوقف","وقت الإضافة","هل توجد صورة"
-    ];
-
-    const repNo = report.createdAtISO ? report.createdAtISO : new Date().toISOString();
-    const date = els.reportDate.value || "";
-    const time = els.reportTime.value || "";
-
-    const rows = report.vehicles.map(v => ([
-      repNo,
-      report.guard.empId || "",
-      report.guard.name || els.empName.value || "",
-      date,
-      time,
-      v.tower, v.floor, v.vehicleType, v.vehicleColor, v.plate, v.spotNo, v.pillarNo, v.duration,
-      v.addedAt,
-      v.photoDataUrl ? "نعم" : "لا"
-    ]));
-
-    const csv = [headers, ...rows]
-      .map(r => r.map(cell => `"${String(cell ?? "").replaceAll('"','""')}"`).join(","))
-      .join("\n");
-
-    downloadBlob(csv, `تقرير_رصد_السيارات_${(date||"")}_${(time||"").replace(":","-")}.csv`, "text/csv;charset=utf-8");
-    setStatus("تم تصدير CSV ✅");
-  }
-
-  function exportJSON(){
-    const payload = {
-      ...report,
-      displayDate: els.reportDate.value || "",
-      displayTime: els.reportTime.value || "",
-      exportedAtISO: new Date().toISOString(),
-      version: 3
-    };
-    const json = JSON.stringify(payload, null, 2);
-    const fname = `تقرير_رصد_السيارات_${(els.reportDate.value||"")}_${(els.reportTime.value||"").replace(":","-")}.json`;
-    downloadBlob(json, fname, "application/json;charset=utf-8");
-    setStatus("تم تصدير JSON ✅");
-  }
-
-  function importJSONFile(file){
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
+    async function fileToBitmap(file){
+      // Safer path for iOS: createImageBitmap works in modern Safari, fallback to Image.
       try{
-        const data = JSON.parse(reader.result);
-        if(!data || typeof data !== "object" || !Array.isArray(data.vehicles) || !data.guard){
-          setStatus("ملف JSON غير صالح");
-          return;
-        }
-        report = {
-          guard: { empId: String(data.guard.empId||""), name: String(data.guard.name||"") },
-          createdAtISO: String(data.createdAtISO||""),
-          vehicles: data.vehicles
-        };
-        els.empId.value = report.guard.empId || "";
-        els.empName.value = report.guard.name || "";
-        els.reportDate.value = String(data.displayDate||els.reportDate.value||"");
-        els.reportTime.value = String(data.displayTime||els.reportTime.value||"");
-        renderTable();
-        saveToStorage();
-        setStatus("تم استيراد التقرير وحفظه محليًا ✅");
-      } catch(e){
-        setStatus("تعذر قراءة ملف JSON");
-      }
-    };
-    reader.readAsText(file, "utf-8");
-  }
-
-  function downloadBlob(content, filename, mime){
-    const blob = new Blob([content], {type:mime});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  function clearAll(){
-    if(confirm("⚠️ هل أنت متأكد من مسح كل البيانات؟")){
-      localStorage.removeItem(STORAGE_KEY);
-      newReport();
-      setStatus("تم مسح كل البيانات");
-    }
-  }
-
-  function escapeHtml(s){
-    return String(s ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  // ============ AUTOCOMPLETE ============
-  function setupAutocomplete(inputEl, listEl, suggestions){
-    inputEl.addEventListener("input", () => {
-      const val = inputEl.value.toLowerCase().trim();
-      if(!val){
-        listEl.classList.remove("active");
-        return;
-      }
-      
-      const filtered = suggestions.filter(s => s.toLowerCase().includes(val));
-      if(filtered.length === 0){
-        listEl.classList.remove("active");
-        return;
-      }
-
-      listEl.innerHTML = filtered.map(s => 
-        `<div class="autocomplete-item">${escapeHtml(s)}</div>`
-      ).join("");
-      
-      listEl.querySelectorAll(".autocomplete-item").forEach(item => {
-        item.addEventListener("click", () => {
-          inputEl.value = item.textContent;
-          listEl.classList.remove("active");
+        return await createImageBitmap(file);
+      }catch(e){
+        return await new Promise((resolve, reject) => {
+          const url = URL.createObjectURL(file);
+          const img = new Image();
+          img.onload = () => {
+            URL.revokeObjectURL(url);
+            resolve(img);
+          };
+          img.onerror = reject;
+          img.src = url;
         });
-      });
-      
-      listEl.classList.add("active");
-    });
-
-    inputEl.addEventListener("blur", () => {
-      setTimeout(() => listEl.classList.remove("active"), 200);
-    });
-  }
-
-  setupAutocomplete(els.vehicleType, els.vehicleTypeList, VEHICLE_TYPES);
-  setupAutocomplete(els.vehicleColor, els.vehicleColorList, VEHICLE_COLORS);
-
-  // ============ QUICK ACTIONS ============
-  document.querySelectorAll(".quick-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const tower = btn.dataset.tower;
-      const floor = btn.dataset.floor;
-      if(tower) els.tower.value = tower;
-      if(floor) els.floor.value = floor;
-    });
-  });
-
-  // ============ CAMERA OCR - ENGLISH ONLY ============
-  async function openCamera(){
-    try {
-      const constraints = {
-        video: {
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        }
-      };
-      
-      cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-      els.cameraVideo.srcObject = cameraStream;
-      
-      const track = cameraStream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      if (capabilities.torch) {
-        document.getElementById("flashBtn").style.display = "inline-block";
-      }
-      
-      els.cameraModal.classList.add("active");
-      resetCaptureUI();
-      els.ocrStatus.style.display = "none";
-    } catch(err){
-      console.error("Camera error:", err);
-      alert("لا يمكن الوصول للكاميرا. تأكد من:\n• منح الأذونات\n• استخدام HTTPS أو localhost\n• عدم استخدام الكاميرا في تطبيق آخر");
-    }
-  }
-
-  function closeCamera(){
-    if(cameraStream){
-      cameraStream.getTracks().forEach(track => track.stop());
-      cameraStream = null;
-    }
-    els.cameraModal.classList.remove("active");
-    els.ocrStatus.style.display = "none";
-    resetCaptureUI();
-  }
-
-  // Enhanced preprocessing
-  function preprocessImage(canvas) {
-    const ctx = canvas.getContext("2d");
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    // Grayscale
-    for (let i = 0; i < data.length; i += 4) {
-      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-      data[i] = data[i + 1] = data[i + 2] = avg;
-    }
-
-    // High contrast + sharp threshold
-    for (let i = 0; i < data.length; i += 4) {
-      let val = data[i];
-      val = ((val - 128) * 2.0) + 128;
-      val = val > 140 ? 255 : 0;
-      data[i] = data[i + 1] = data[i + 2] = val;
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-    return canvas;
-  }
-
-  // Extract plate - ENGLISH ONLY
-  function extractPlate(text) {
-    // Only English letters and numbers
-    let cleaned = text.replace(/[^A-Z0-9\s]/gi, " ");
-    
-    // Corrections
-    const fix = {
-      'O':'0', 'o':'0', 'Q':'0', 'D':'0',
-      'I':'1', 'l':'1', 'L':'1', '|':'1',
-      'Z':'2', 'S':'5', 's':'5', 'G':'6',
-      'B':'8', 'T':'7'
-    };
-    
-    const parts = cleaned.split(/\s+/).filter(p => p.length > 1);
-    let letters = '', numbers = '';
-    
-    for (const part of parts) {
-      if (/^[A-Z]+$/i.test(part) && part.length >= 2) {
-        letters = part.toUpperCase();
-      } else if (/^\d+$/.test(part)) {
-        numbers = part;
-      } else {
-        const l = part.match(/[A-Z]+/i);
-        const n = part.match(/\d+/);
-        if (l && l[0].length >= 2) letters = l[0].toUpperCase();
-        if (n) numbers = n[0];
       }
     }
-    
-    // Apply corrections to numbers only
-    numbers = numbers.split('').map(c => fix[c] || c).join('');
-    
-    if (letters && numbers && letters.length >= 2 && numbers.length >= 3) {
-      return `${letters} ${numbers}`;
-    }
-    
-    return cleaned.replace(/\s+/g, " ").trim().toUpperCase();
-  }
 
-  
-  // ======== PLATE CAPTURE -> PREVIEW -> OCR (Saudi/English) ========
-  let capturedDataUrl = "";
-  let capturedMeta = { w:0, h:0 };
+    function drawAndCropToPlate(bitmap){
+      // Crop center region and downscale to keep OCR fast on iOS
+      const canvas = els.canvas;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-  function showPreview(dataUrl){
-    capturedDataUrl = dataUrl || "";
-    els.platePreview.src = capturedDataUrl;
-    els.platePreview.style.display = capturedDataUrl ? "block" : "none";
-    els.previewHint.style.display = capturedDataUrl ? "block" : "none";
+      const w = bitmap.width || bitmap.naturalWidth;
+      const h = bitmap.height || bitmap.naturalHeight;
 
-    // Hide live video once captured
-    els.cameraVideo.style.display = capturedDataUrl ? "none" : "block";
-    const guide = els.cameraModal.querySelector(".plate-guide");
-    if(guide) guide.style.display = capturedDataUrl ? "none" : "block";
+      // Center crop: 85% width, 40% height (plates usually in middle-lower)
+      const cropW = Math.floor(w * 0.85);
+      const cropH = Math.floor(h * 0.40);
+      const cropX = Math.floor((w - cropW) / 2);
+      const cropY = Math.floor(h * 0.40); // bias downward
+      const safeY = Math.max(0, Math.min(h - cropH, cropY));
 
-    // Toggle buttons
-    els.captureBtn.style.display = capturedDataUrl ? "none" : "inline-block";
-    els.readBtn.style.display = capturedDataUrl ? "inline-block" : "none";
-    els.retakeBtn.style.display = capturedDataUrl ? "inline-block" : "none";
-  }
+      // Downscale target (keep under ~1.2MP)
+      const targetW = Math.min(1400, cropW);
+      const scale = targetW / cropW;
+      const targetH = Math.max(300, Math.floor(cropH * scale));
 
-  function resetCaptureUI(){
-    capturedDataUrl = "";
-    els.platePreview.removeAttribute("src");
-    els.platePreview.style.display = "none";
-    els.previewHint.style.display = "none";
-    els.cameraVideo.style.display = "block";
-    const guide = els.cameraModal.querySelector(".plate-guide");
-    if(guide) guide.style.display = "block";
-    els.captureBtn.style.display = "inline-block";
-    els.readBtn.style.display = "none";
-    els.retakeBtn.style.display = "none";
-  }
+      canvas.width = targetW;
+      canvas.height = targetH;
+      ctx.clearRect(0,0,targetW,targetH);
+      ctx.drawImage(bitmap, cropX, safeY, cropW, cropH, 0, 0, targetW, targetH);
 
-  function cropFromCenterGuide(fullCanvas){
-    const cropW = fullCanvas.width * 0.75;
-    const cropH = fullCanvas.height * 0.25;
-    const cropX = (fullCanvas.width - cropW) / 2;
-    const cropY = (fullCanvas.height - cropH) / 2;
-
-    const cropCanvas = document.createElement("canvas");
-    cropCanvas.width = Math.max(1, Math.round(cropW));
-    cropCanvas.height = Math.max(1, Math.round(cropH));
-    const cropCtx = cropCanvas.getContext("2d");
-    cropCtx.drawImage(fullCanvas, cropX, cropY, cropW, cropH, 0, 0, cropCanvas.width, cropCanvas.height);
-    return cropCanvas;
-  }
-
-  function upscale2x(srcCanvas){
-    const c = document.createElement("canvas");
-    c.width = srcCanvas.width * 2;
-    c.height = srcCanvas.height * 2;
-    const cctx = c.getContext("2d");
-    cctx.imageSmoothingEnabled = false;
-    cctx.drawImage(srcCanvas, 0, 0, c.width, c.height);
-    return c;
-  }
-
-  function invertCanvas(srcCanvas){
-    const c = document.createElement("canvas");
-    c.width = srcCanvas.width;
-    c.height = srcCanvas.height;
-    const ctx = c.getContext("2d");
-    ctx.drawImage(srcCanvas, 0, 0);
-    const d = ctx.getImageData(0, 0, c.width, c.height);
-    for(let i=0;i<d.data.length;i+=4){
-      d.data[i] = 255 - d.data[i];
-      d.data[i+1] = 255 - d.data[i+1];
-      d.data[i+2] = 255 - d.data[i+2];
-    }
-    ctx.putImageData(d, 0, 0);
-    return c;
-  }
-
-  function capturePhoto(){
-    const video = els.cameraVideo;
-    const canvas = els.cameraCanvas;
-    const ctx = canvas.getContext("2d");
-
-    if(!video.videoWidth || !video.videoHeight){
-      setStatus("انتظر ثواني حتى تشتغل الكاميرا…");
-      return;
+      return { canvas, ctx };
     }
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-
-    const cropped = cropFromCenterGuide(canvas);
-    const upscaled = upscale2x(cropped);
-
-    capturedMeta = { w: upscaled.width, h: upscaled.height };
-    showPreview(upscaled.toDataURL("image/jpeg", 0.92));
-  }
-
-  function timeoutPromise(ms){
-    return new Promise((_, rej) => setTimeout(() => rej(new Error("TIMEOUT")), ms));
-  }
-
-  let ocrWorker = null;
-async function getOcrWorker(){
-  if(ocrWorker) return ocrWorker;
-
-  // Explicit CDN paths (important on iOS/Safari + GitHub Pages to avoid "يجهّز" indefinitely)
-  const workerPath = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js";
-  const corePath   = "https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js";
-  // Public traineddata mirror (fast + CORS-friendly). We only load English here for speed/accuracy on Latin plates.
-  const langPath   = "https://tessdata.projectnaptha.com/4.0.0";
-
-  ocrWorker = await Tesseract.createWorker({
-    logger: (m) => {
-      // show progress for both loading + recognition
-      if(m && m.status){
-        let msg = m.status;
-        if(typeof m.progress === "number") msg += ` (${Math.round(m.progress * 100)}%)`;
-        setOcrStatus("⏳ " + msg, "processing");
-      }
-    },
-    workerPath,
-    corePath,
-    langPath,
-  });
-
-  // Load/Init once then reuse (much faster + more stable)
-  await ocrWorker.loadLanguage("eng");
-  await ocrWorker.initialize("eng");
-
-  // Tesseract parameters tuned for plate reading
-  await ocrWorker.setParameters({
-    tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-    tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-    preserve_interword_spaces: "1",
-    // Improve behavior on small text
-    user_defined_dpi: "300",
-  });
-
-  return ocrWorker;
-}
-
-  
-  async function runOcrOnCaptured(){
-    const status = els.ocrStatus;
-
-    // Safety: if no captured image
-    if(!capturedImg){
-      status.className = "ocr-status error";
-      status.innerHTML = "❌ لا توجد صورة جاهزة للقراءة. التقط صورة أولاً.";
-      status.style.display = "block";
-      return;
-    }
-
-    const paint = () => new Promise(r => requestAnimationFrame(() => r()));
-    const setStat = async (html, cls="processing") => {
-      status.className = "ocr-status " + cls;
-      status.innerHTML = html;
-      status.style.display = "block";
-      await paint();
-    };
-
-    // Helper: crop center (assumes plate roughly in middle of photo)
-    function cropCenter(srcCanvas, wRatio=0.88, hRatio=0.42){
-      const cw = Math.max(1, Math.floor(srcCanvas.width * wRatio));
-      const ch = Math.max(1, Math.floor(srcCanvas.height * hRatio));
-      const cx = Math.floor((srcCanvas.width - cw) / 2);
-      const cy = Math.floor((srcCanvas.height - ch) / 2);
-
-      const out = document.createElement("canvas");
-      out.width = cw; out.height = ch;
-      out.getContext("2d").drawImage(srcCanvas, cx, cy, cw, ch, 0, 0, cw, ch);
-      return out;
-    }
-
-    // Helper: downscale to avoid iOS/memory stalls
-    function downscale(srcCanvas, maxW=1200){
-      if(srcCanvas.width <= maxW) return srcCanvas;
-      const scale = maxW / srcCanvas.width;
-      const out = document.createElement("canvas");
-      out.width = Math.max(1, Math.floor(srcCanvas.width * scale));
-      out.height = Math.max(1, Math.floor(srcCanvas.height * scale));
-      out.getContext("2d").drawImage(srcCanvas, 0, 0, out.width, out.height);
-      return out;
-    }
-
-    // Helper: fast grayscale + adaptive-ish threshold (simple)
-    function toBW(srcCanvas){
-      const out = document.createElement("canvas");
-      out.width = srcCanvas.width; out.height = srcCanvas.height;
-      const ctx = out.getContext("2d");
-      ctx.drawImage(srcCanvas, 0, 0);
-
-      const img = ctx.getImageData(0,0,out.width,out.height);
+    function binarize(canvas){
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const img = ctx.getImageData(0,0,canvas.width,canvas.height);
       const d = img.data;
 
-      // compute mean luminance for threshold
-      let sum = 0;
+      // quick contrast + threshold
       for(let i=0;i<d.length;i+=4){
-        sum += 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
-      }
-      const mean = sum / (d.length/4);
-      const thr = Math.max(90, Math.min(170, mean)); // clamp
-
-      for(let i=0;i<d.length;i+=4){
-        const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
-        const v = g > thr ? 255 : 0;
+        const gray = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        const v = gray > 140 ? 255 : 0;
         d[i]=d[i+1]=d[i+2]=v;
       }
       ctx.putImageData(img,0,0);
-      return out;
+      return canvas;
     }
 
-    // Helper: invert black/white (some plates read better)
-    function invert(srcCanvas){
-      const out = document.createElement("canvas");
-      out.width = srcCanvas.width; out.height = srcCanvas.height;
-      const ctx = out.getContext("2d");
-      ctx.drawImage(srcCanvas, 0, 0);
-      const img = ctx.getImageData(0,0,out.width,out.height);
+    function invert(canvas){
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const img = ctx.getImageData(0,0,canvas.width,canvas.height);
       const d = img.data;
       for(let i=0;i<d.length;i+=4){
         d[i]=255-d[i]; d[i+1]=255-d[i+1]; d[i+2]=255-d[i+2];
       }
       ctx.putImageData(img,0,0);
-      return out;
+      return canvas;
     }
 
-    // Helper: timeout wrapper (prevents "جاري..." forever)
-    function withTimeout(promise, ms){
-      return Promise.race([
-        promise,
-        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
-      ]);
+    async function recognizeWithTimeout(image, lang, params, timeoutMs){
+      const corePath = 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js';
+      const workerPath = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js';
+      const langPath = 'https://tessdata.projectnaptha.com/4.0.0';
+
+      const worker = await Tesseract.createWorker(lang, 1, {
+        workerPath,
+        corePath,
+        langPath,
+        logger: (m) => {
+          if(m.status === 'recognizing text'){
+            const pct = Math.round((m.progress || 0) * 100);
+            setStatus('processing', `جاري قراءة اللوحة... ${pct}%`);
+          }
+        }
+      });
+
+      const work = (async () => {
+        await worker.setParameters(params || {});
+        const res = await worker.recognize(image);
+        await worker.terminate();
+        return res;
+      })();
+
+      const timeout = new Promise((_, rej) => {
+        setTimeout(async () => {
+          try { await worker.terminate(); } catch {}
+          rej(new Error('timeout'));
+        }, timeoutMs);
+      });
+
+      return Promise.race([work, timeout]);
     }
 
-    // Build base canvas from captured image (NO dataURL to avoid huge strings)
-    const base = document.createElement("canvas");
-    base.width = capturedImg.naturalWidth || capturedImg.width;
-    base.height = capturedImg.naturalHeight || capturedImg.height;
-    base.getContext("2d").drawImage(capturedImg, 0, 0);
+    async function readPlate(){
+      if(!currentImageBitmap){
+        setStatus('error','اختَر صورة أولاً');
+        return;
+      }
 
-    // Crop + downscale for speed & stability
-    const cropped = downscale(cropCenter(base), 1200);
-
-    // Variants (order matters)
-    const bw = toBW(cropped);
-    const inv = invert(bw);
-
-    const variants = [
-      { name: "إنجليزي", lang: "eng", psm: "SINGLE_LINE", canvas: cropped, whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 " },
-      { name: "إنجليزي (أبيض/أسود)", lang: "eng", psm: "SINGLE_LINE", canvas: bw, whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 " },
-      { name: "إنجليزي (معكوس)", lang: "eng", psm: "SINGLE_LINE", canvas: inv, whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 " }
-    ];
-
-    await setStat("⏳ تجهيز محرك القراءة...", "processing");
-
-    let w = null;
-    try {
-      w = await getOcrWorker();
-    } catch (e){
-      await setStat("❌ تعذر تشغيل محرك قراءة اللوحات. جرّب تحديث الصفحة أو استخدام كروم.", "error");
-      console.error(e);
-      return;
-    }
-
-    const results = [];
-    const MAX_TOTAL_MS = 45000; // 45s total budget
-    const START = Date.now();
-
-    for(let i=0;i<variants.length;i++){
-      if(Date.now() - START > MAX_TOTAL_MS) break;
-
-      const v = variants[i];
-      const attemptNo = i+1;
-
-      await setStat(`⏳ جاري قراءة اللوحة... (محاولة ${attemptNo}/${variants.length})<br><small>الطريقة: ${v.name}</small>`, "processing");
+      // Let UI paint before heavy work (important in iOS)
+      await new Promise(r => setTimeout(r, 50));
 
       try{
-        const params = {};
-        if(v.whitelist) params.tessedit_char_whitelist = v.whitelist;
+        setStatus('processing','تجهيز الصورة...');
+        const { canvas } = drawAndCropToPlate(currentImageBitmap);
 
-        // Prefer "canvas directly" (less memory, more stable on iOS)
-        const p = w.recognize(v.canvas, {
-          lang: v.lang,
-          psm: v.psm,
-          ...(Object.keys(params).length ? { params } : {})
-        });
+        // Make 3 variants: original crop, binarized, inverted
+        const c1 = document.createElement('canvas');
+        c1.width = canvas.width; c1.height = canvas.height;
+        c1.getContext('2d').drawImage(canvas,0,0);
 
-        const r = await withTimeout(p, 16000); // 16s per try
-        const text = (r.data && r.data.text ? r.data.text : "").trim();
-        const conf = (r.data && typeof r.data.confidence === "number") ? r.data.confidence : 0;
+        const c2 = document.createElement('canvas');
+        c2.width = canvas.width; c2.height = canvas.height;
+        c2.getContext('2d').drawImage(canvas,0,0);
+        binarize(c2);
 
-        if(text){
-          results.push({ text, confidence: conf, method: v.name, lang: v.lang });
+        const c3 = document.createElement('canvas');
+        c3.width = canvas.width; c3.height = canvas.height;
+        c3.getContext('2d').drawImage(canvas,0,0);
+        binarize(c3); invert(c3);
+
+        const attempts = [
+          { img: c1, lang: 'eng', name:'عادي', params: { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ' }},
+          { img: c2, lang: 'eng', name:'أبيض/أسود', params: { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ' }},
+          { img: c1, lang: 'ara+eng', name:'مختلط', params: { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE }},
+        ];
+
+        let best = { plate:'', conf:-1, raw:'', method:'' };
+
+        for(let i=0;i<attempts.length;i++){
+          const a = attempts[i];
+          setStatus('processing', `جاري قراءة اللوحة... (محاولة ${i+1}/${attempts.length})`);
+          // 35s timeout لكل محاولة (iOS أبطأ)
+          const res = await recognizeWithTimeout(a.img, a.lang, a.params, 35000);
+          const raw = (res && res.data && res.data.text) ? res.data.text : '';
+          const conf = (res && res.data && typeof res.data.confidence === 'number') ? res.data.confidence : 0;
+          const plate = extractPlate(raw);
+
+          // Score: prefer having both letters+digits
+          const hasLetters = /[A-Z\u0600-\u06FF]/i.test(plate);
+          const hasDigits = /\d/.test(plate);
+          const bonus = (hasLetters && hasDigits) ? 15 : 0;
+          const score = conf + bonus;
+
+          if(score > best.conf){
+            best = { plate, conf: score, raw, method: a.name };
+          }
         }
-      } catch(e){
-        // Continue to next attempt
-        console.warn("OCR attempt failed:", v.name, e);
+
+        if(best.plate && best.plate.length >= 4){
+          setStatus('success', `✅ النتيجة: ${best.plate}  (طريقة: ${best.method})`);
+        } else {
+          setStatus('error', '❌ ما قدرت أقرأ اللوحة بشكل واضح. جرّب إعادة التصوير قريب وبإضاءة أقوى.');
+        }
+      }catch(e){
+        if(String(e && e.message).includes('timeout')){
+          setStatus('error','❌ القراءة علِقت (Timeout). هذا يصير أحيانًا في iPhone Safari — جرّب إعادة التصوير مع تقليل الاهتزاز وتقريب الكاميرا.');
+        } else {
+          setStatus('error','❌ صار خطأ أثناء القراءة. جرّب إعادة التصوير.');
+        }
+        console.error(e);
       }
     }
 
-    if(results.length === 0){
-      await setStat("❌ ما قدرت أقرأ اللوحة بشكل واضح.<br><small>جرّب: قرب الكاميرا + إضاءة أقوى + خل اللوحة مستقيمة</small>", "error");
-      return;
+    function reset(){
+      currentImageBitmap = null;
+      els.photo.value = '';
+      els.previewImg.src = '';
+      els.previewBox.style.display = 'none';
+      els.btnRead.disabled = true;
+      setStatus('', '');
     }
 
-    // Pick best by confidence, then by "has both letters & numbers"
-    results.sort((a,b)=> (b.confidence||0) - (a.confidence||0));
-    let best = results[0];
-    for(const r of results){
-      const p = parsePlateFromText(r.text || "");
-      if(p && /[A-Za-z\u0600-\u06FF]/.test(p) && /\d/.test(p)){
-        best = r;
-        break;
+    els.photo.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if(!file){ reset(); return; }
+      setStatus('', '');
+      try{
+        currentImageBitmap = await fileToBitmap(file);
+        // preview
+        const url = URL.createObjectURL(file);
+        els.previewImg.onload = () => URL.revokeObjectURL(url);
+        els.previewImg.src = url;
+        els.previewBox.style.display = 'block';
+        els.btnRead.disabled = false;
+      }catch(err){
+        console.error(err);
+        setStatus('error','تعذر تحميل الصورة. جرّب مرة ثانية.');
       }
-    }
+    });
 
-    const plate = parsePlateFromText(best.text || "");
-    if(plate){
-      els.plate.value = plate;
-      const confPct = Math.round(best.confidence || 0);
-      await setStat(`✅ تم قراءة اللوحة: <b>${escapeHtml(plate)}</b><br><small>الدقة: ${confPct}% | الطريقة: ${best.method}</small>`, "success");
-    } else {
-      await setStat("❌ تم استخراج نص لكن بدون نتيجة لوحة واضحة.<br><small>جرّب إعادة التصوير مع تقريب أكثر</small>", "error");
-    }
-  }
+    els.btnRead.addEventListener('click', readPlate);
+    els.btnReset.addEventListener('click', reset);
 
-
-
-
-  // ============ KEYBOARD SHORTCUTS ============
-  document.addEventListener("keydown", (e) => {
-    if(e.ctrlKey && e.key === "Enter"){
-      e.preventDefault();
-      addVehicle();
-    }
-    if(e.ctrlKey && e.key === "s"){
-      e.preventDefault();
-      saveToStorage();
-    }
-    if(e.key === "Escape"){
-      closeCamera();
-      els.imageModal.classList.remove("active");
-    }
-  });
-
-  // ============ EVENT LISTENERS ============
-  els.btnLookup.addEventListener("click", lookupGuard);
-  els.empId.addEventListener("keydown", (e) => { if(e.key === "Enter") lookupGuard(); });
-
-  els.btnAdd.addEventListener("click", addVehicle);
-  els.btnSave.addEventListener("click", saveToStorage);
-  els.btnNew.addEventListener("click", () => { 
-    if(confirm("هل تريد بدء تقرير جديد؟")){
-      newReport(); 
-      saveToStorage(); 
-    }
-  });
-  els.btnExportCSV.addEventListener("click", exportCSV);
-  els.btnExportJSON.addEventListener("click", exportJSON);
-  els.btnImportJSON.addEventListener("click", () => els.importFile.click());
-  els.importFile.addEventListener("change", (e) => importJSONFile(e.target.files && e.target.files[0]));
-  els.btnPrint.addEventListener("click", () => window.print());
-  els.btnClearAll.addEventListener("click", clearAll);
-
-  els.btnCamera.addEventListener("click", openCamera);
-  els.closeCamera.addEventListener("click", closeCamera);
-  els.cancelCamera.addEventListener("click", closeCamera);
-  els.captureBtn.addEventListener("click", capturePhoto);
-  els.readBtn.addEventListener("click", runOcrOnCaptured);
-  els.retakeBtn.addEventListener("click", resetCaptureUI);
-
-  // Flash toggle
-  document.getElementById("flashBtn").addEventListener("click", async () => {
-    if (cameraStream) {
-      const track = cameraStream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      if (capabilities.torch) {
-        const current = track.getSettings().torch || false;
-        await track.applyConstraints({
-          advanced: [{ torch: !current }]
-        });
-        document.getElementById("flashBtn").textContent = !current ? "💡 إطفاء" : "💡 فلاش";
+    // iOS Safari: prevent double-tap zoom on buttons
+    document.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if(document._lastTouchEnd && (now - document._lastTouchEnd) <= 300){
+        e.preventDefault();
       }
-    }
-  });
+      document._lastTouchEnd = now;
+    }, { passive: false });
 
-  els.closeImage.addEventListener("click", () => {
-    els.imageModal.classList.remove("active");
-  });
-
-  els.imageModal.addEventListener("click", (e) => {
-    if(e.target === els.imageModal){
-      els.imageModal.classList.remove("active");
-    }
-  });
-
-  // ============ INITIALIZATION ============
-  setNow();
-  if(loadFromStorage()){
-    els.empId.value = report.guard.empId || "";
-    els.empName.value = report.guard.name || "";
-    setStatus("تم تحميل آخر تقرير محفوظ");
-    renderTable();
-  } else {
-    newReport();
-  }
-
-  // Auto-save every 30 seconds
-  setInterval(() => {
-    if(report.vehicles.length > 0){
-      saveToStorage();
-    }
-  }, 30000);
-
-})();
-</script>
+  })();
+  </script>
 </body>
 </html>
