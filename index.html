@@ -956,24 +956,44 @@
   }
 
   let ocrWorker = null;
-  async function getOcrWorker(){
-    if(ocrWorker) return ocrWorker;
+async function getOcrWorker(){
+  if(ocrWorker) return ocrWorker;
 
-    els.ocrStatus.textContent = "⏳ جاري تجهيز محرك القراءة لأول مرة…";
-    els.ocrStatus.className = "ocr-status processing";
-    els.ocrStatus.style.display = "block";
+  // Explicit CDN paths (important on iOS/Safari + GitHub Pages to avoid "يجهّز" indefinitely)
+  const workerPath = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js";
+  const corePath   = "https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js";
+  // Public traineddata mirror (fast + CORS-friendly). We only load English here for speed/accuracy on Latin plates.
+  const langPath   = "https://tessdata.projectnaptha.com/4.0.0";
 
-    const w = await Tesseract.createWorker();
-    await w.loadLanguage("eng");
-    await w.initialize("eng");
-    await w.setParameters({
-      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ",
-      preserve_interword_spaces: "1",
-      tessedit_pageseg_mode: "7" // SINGLE_LINE
-    });
-    ocrWorker = w;
-    return ocrWorker;
-  }
+  ocrWorker = await Tesseract.createWorker({
+    logger: (m) => {
+      // show progress for both loading + recognition
+      if(m && m.status){
+        let msg = m.status;
+        if(typeof m.progress === "number") msg += ` (${Math.round(m.progress * 100)}%)`;
+        setOcrStatus("⏳ " + msg, "processing");
+      }
+    },
+    workerPath,
+    corePath,
+    langPath,
+  });
+
+  // Load/Init once then reuse (much faster + more stable)
+  await ocrWorker.loadLanguage("eng");
+  await ocrWorker.initialize("eng");
+
+  // Tesseract parameters tuned for plate reading
+  await ocrWorker.setParameters({
+    tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+    tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    preserve_interword_spaces: "1",
+    // Improve behavior on small text
+    user_defined_dpi: "300",
+  });
+
+  return ocrWorker;
+}
 
   async function runOcrOnCaptured(){
     if(!capturedDataUrl){
