@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>رصد السيارات المتوقفة بعد الدوام - نسخة ذكية</title>
+  <title>رصد السيارات - النسخة النهائية</title>
   <style>
     :root { --b:#0f172a; --g:#e2e8f0; --bg:#f8fafc; --w:#fff; --r:#ef4444; --p:#2563eb; --gr:#16a34a; --o:#f97316;}
     body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:var(--bg); color:var(--b); }
@@ -39,10 +39,10 @@
     .topnote { background:#f1f5f9; border:1px dashed #cbd5e1; padding:10px; border-radius:12px; margin:10px 0; font-size:12px; color:#334155; }
     
     /* Camera Modal */
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; }
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; }
     .modal.active { display:flex; }
     .modal-content { background:#fff; border-radius:14px; padding:20px; max-width:95%; max-height:95%; overflow:auto; position:relative; }
-    .modal-close { position:absolute; top:10px; left:10px; background:var(--r); color:#fff; border:0; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:18px; z-index:10; }
+    .modal-close { position:absolute; top:10px; left:10px; background:var(--r); color:#fff; border:0; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:20px; z-index:10; line-height:36px; text-align:center; }
     .camera-container { position:relative; display:inline-block; }
     #cameraVideo { width:100%; max-width:640px; border-radius:10px; background:#000; display:block; }
     #cameraCanvas { display:none; }
@@ -55,35 +55,36 @@
       transform:translate(-50%, -50%);
       border:3px dashed #22c55e;
       background:rgba(34, 197, 94, 0.1);
-      width:80%;
-      height:30%;
+      width:75%;
+      height:25%;
       pointer-events:none;
       border-radius:8px;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.3);
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
     }
     
     .plate-guide::before {
       content: "ضع اللوحة هنا";
       position:absolute;
-      top:-30px;
+      top:-35px;
       left:50%;
       transform:translateX(-50%);
       background:#22c55e;
       color:#fff;
-      padding:4px 12px;
-      border-radius:6px;
-      font-size:12px;
-      font-weight:600;
+      padding:6px 16px;
+      border-radius:8px;
+      font-size:14px;
+      font-weight:700;
       white-space:nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     
     .camera-controls { margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
     
     /* OCR Status */
-    .ocr-status { padding:10px; border-radius:10px; margin-top:10px; font-size:13px; text-align:center; }
-    .ocr-status.processing { background:#fef3c7; color:#92400e; }
-    .ocr-status.success { background:#d1fae5; color:#065f46; }
-    .ocr-status.error { background:#fee2e2; color:#991b1b; }
+    .ocr-status { padding:12px; border-radius:10px; margin-top:10px; font-size:14px; text-align:center; }
+    .ocr-status.processing { background:#fef3c7; color:#92400e; border:2px solid #fcd34d; }
+    .ocr-status.success { background:#d1fae5; color:#065f46; border:2px solid #34d399; }
+    .ocr-status.error { background:#fee2e2; color:#991b1b; border:2px solid#fca5a5; }
     
     /* Autocomplete */
     .autocomplete-container { position:relative; }
@@ -120,14 +121,14 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>🚗 برنامج رصد السيارات المتوقفة بعد الدوام الرسمي - النسخة الذكية</h1>
+      <h1>🚗 برنامج رصد السيارات - قراءة ذكية بالإنجليزي</h1>
 
       <div class="topnote no-print">
-        <b>✨ الجديد:</b> 
-        <span class="pill">قراءة اللوحات بالكاميرا 📸</span> 
-        <span class="pill">إكمال تلقائي ذكي 🎯</span>
-        <span class="pill">إدخال سريع ⚡</span>
-        <span class="pill">إحصائيات مباشرة 📊</span>
+        <b>✨ تحسينات القراءة:</b> 
+        <span class="pill">قراءة إنجليزية فقط (دقة أعلى)</span> 
+        <span class="pill">5 محاولات مختلفة</span>
+        <span class="pill">تكبير 2X</span>
+        <span class="pill">معالجة متقدمة</span>
       </div>
 
       <!-- Stats -->
@@ -180,7 +181,7 @@
 
       <hr style="border:0;border-top:1px solid var(--g);margin:12px 0;" />
 
-      <!-- نموذج إدخال السيارة - محسّن -->
+      <!-- نموذج إدخال السيارة -->
       <div class="row no-print">
         <div class="col small">
           <label>البرج</label>
@@ -211,11 +212,12 @@
         </div>
 
         <div class="col">
-          <label>رقم اللوحة 📸</label>
+          <label>رقم اللوحة (إنجليزي) 📸</label>
           <div style="display:flex; gap:8px;">
-            <input id="plate" placeholder="ABC 1234 أو استخدم الكاميرا" style="flex:1;" />
-            <button class="orange" id="btnCamera" style="min-width:44px; padding:10px;">📷</button>
+            <input id="plate" placeholder="ABC 1234 أو استخدم الكاميرا" style="flex:1; text-transform:uppercase;" />
+            <button class="orange" id="btnCamera" style="min-width:48px; padding:10px; font-size:16px;">📷</button>
           </div>
+          <div class="hint">💡 القراءة الآن بالإنجليزي فقط - دقة أعلى بكثير!</div>
         </div>
 
         <div class="col small">
@@ -300,24 +302,24 @@
   <div class="modal" id="cameraModal">
     <div class="modal-content">
       <button class="modal-close" id="closeCamera">✕</button>
-      <h2 style="margin-top:0; text-align:center;">📸 التقط صورة اللوحة</h2>
+      <h2 style="margin-top:0; text-align:center;">📸 قراءة رقم اللوحة (إنجليزي)</h2>
       <div class="camera-container">
         <video id="cameraVideo" autoplay playsinline></video>
         <div class="plate-guide"></div>
       </div>
       <canvas id="cameraCanvas"></canvas>
       <div class="camera-controls">
-        <button class="primary" id="captureBtn">📸 التقط الصورة</button>
+        <button class="primary" id="captureBtn" style="font-size:15px; padding:12px 24px;">📸 التقط وقراءة</button>
         <button class="orange" id="flashBtn" style="display:none;">💡 فلاش</button>
         <button class="ghost" id="cancelCamera">إلغاء</button>
       </div>
       <div id="ocrStatus" class="ocr-status" style="display:none;"></div>
-      <div class="hint" style="text-align:center; margin-top:10px;">
-        💡 <b>نصائح للحصول على أفضل نتيجة:</b><br>
-        ✓ ضع اللوحة في المستطيل الأخضر<br>
-        ✓ تأكد من وضوح الإضاءة<br>
-        ✓ اجعل اللوحة واضحة ومستقيمة<br>
-        ✓ تجنب الظلال على اللوحة
+      <div class="hint" style="text-align:center; margin-top:15px;">
+        <b>💡 نصائح للحصول على أفضل نتيجة:</b><br>
+        ✓ ضع اللوحة الإنجليزية في المستطيل الأخضر<br>
+        ✓ تأكد من إضاءة جيدة بدون ظلال<br>
+        ✓ اجعل اللوحة مستقيمة وموازية للكاميرا<br>
+        ✓ انتظر حتى تركز الكاميرا تلقائياً
       </div>
     </div>
   </div>
@@ -333,14 +335,12 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 (() => {
-  // قاعدة بيانات بسيطة للموظفين
   const EMPLOYEES = {
     "88840": "محمد حمد القحطاني",
     "12345": "أحمد علي السعيد",
     "67890": "خالد محمد العتيبي",
   };
 
-  // بيانات الإكمال التلقائي
   const VEHICLE_TYPES = [
     "سيدان", "SUV", "باص", "فان", "بيك أب", "دباب", "شاحنة صغيرة", "هاتشباك", "كوبيه", "كروس أوفر"
   ];
@@ -400,7 +400,7 @@
     statWithPhotos: document.getElementById("statWithPhotos"),
   };
 
-  const STORAGE_KEY = "after_hours_parking_report_v2";
+  const STORAGE_KEY = "after_hours_parking_report_v3_eng";
 
   let report = {
     guard: { empId: "", name: "" },
@@ -499,7 +499,7 @@
       els.empName.value = "";
       report.guard.empId = id;
       report.guard.name = "";
-      setStatus("لم يتم العثور على الاسم لهذا الرقم (أضفه في قاعدة البيانات داخل الكود)");
+      setStatus("لم يتم العثور على الاسم لهذا الرقم");
     }
   }
 
@@ -549,8 +549,6 @@
     clearVehicleForm();
     saveToStorage();
     setStatus("تمت إضافة المركبة ✅");
-    
-    // Focus on plate input for quick next entry
     els.plate.focus();
   }
 
@@ -583,12 +581,10 @@
       els.tblBody.appendChild(tr);
     });
 
-    // Delete buttons
     els.tblBody.querySelectorAll("button[data-del]").forEach(btn => {
       btn.addEventListener("click", () => removeVehicle(Number(btn.dataset.del)));
     });
 
-    // Image preview
     els.tblBody.querySelectorAll("img.imgPrev").forEach(img => {
       img.addEventListener("click", () => {
         const idx = Number(img.dataset.index);
@@ -637,12 +633,12 @@
       displayDate: els.reportDate.value || "",
       displayTime: els.reportTime.value || "",
       exportedAtISO: new Date().toISOString(),
-      version: 2
+      version: 3
     };
     const json = JSON.stringify(payload, null, 2);
     const fname = `تقرير_رصد_السيارات_${(els.reportDate.value||"")}_${(els.reportTime.value||"").replace(":","-")}.json`;
     downloadBlob(json, fname, "application/json;charset=utf-8");
-    setStatus("تم تصدير JSON ✅ (انقله لأي جهاز ثم استورده)");
+    setStatus("تم تصدير JSON ✅");
   }
 
   function importJSONFile(file){
@@ -685,7 +681,7 @@
   }
 
   function clearAll(){
-    if(confirm("⚠️ هل أنت متأكد من مسح كل البيانات؟ لا يمكن التراجع عن هذا الإجراء!")){
+    if(confirm("⚠️ هل أنت متأكد من مسح كل البيانات؟")){
       localStorage.removeItem(STORAGE_KEY);
       newReport();
       setStatus("تم مسح كل البيانات");
@@ -748,25 +744,20 @@
     });
   });
 
-  // ============ CAMERA OCR ============
+  // ============ CAMERA OCR - ENGLISH ONLY ============
   async function openCamera(){
     try {
-      // Request camera with optimal settings for plate reading
       const constraints = {
         video: {
           facingMode: "environment",
           width: { ideal: 1920 },
           height: { ideal: 1080 },
-          focusMode: "continuous",
-          whiteBalanceMode: "continuous",
-          exposureMode: "continuous"
         }
       };
       
       cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
       els.cameraVideo.srcObject = cameraStream;
       
-      // Check if flash is available
       const track = cameraStream.getVideoTracks()[0];
       const capabilities = track.getCapabilities();
       if (capabilities.torch) {
@@ -777,7 +768,7 @@
       els.ocrStatus.style.display = "none";
     } catch(err){
       console.error("Camera error:", err);
-      alert("لا يمكن الوصول للكاميرا. تأكد من:\n• منح الأذونات للكاميرا\n• استخدام HTTPS أو localhost\n• عدم استخدام الكاميرا في تطبيق آخر");
+      alert("لا يمكن الوصول للكاميرا. تأكد من:\n• منح الأذونات\n• استخدام HTTPS أو localhost\n• عدم استخدام الكاميرا في تطبيق آخر");
     }
   }
 
@@ -790,116 +781,67 @@
     els.ocrStatus.style.display = "none";
   }
 
-  // Image preprocessing for better OCR
+  // Enhanced preprocessing
   function preprocessImage(canvas) {
     const ctx = canvas.getContext("2d");
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
-    // Convert to grayscale and increase contrast
+    // Grayscale
     for (let i = 0; i < data.length; i += 4) {
-      const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-      
-      // Increase contrast
-      const contrast = 1.5;
-      const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-      const adjusted = factor * (gray - 128) + 128;
-      
-      // Apply threshold for binary image
-      const threshold = 128;
-      const binary = adjusted > threshold ? 255 : 0;
-      
-      data[i] = binary;
-      data[i + 1] = binary;
-      data[i + 2] = binary;
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      data[i] = data[i + 1] = data[i + 2] = avg;
+    }
+
+    // High contrast + sharp threshold
+    for (let i = 0; i < data.length; i += 4) {
+      let val = data[i];
+      val = ((val - 128) * 2.0) + 128;
+      val = val > 140 ? 255 : 0;
+      data[i] = data[i + 1] = data[i + 2] = val;
     }
 
     ctx.putImageData(imageData, 0, 0);
     return canvas;
   }
 
-  // Extract plate number from recognized text - optimized for Saudi plates
-  function extractPlateNumber(text) {
-    // Remove all non-alphanumeric characters except spaces
-    let cleaned = text.replace(/[^A-Za-z0-9\u0600-\u06FF\u0660-\u0669\s]/g, " ");
+  // Extract plate - ENGLISH ONLY
+  function extractPlate(text) {
+    // Only English letters and numbers
+    let cleaned = text.replace(/[^A-Z0-9\s]/gi, " ");
     
-    // Convert Arabic-Indic numerals to Western numerals
-    const arabicToWestern = {
-      '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
-      '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9'
+    // Corrections
+    const fix = {
+      'O':'0', 'o':'0', 'Q':'0', 'D':'0',
+      'I':'1', 'l':'1', 'L':'1', '|':'1',
+      'Z':'2', 'S':'5', 's':'5', 'G':'6',
+      'B':'8', 'T':'7'
     };
     
-    cleaned = cleaned.split('').map(c => arabicToWestern[c] || c).join('');
-    
-    // Common OCR mistakes corrections
-    const corrections = {
-      'O': '0', 'o': '0', 'Q': '0',
-      'I': '1', 'l': '1', 'i': '1', '|': '1',
-      'Z': '2', 'z': '2',
-      'E': '3', 'e': '3',
-      'A': '4', 'h': '4',
-      'S': '5', 's': '5',
-      'G': '6', 'b': '6',
-      'T': '7', 't': '7',
-      'B': '8', 'g': '8',
-      'g': '9', 'q': '9',
-      // Arabic letter corrections
-      'ا': 'ا', 'أ': 'ا', 'إ': 'ا', 'آ': 'ا',
-      'ه': 'ه', 'ة': 'ه',
-      'ي': 'ي', 'ى': 'ي'
-    };
-    
-    cleaned = cleaned.split('').map(c => corrections[c] || c).join('');
-    
-    // Remove extra spaces
-    cleaned = cleaned.replace(/\s+/g, " ").trim();
-    
-    // Try to find Saudi plate pattern
-    // Format: 3 Arabic letters + 4 numbers or 3 English letters + 4 numbers
-    
-    // Split by spaces and analyze
-    const parts = cleaned.split(' ').filter(p => p.length > 0);
-    
-    let arabicPart = '';
-    let englishPart = '';
-    let numberPart = '';
+    const parts = cleaned.split(/\s+/).filter(p => p.length > 1);
+    let letters = '', numbers = '';
     
     for (const part of parts) {
-      // Check if it's Arabic letters
-      if (/^[\u0600-\u06FF]+$/.test(part)) {
-        arabicPart = part;
-      }
-      // Check if it's English letters
-      else if (/^[A-Z]+$/i.test(part)) {
-        englishPart = part.toUpperCase();
-      }
-      // Check if it's numbers
-      else if (/^\d+$/.test(part)) {
-        numberPart = part;
-      }
-      // Mixed (try to separate)
-      else {
-        const letters = part.match(/[A-Za-z]+/);
-        const numbers = part.match(/\d+/);
-        if (letters) englishPart = letters[0].toUpperCase();
-        if (numbers) numberPart = numbers[0];
+      if (/^[A-Z]+$/i.test(part) && part.length >= 2) {
+        letters = part.toUpperCase();
+      } else if (/^\d+$/.test(part)) {
+        numbers = part;
+      } else {
+        const l = part.match(/[A-Z]+/i);
+        const n = part.match(/\d+/);
+        if (l && l[0].length >= 2) letters = l[0].toUpperCase();
+        if (n) numbers = n[0];
       }
     }
     
-    // Build the plate number
-    let result = '';
+    // Apply corrections to numbers only
+    numbers = numbers.split('').map(c => fix[c] || c).join('');
     
-    if (arabicPart && numberPart) {
-      result = `${arabicPart} ${numberPart}`;
-    } else if (englishPart && numberPart) {
-      result = `${englishPart} ${numberPart}`;
-    } else if (numberPart) {
-      result = numberPart;
-    } else {
-      result = cleaned;
+    if (letters && numbers && letters.length >= 2 && numbers.length >= 3) {
+      return `${letters} ${numbers}`;
     }
     
-    return result.toUpperCase();
+    return cleaned.replace(/\s+/g, " ").trim().toUpperCase();
   }
 
   async function captureAndRecognize(){
@@ -907,162 +849,139 @@
     const canvas = els.cameraCanvas;
     const ctx = canvas.getContext("2d");
 
-    // Capture at higher resolution
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0);
 
-    // Crop to the guide area (center 80% width, 30% height)
+    // Crop to guide area
     const cropCanvas = document.createElement('canvas');
     const cropCtx = cropCanvas.getContext('2d');
     
-    const cropWidth = canvas.width * 0.8;
-    const cropHeight = canvas.height * 0.3;
-    const cropX = (canvas.width - cropWidth) / 2;
-    const cropY = (canvas.height - cropHeight) / 2;
+    const cropW = canvas.width * 0.75;
+    const cropH = canvas.height * 0.25;
+    const cropX = (canvas.width - cropW) / 2;
+    const cropY = (canvas.height - cropH) / 2;
     
-    cropCanvas.width = cropWidth;
-    cropCanvas.height = cropHeight;
-    cropCtx.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+    cropCanvas.width = cropW;
+    cropCanvas.height = cropH;
+    cropCtx.drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
-    // Show processing status
-    els.ocrStatus.textContent = "⏳ جاري معالجة الصورة...";
+    // 2X upscale
+    const scaled = document.createElement('canvas');
+    scaled.width = cropW * 2;
+    scaled.height = cropH * 2;
+    const scaledCtx = scaled.getContext('2d');
+    scaledCtx.imageSmoothingEnabled = false;
+    scaledCtx.drawImage(cropCanvas, 0, 0, scaled.width, scaled.height);
+
+    els.ocrStatus.textContent = "⏳ جاري المعالجة...";
     els.ocrStatus.className = "ocr-status processing";
     els.ocrStatus.style.display = "block";
 
     try {
-      // Create processed version
-      const processedCanvas = cropCanvas.cloneNode();
-      processedCanvas.getContext("2d").drawImage(cropCanvas, 0, 0);
-      preprocessImage(processedCanvas);
+      const original = scaled.cloneNode();
+      original.getContext("2d").drawImage(scaled, 0, 0);
+      
+      const processed = scaled.cloneNode();
+      processed.getContext("2d").drawImage(scaled, 0, 0);
+      preprocessImage(processed);
+
+      // Inverted
+      const inverted = scaled.cloneNode();
+      const invCtx = inverted.getContext("2d");
+      invCtx.drawImage(scaled, 0, 0);
+      const invData = invCtx.getImageData(0, 0, inverted.width, inverted.height);
+      for (let i = 0; i < invData.data.length; i += 4) {
+        invData.data[i] = 255 - invData.data[i];
+        invData.data[i+1] = 255 - invData.data[i+1];
+        invData.data[i+2] = 255 - invData.data[i+2];
+      }
+      invCtx.putImageData(invData, 0, 0);
 
       const results = [];
+      const config = {
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ',
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+      };
 
-      // Attempt 1: Original + Arabic
-      els.ocrStatus.textContent = "⏳ المحاولة 1/4: قراءة عربي...";
-      try {
-        const result1 = await Tesseract.recognize(cropCanvas.toDataURL("image/png"), 'ara', {
-          logger: m => {
-            if(m.status === "recognizing text"){
-              const percent = Math.round(m.progress * 100);
-              els.ocrStatus.textContent = `⏳ المحاولة 1/4: قراءة عربي... ${percent}%`;
-            }
-          },
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-        });
-        results.push({text: result1.data.text, confidence: result1.data.confidence, method: "عربي"});
-      } catch(e) { console.error("Attempt 1 failed:", e); }
+      // 5 attempts
+      const attempts = [
+        {img: original, mode: Tesseract.PSM.SINGLE_LINE, name: "أصلي-خط"},
+        {img: processed, mode: Tesseract.PSM.SINGLE_LINE, name: "معالج-خط"},
+        {img: inverted, mode: Tesseract.PSM.SINGLE_LINE, name: "معكوس"},
+        {img: original, mode: Tesseract.PSM.SINGLE_BLOCK, name: "كتلة"},
+        {img: processed, mode: Tesseract.PSM.AUTO, name: "تلقائي"},
+      ];
 
-      // Attempt 2: Processed + Arabic
-      els.ocrStatus.textContent = "⏳ المحاولة 2/4: قراءة عربي معالج...";
-      try {
-        const result2 = await Tesseract.recognize(processedCanvas.toDataURL("image/png"), 'ara', {
-          logger: m => {
-            if(m.status === "recognizing text"){
-              const percent = Math.round(m.progress * 100);
-              els.ocrStatus.textContent = `⏳ المحاولة 2/4: قراءة عربي معالج... ${percent}%`;
-            }
-          },
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-        });
-        results.push({text: result2.data.text, confidence: result2.data.confidence, method: "عربي معالج"});
-      } catch(e) { console.error("Attempt 2 failed:", e); }
-
-      // Attempt 3: Original + English
-      els.ocrStatus.textContent = "⏳ المحاولة 3/4: قراءة إنجليزي...";
-      try {
-        const result3 = await Tesseract.recognize(cropCanvas.toDataURL("image/png"), 'eng', {
-          logger: m => {
-            if(m.status === "recognizing text"){
-              const percent = Math.round(m.progress * 100);
-              els.ocrStatus.textContent = `⏳ المحاولة 3/4: قراءة إنجليزي... ${percent}%`;
-            }
-          },
-          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ',
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-        });
-        results.push({text: result3.data.text, confidence: result3.data.confidence, method: "إنجليزي"});
-      } catch(e) { console.error("Attempt 3 failed:", e); }
-
-      // Attempt 4: Mixed Arabic + English
-      els.ocrStatus.textContent = "⏳ المحاولة 4/4: قراءة مختلطة...";
-      try {
-        const result4 = await Tesseract.recognize(cropCanvas.toDataURL("image/png"), 'ara+eng', {
-          logger: m => {
-            if(m.status === "recognizing text"){
-              const percent = Math.round(m.progress * 100);
-              els.ocrStatus.textContent = `⏳ المحاولة 4/4: قراءة مختلطة... ${percent}%`;
-            }
-          },
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-        });
-        results.push({text: result4.data.text, confidence: result4.data.confidence, method: "مختلط"});
-      } catch(e) { console.error("Attempt 4 failed:", e); }
-
-      if (results.length === 0) {
-        throw new Error("No results");
+      for (let i = 0; i < attempts.length; i++) {
+        els.ocrStatus.textContent = `⏳ محاولة ${i+1}/5...`;
+        try {
+          const result = await Tesseract.recognize(attempts[i].img.toDataURL("image/png"), 'eng', {
+            logger: m => {
+              if(m.status === "recognizing text"){
+                const percent = Math.round(m.progress * 100);
+                els.ocrStatus.textContent = `⏳ محاولة ${i+1}/5... ${percent}%`;
+              }
+            },
+            tessedit_char_whitelist: config.tessedit_char_whitelist,
+            tessedit_pageseg_mode: attempts[i].mode,
+          });
+          if (result.data.text.trim().length > 0) {
+            results.push({text: result.data.text, confidence: result.data.confidence, method: attempts[i].name});
+          }
+        } catch(e) { console.error(`Attempt ${i+1} failed:`, e); }
       }
 
-      // Find best result
-      results.sort((a, b) => b.confidence - a.confidence);
-      
-      els.ocrStatus.textContent = "⏳ جاري تحسين النتيجة...";
+      if (results.length === 0) {
+        throw new Error("No text found");
+      }
 
-      // Try all results and pick the best formatted one
-      let bestPlate = null;
-      let bestResult = null;
+      els.ocrStatus.textContent = "⏳ اختيار أفضل نتيجة...";
+
+      // Find best
+      let best = null, bestScore = 0;
       
-      for (const result of results) {
-        const plate = extractPlateNumber(result.text.trim());
-        if (plate && plate.length >= 3) {
-          // Prefer results with both letters and numbers
-          if (/[A-Za-z\u0600-\u06FF]/.test(plate) && /\d/.test(plate)) {
-            bestPlate = plate;
-            bestResult = result;
-            break;
-          } else if (!bestPlate) {
-            bestPlate = plate;
-            bestResult = result;
-          }
+      for (const r of results) {
+        const plate = extractPlate(r.text.trim());
+        let score = 0;
+        if (plate.length >= 5) score += 20;
+        if (plate.length >= 7) score += 20;
+        if (/[A-Z]{2,4}/.test(plate)) score += 30;
+        if (/\d{3,4}/.test(plate)) score += 30;
+        score += (r.confidence / 100) * 20;
+        
+        if (score > bestScore) {
+          bestScore = score;
+          best = {plate, ...r, score};
         }
       }
 
-      if (!bestPlate) {
-        bestPlate = extractPlateNumber(results[0].text);
-        bestResult = results[0];
+      if(!best || best.plate.length < 3){
+        throw new Error("Invalid plate");
       }
       
-      if(bestPlate && bestPlate.length > 0){
-        els.plate.value = bestPlate;
-        const confidencePercent = Math.round(bestResult.confidence);
-        els.ocrStatus.innerHTML = `
-          ✅ تم قراءة اللوحة: <b>${bestPlate}</b><br>
-          <small>الدقة: ${confidencePercent}% | الطريقة: ${bestResult.method}</small>
-        `;
-        els.ocrStatus.className = "ocr-status success";
-        
-        setTimeout(() => {
-          closeCamera();
-        }, 3000);
-      } else {
-        els.ocrStatus.innerHTML = `
-          ❌ لم يتم التعرف على نص واضح.<br>
-          <small>💡 نصائح:</small><br>
-          ✓ ضع اللوحة في المستطيل الأخضر<br>
-          ✓ تأكد من وضوح الإضاءة<br>
-          ✓ اجعل اللوحة مستقيمة وواضحة<br>
-          <button class="primary" onclick="document.getElementById('captureBtn').click()" style="margin-top:8px;">📸 حاول مرة أخرى</button>
-        `;
-        els.ocrStatus.className = "ocr-status error";
-      }
+      els.plate.value = best.plate;
+      const conf = Math.round(best.confidence);
+      els.ocrStatus.innerHTML = `
+        ✅ تم قراءة اللوحة: <b style="font-size:18px; letter-spacing:2px;">${best.plate}</b><br>
+        <small>الدقة: ${conf}% | الجودة: ${Math.round(best.score)}% | الطريقة: ${best.method}</small>
+      `;
+      els.ocrStatus.className = "ocr-status success";
+      
+      console.log("All attempts:", results);
+      
+      setTimeout(() => {
+        closeCamera();
+      }, 3000);
     } catch(err){
       console.error("OCR Error:", err);
       els.ocrStatus.innerHTML = `
-        ❌ حدث خطأ في قراءة اللوحة.<br>
-        <small>💡 يمكنك:</small><br>
-        • المحاولة مرة أخرى<br>
-        • إدخال رقم اللوحة يدوياً<br>
-        <button class="primary" onclick="document.getElementById('captureBtn').click()" style="margin-top:8px;">📸 حاول مرة أخرى</button>
+        ❌ لم يتم التعرف على اللوحة بوضوح<br>
+        <small>💡 نصائح:</small><br>
+        • تأكد من وجود إضاءة كافية<br>
+        • ضع اللوحة الإنجليزية في المستطيل<br>
+        • انتظر حتى تستقر الكاميرا<br>
+        <button class="primary" onclick="document.getElementById('captureBtn').click()" style="margin-top:10px;">📸 حاول مرة أخرى</button>
       `;
       els.ocrStatus.className = "ocr-status error";
     }
@@ -1070,17 +989,14 @@
 
   // ============ KEYBOARD SHORTCUTS ============
   document.addEventListener("keydown", (e) => {
-    // Ctrl+Enter to add vehicle
     if(e.ctrlKey && e.key === "Enter"){
       e.preventDefault();
       addVehicle();
     }
-    // Ctrl+S to save
     if(e.ctrlKey && e.key === "s"){
       e.preventDefault();
       saveToStorage();
     }
-    // Escape to close modals
     if(e.key === "Escape"){
       closeCamera();
       els.imageModal.classList.remove("active");
@@ -1094,7 +1010,7 @@
   els.btnAdd.addEventListener("click", addVehicle);
   els.btnSave.addEventListener("click", saveToStorage);
   els.btnNew.addEventListener("click", () => { 
-    if(confirm("هل تريد بدء تقرير جديد؟ تأكد من حفظ التقرير الحالي أولاً.")){
+    if(confirm("هل تريد بدء تقرير جديد؟")){
       newReport(); 
       saveToStorage(); 
     }
