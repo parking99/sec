@@ -302,7 +302,7 @@
       <button class="modal-close" id="closeCamera">✕</button>
       <h2 style="margin-top:0; text-align:center;">📸 التقط صورة اللوحة</h2>
       <div class="camera-container">
-        <video id="cameraVideo" autoplay playsinline></video>
+        <video id="cameraVideo" autoplay playsinline muted></video>
         <img id="snapPreview" alt="معاينة" style="display:none; width:100%; max-width:640px; border-radius:10px; border:1px solid var(--g); background:#000;" />
         <div class="plate-guide"></div>
       </div>
@@ -761,34 +761,62 @@
 
   // ============ CAMERA OCR ============
   async function openCamera(){
+    // iOS Safari: لازم HTTPS + فتح الكاميرا من "نقرة" المستخدم
     try {
-      // Request camera with optimal settings for plate reading
+      if(!window.isSecureContext){
+        alert("الكاميرا تحتاج HTTPS. افتح الصفحة من GitHub Pages (https) وليس file://");
+        return;
+      }
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        alert("المتصفح لا يدعم تشغيل الكاميرا عبر getUserMedia.");
+        return;
+      }
+
+      // قيود بسيطة متوافقة مع Safari (تجنب focusMode/exposureMode لأنها تسبب OverconstrainedError)
       const constraints = {
         video: {
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          focusMode: "continuous",
-          whiteBalanceMode: "continuous",
-          exposureMode: "continuous"
-        }
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
       };
-      
+
       cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-      els.cameraVideo.srcObject = cameraStream;
-      
-      // Check if flash is available
-      const track = cameraStream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      if (capabilities.torch) {
-        document.getElementById("flashBtn").style.display = "inline-block";
-      }
-      
+
+      // افتح المودال أولاً ثم اربط الفيديو
       els.cameraModal.classList.add("active");
       els.ocrStatus.style.display = "none";
+
+      els.cameraVideo.srcObject = cameraStream;
+
+      // iOS يحتاج play() بعد ربط المصدر
+      try { 
+        els.cameraVideo.muted = true;
+        els.cameraVideo.playsInline = true;
+        await els.cameraVideo.play();
+      } catch(e) {
+        // بعض نسخ iOS تحتاج انتظار بسيط
+        setTimeout(() => { try { els.cameraVideo.play(); } catch(_){} }, 150);
+      }
+
+      // فلاش (Torch) إن توفر — على Safari قد لا يكون مدعوم دائماً
+      try{
+        const track = cameraStream.getVideoTracks()[0];
+        if(track && track.getCapabilities){
+          const capabilities = track.getCapabilities();
+          if(capabilities && capabilities.torch){
+            document.getElementById("flashBtn").style.display = "inline-block";
+          } else {
+            document.getElementById("flashBtn").style.display = "none";
+          }
+        }
+      } catch(_){}
+
     } catch(err){
       console.error("Camera error:", err);
-      alert("لا يمكن الوصول للكاميرا. تأكد من:\n• منح الأذونات للكاميرا\n• استخدام HTTPS أو localhost\n• عدم استخدام الكاميرا في تطبيق آخر");
+      let msg = "لا يمكن الوصول للكاميرا.\n\nتأكد من:\n• السماح بالكاميرا (Settings > Safari > Camera)\n• تحديث الصفحة بعد السماح\n• عدم استخدام الكاميرا في تطبيق آخر\n\nتفاصيل الخطأ: " + (err && err.name ? err.name : "غير معروف");
+      alert(msg);
     }
   }
 
