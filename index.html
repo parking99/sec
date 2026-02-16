@@ -304,11 +304,10 @@
       <button class="modal-close" id="closeCamera">✕</button>
       <h2 style="margin-top:0; text-align:center;">📸 قراءة رقم اللوحة (إنجليزي)</h2>
       <div class="camera-container">
-        <video id="cameraVideo" autoplay playsinline muted></video>
+        <video id="cameraVideo" autoplay playsinline></video>
         <div class="plate-guide"></div>
       </div>
       <canvas id="cameraCanvas"></canvas>
-      <input id="plateFile" type="file" accept="image/*" style="display:none" />
       <div class="camera-controls">
         <button class="primary" id="captureBtn" style="font-size:15px; padding:12px 24px;">📸 التقط وقراءة</button>
         <button class="orange" id="flashBtn" style="display:none;">💡 فلاش</button>
@@ -356,7 +355,6 @@
     reportDate: document.getElementById("reportDate"),
     reportTime: document.getElementById("reportTime"),
     status: document.getElementById("status"),
-    envNote: document.getElementById("envNote"),
 
     tower: document.getElementById("tower"),
     floor: document.getElementById("floor"),
@@ -386,8 +384,6 @@
     cameraVideo: document.getElementById("cameraVideo"),
     cameraCanvas: document.getElementById("cameraCanvas"),
     captureBtn: document.getElementById("captureBtn"),
-    uploadBtn: document.getElementById("uploadBtn"),
-    plateFile: document.getElementById("plateFile"),
     closeCamera: document.getElementById("closeCamera"),
     cancelCamera: document.getElementById("cancelCamera"),
     ocrStatus: document.getElementById("ocrStatus"),
@@ -413,52 +409,6 @@
   };
 
   let cameraStream = null;
-  // ============ TESSERACT (UNIVERSAL) ============
-  const TESS_BASE = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist";
-  const TESS_LANG = "eng";
-  const TESS_LANG_PATH = "https://tessdata.projectnaptha.com/4.0.0";
-
-  let ocrWorker = null;
-  let ocrReady = false;
-
-  async function initOcrOnce(){
-    if(ocrReady) return true;
-    if(ocrWorker && !ocrReady) return false;
-
-    try{
-      ocrWorker = await Tesseract.createWorker(TESS_LANG, 1, {
-        workerPath: `${TESS_BASE}/worker.min.js`,
-        corePath: `${TESS_BASE}/tesseract-core.wasm.js`,
-        langPath: TESS_LANG_PATH,
-        logger: m => {
-          if(m.status === "recognizing text"){
-            const pct = Math.round((m.progress || 0) * 100);
-            els.ocrStatus.textContent = `⏳ جاري القراءة... ${pct}%`;
-          }
-        }
-      });
-
-      await ocrWorker.setParameters({
-        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ",
-        tessedit_pageseg_mode: "7" // SINGLE_LINE
-      });
-
-      ocrReady = true;
-      return true;
-    }catch(e){
-      console.error("OCR init failed:", e);
-      ocrWorker = null;
-      ocrReady = false;
-      return false;
-    }
-  }
-
-  async function recognizeFromCanvas(canvas){
-    const ok = await initOcrOnce();
-    if(!ok) throw new Error("OCR_INIT_FAILED");
-    return await ocrWorker.recognize(canvas);
-  }
-
 
   function pad2(n){ return String(n).padStart(2,"0"); }
 
@@ -796,59 +746,30 @@
 
   // ============ CAMERA OCR - ENGLISH ONLY ============
   async function openCamera(){
-    const isLocalhost = ["localhost","127.0.0.1"].includes(location.hostname);
-    if(location.protocol !== "https:" && !isLocalhost){
-      alert("الكاميرا تحتاج HTTPS. افتح الصفحة من GitHub Pages أو HTTPS.");
-      return;
-    }
-
-    const tries = [
-      { video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio:false },
-      { video: { facingMode: "environment" }, audio:false },
-      { video: true, audio:false }
-    ];
-
-    let lastErr = null;
-    cameraStream = null;
-
-    for(const c of tries){
-      try{
-        cameraStream = await navigator.mediaDevices.getUserMedia(c);
-        break;
-      }catch(e){
-        lastErr = e;
-        cameraStream = null;
-      }
-    }
-
-    if(!cameraStream){
-      const name = (lastErr && lastErr.name) ? lastErr.name : "UnknownError";
-      const msg = (lastErr && lastErr.message) ? lastErr.message : "";
-      alert("تعذر فتح الكاميرا ("+name+").\n"
-        + "• تأكد أن الموقع HTTPS\n"
-        + "• Settings > Safari > Camera = Allow\n"
-        + "• جرّب إعادة تحميل الصفحة\n\n"
-        + (msg ? ("تفاصيل: "+msg) : ""));
-      return;
-    }
-
-    els.cameraVideo.srcObject = cameraStream;
-
-    try { els.cameraVideo.muted = true; } catch {}
-    try { await els.cameraVideo.play(); } catch {}
-
-    try{
+    try {
+      const constraints = {
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        }
+      };
+      
+      cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+      els.cameraVideo.srcObject = cameraStream;
+      
       const track = cameraStream.getVideoTracks()[0];
-      const caps = track.getCapabilities ? track.getCapabilities() : {};
-      if(caps && caps.torch){
+      const capabilities = track.getCapabilities();
+      if (capabilities.torch) {
         document.getElementById("flashBtn").style.display = "inline-block";
-      } else {
-        document.getElementById("flashBtn").style.display = "none";
       }
-    }catch{}
-
-    els.cameraModal.classList.add("active");
-    els.ocrStatus.style.display = "none";
+      
+      els.cameraModal.classList.add("active");
+      els.ocrStatus.style.display = "none";
+    } catch(err){
+      console.error("Camera error:", err);
+      alert("لا يمكن الوصول للكاميرا. تأكد من:\n• منح الأذونات\n• استخدام HTTPS أو localhost\n• عدم استخدام الكاميرا في تطبيق آخر");
+    }
   }
 
   function closeCamera(){
@@ -860,76 +781,145 @@
     els.ocrStatus.style.display = "none";
   }
 
-  // Enhanced preprocessing
+  // Enhanced preprocessing (fast + mobile-friendly)
   function preprocessImage(canvas) {
-    const ctx = canvas.getContext("2d");
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const { width:w, height:h } = canvas;
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
 
     // Grayscale
-    for (let i = 0; i < data.length; i += 4) {
-      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-      data[i] = data[i + 1] = data[i + 2] = avg;
+    for (let i = 0; i < d.length; i += 4) {
+      const g = (d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114);
+      d[i] = d[i+1] = d[i+2] = g;
     }
 
-    // High contrast + sharp threshold
-    for (let i = 0; i < data.length; i += 4) {
-      let val = data[i];
-      val = ((val - 128) * 2.0) + 128;
-      val = val > 140 ? 255 : 0;
-      data[i] = data[i + 1] = data[i + 2] = val;
+    // Contrast + threshold (simple but effective for plates)
+    const contrast = 1.8; // 1.0 = none
+    const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+    for (let i = 0; i < d.length; i += 4) {
+      let v = factor * (d[i] - 128) + 128;
+      v = v > 155 ? 255 : 0;
+      d[i] = d[i+1] = d[i+2] = v;
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    ctx.putImageData(img, 0, 0);
     return canvas;
   }
 
-  // Extract plate - ENGLISH ONLY
-  function extractPlate(text) {
-    // Only English letters and numbers
-    let cleaned = text.replace(/[^A-Z0-9\s]/gi, " ");
-    
-    // Corrections
-    const fix = {
-      'O':'0', 'o':'0', 'Q':'0', 'D':'0',
-      'I':'1', 'l':'1', 'L':'1', '|':'1',
-      'Z':'2', 'S':'5', 's':'5', 'G':'6',
-      'B':'8', 'T':'7'
+  // Extract Saudi plate (EN + digits) with strict formatting
+  function extractPlateEN(text) {
+    let t = String(text || "").toUpperCase();
+
+    // Keep only A-Z, 0-9, space
+    t = t.replace(/[^A-Z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+
+    // Fix common OCR confusions (apply BEFORE regex)
+    const fixMap = {
+      "O":"0","Q":"0","D":"0",
+      "I":"1","L":"1","|":"1",
+      "Z":"2",
+      "S":"5",
+      "G":"6",
+      "T":"7",
+      "B":"8"
     };
-    
-    const parts = cleaned.split(/\s+/).filter(p => p.length > 1);
-    let letters = '', numbers = '';
-    
-    for (const part of parts) {
-      if (/^[A-Z]+$/i.test(part) && part.length >= 2) {
-        letters = part.toUpperCase();
-      } else if (/^\d+$/.test(part)) {
-        numbers = part;
-      } else {
-        const l = part.match(/[A-Z]+/i);
-        const n = part.match(/\d+/);
-        if (l && l[0].length >= 2) letters = l[0].toUpperCase();
-        if (n) numbers = n[0];
-      }
-    }
-    
-    // Apply corrections to numbers only
-    numbers = numbers.split('').map(c => fix[c] || c).join('');
-    
-    if (letters && numbers && letters.length >= 2 && numbers.length >= 3) {
-      return `${letters} ${numbers}`;
-    }
-    
-    return cleaned.replace(/\s+/g, " ").trim().toUpperCase();
+    t = t.split("").map(ch => fixMap[ch] || ch).join("");
+
+    // Prefer pattern: 2-4 letters + 3-4 digits (Saudi usually 3 + 4)
+    const m1 = t.match(/([A-Z]{2,4})\s*([0-9]{3,4})/);
+    if (m1) return `${m1[1]} ${m1[2]}`;
+
+    // Or digits then letters (some OCR outputs reverse)
+    const m2 = t.match(/([0-9]{3,4})\s*([A-Z]{2,4})/);
+    if (m2) return `${m2[2]} ${m2[1]}`;
+
+    // Fallback: join best guess parts
+    const letters = (t.match(/[A-Z]{2,4}/g) || [])[0] || "";
+    const digits  = (t.match(/[0-9]{3,4}/g) || [])[0] || "";
+    if (letters && digits) return `${letters} ${digits}`;
+    return t;
+  }
+
+  // Reusable OCR worker (avoids "يجهّز" forever بسبب تكرار workers)
+  let _ocrWorkerPromise = null;
+
+  async function getOcrWorker() {
+    if (_ocrWorkerPromise) return _ocrWorkerPromise;
+
+    _ocrWorkerPromise = (async () => {
+      // Use explicit paths for better compatibility on GitHub Pages / mobile
+      const worker = await Tesseract.createWorker("eng", 1, {
+        logger: () => {},
+        workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js",
+        corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js",
+        langPath: "https://tessdata.projectnaptha.com/4.0.0"
+      });
+
+      // Tight settings for plates
+      await worker.setParameters({
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+      });
+
+      return worker;
+    })();
+
+    return _ocrWorkerPromise;
+  }
+
+  // Crop: first to guide area (center), then take bottom band (EN + digits)
+  function cropPlateBottomBand(srcCanvas) {
+    const w = srcCanvas.width, h = srcCanvas.height;
+
+    // Guide area similar to overlay: center 80% width, 38% height
+    const guideW = Math.round(w * 0.80);
+    const guideH = Math.round(h * 0.38);
+    const guideX = Math.round((w - guideW) / 2);
+    const guideY = Math.round((h - guideH) / 2);
+
+    const guide = document.createElement("canvas");
+    guide.width = guideW;
+    guide.height = guideH;
+    guide.getContext("2d").drawImage(srcCanvas, guideX, guideY, guideW, guideH, 0, 0, guideW, guideH);
+
+    // Bottom band: take lower 60% from guide (where EN+digits are)
+    const bandY = Math.round(guideH * 0.40);
+    const bandH = Math.round(guideH * 0.60);
+
+    const band = document.createElement("canvas");
+    band.width = guideW;
+    band.height = bandH;
+    band.getContext("2d").drawImage(guide, 0, bandY, guideW, bandH, 0, 0, guideW, bandH);
+
+    // Upscale 2x for OCR
+    const up = document.createElement("canvas");
+    up.width = guideW * 2;
+    up.height = bandH * 2;
+    const upCtx = up.getContext("2d");
+    upCtx.imageSmoothingEnabled = false;
+    upCtx.drawImage(band, 0, 0, up.width, up.height);
+
+    return up;
+  }
+
+  // OCR with timeout (prevents hanging forever on some mobiles)
+  function withTimeout(promise, ms, label) {
+    let t;
+    const timeout = new Promise((_, reject) => {
+      t = setTimeout(() => reject(new Error(label || "timeout")), ms);
+    });
+    return Promise.race([promise.finally(() => clearTimeout(t)), timeout]);
   }
 
   async function captureAndRecognize(){
     const video = els.cameraVideo;
     const canvas = els.cameraCanvas;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const ctx = canvas.getContext("2d");
 
-    if(!video.videoWidth || !video.videoHeight){
-      els.ocrStatus.textContent = "⚠️ انتظر لحظة حتى تعمل الكاميرا ثم جرّب.";
+    // Ensure video is ready
+    if (!video || !video.videoWidth) {
+      els.ocrStatus.textContent = "⚠️ الكاميرا غير جاهزة. حاول مرة أخرى.";
       els.ocrStatus.className = "ocr-status error";
       els.ocrStatus.style.display = "block";
       return;
@@ -939,115 +929,54 @@
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0);
 
-    const cropCanvas = document.createElement("canvas");
-    const cctx = cropCanvas.getContext("2d", { willReadFrequently: true });
-
-    const cropW = Math.floor(canvas.width * 0.75);
-    const cropH = Math.floor(canvas.height * 0.25);
-    const cropX = Math.floor((canvas.width - cropW) / 2);
-    const cropY = Math.floor((canvas.height - cropH) / 2);
-
-    cropCanvas.width = cropW;
-    cropCanvas.height = cropH;
-    cctx.drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
-    // Downscale for speed/stability on phones
-    const maxW = 900;
-    if(cropCanvas.width > maxW){
-      const scale = maxW / cropCanvas.width;
-      const scaled = document.createElement("canvas");
-      scaled.width = Math.floor(cropCanvas.width * scale);
-      scaled.height = Math.floor(cropCanvas.height * scale);
-      scaled.getContext("2d").drawImage(cropCanvas, 0, 0, scaled.width, scaled.height);
-
-      cropCanvas.width = scaled.width;
-      cropCanvas.height = scaled.height;
-      cctx.clearRect(0,0,cropCanvas.width,cropCanvas.height);
-      cctx.drawImage(scaled, 0, 0);
-    }
-
-    els.ocrStatus.textContent = "⏳ جاري القراءة...";
+    els.ocrStatus.textContent = "⏳ جاري تجهيز صورة اللوحة...";
     els.ocrStatus.className = "ocr-status processing";
     els.ocrStatus.style.display = "block";
 
-    const variants = [];
+    try {
+      const cropped = cropPlateBottomBand(canvas);
 
-    function cloneCanvas(src){
-      const cc = document.createElement("canvas");
-      cc.width = src.width; cc.height = src.height;
-      cc.getContext("2d").drawImage(src,0,0);
-      return cc;
-    }
+      // Try 2 variants: processed then original (sometimes processed over-thresholds)
+      const processed = cropped.cloneNode();
+      processed.getContext("2d").drawImage(cropped, 0, 0);
+      preprocessImage(processed);
 
-    function toBW(src, invert=false){
-      const cc = cloneCanvas(src);
-      const x = cc.getContext("2d", { willReadFrequently: true });
-      const img = x.getImageData(0,0,cc.width,cc.height);
-      const d = img.data;
-      for(let i=0;i<d.length;i+=4){
-        const gray = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
-        const thr = 150;
-        let v = gray > thr ? 255 : 0;
-        if(invert) v = 255 - v;
-        d[i]=d[i+1]=d[i+2]=v;
-      }
-      x.putImageData(img,0,0);
-      return cc;
-    }
+      const worker = await getOcrWorker();
 
-    variants.push({canvas: cloneCanvas(cropCanvas), tag:"أصلي"});
-    variants.push({canvas: toBW(cropCanvas,false), tag:"أبيض/أسود"});
-    variants.push({canvas: toBW(cropCanvas,true), tag:"معكوس"});
+      els.ocrStatus.textContent = "⏳ جاري قراءة اللوحة...";
+      const r1 = await withTimeout(worker.recognize(processed), 20000, "OCR timeout");
+      let plate1 = extractPlateEN(r1.data.text);
+      let conf1 = Number(r1.data.confidence || 0);
 
-    function extract(text){
-      const cleaned = String(text||"")
-        .toUpperCase()
-        .replace(/[^A-Z0-9\s]/g," ")
-        .replace(/\s+/g," ")
-        .trim();
+      // Fallback try original crop if confidence low
+      let plate = plate1, conf = conf1;
+      if ((!plate1 || plate1.length < 5 || conf1 < 45)) {
+        const r2 = await withTimeout(worker.recognize(cropped), 20000, "OCR timeout");
+        const plate2 = extractPlateEN(r2.data.text);
+        const conf2 = Number(r2.data.confidence || 0);
 
-      const m1 = cleaned.match(/\b(\d{3,4})\s*([A-Z]{2,4})\b/);
-      if(m1) return `${m1[1]} ${m1[2]}`;
-
-      const m2 = cleaned.match(/\b([A-Z]{2,4})\s*(\d{3,4})\b/);
-      if(m2) return `${m2[2]} ${m2[1]}`;
-
-      return cleaned;
-    }
-
-    const TIMEOUT_MS = 18000;
-    let best = {plate:"", score:-1};
-
-    for(const v of variants){
-      try{
-        els.ocrStatus.textContent = `⏳ جاري القراءة... (${v.tag})`;
-        const res = await Promise.race([
-          recognizeFromCanvas(v.canvas),
-          new Promise((_,rej)=>setTimeout(()=>rej(new Error("TIMEOUT")), TIMEOUT_MS))
-        ]);
-
-        const plate = extract(res.data && res.data.text);
-        const conf = Number(res.data && res.data.confidence || 0);
-
-        const score = conf
-          + ((/\d/.test(plate) && /[A-Z]/.test(plate)) ? 20 : 0)
-          + (plate.length >= 6 ? 10 : 0);
-
-        if(score > best.score){
-          best = {plate, score};
+        if (conf2 > conf1) {
+          plate = plate2;
+          conf = conf2;
         }
-      }catch(e){
-        console.warn("OCR attempt failed:", v.tag, e);
       }
-    }
 
-    if(best.plate){
-      els.plate.value = best.plate;
-      els.ocrStatus.innerHTML = `✅ تم قراءة اللوحة: <b>${best.plate}</b>`;
-      els.ocrStatus.className = "ocr-status success";
-      setTimeout(() => closeCamera(), 1200);
-    }else{
-      els.ocrStatus.innerHTML = `❌ ما قدرنا نقرأ اللوحة.<br><small>جرّب قرب أكثر أو فعّل الإضاءة، أو استخدم رفع صورة.</small>`;
+      // Final strict check: 2-4 letters + 3-4 digits
+      const ok = /^[A-Z]{2,4}\s[0-9]{3,4}$/.test(plate);
+
+      if(ok){
+        els.plate.value = plate;
+        els.ocrStatus.innerHTML = `✅ تم قراءة اللوحة: <b>${plate}</b><br><small>الدقة: ${Math.round(conf)}%</small>`;
+        els.ocrStatus.className = "ocr-status success";
+        setTimeout(() => closeCamera(), 1200);
+      } else {
+        els.ocrStatus.innerHTML = `⚠️ تم قراءة نص لكن يحتاج تعديل:<br><b>${plate || "—"}</b><br><small>عدلها يدويًا أو أعد التصوير (قرب أكثر وثبّت اليد).</small>`;
+        els.ocrStatus.className = "ocr-status error";
+        // Keep camera open for retry
+      }
+    } catch(err){
+      console.error("OCR Error:", err);
+      els.ocrStatus.innerHTML = `❌ تعذر قراءة اللوحة الآن.<br><small>جرّب: إضاءة أقوى + قرب أكثر + ثبّت الكاميرا + خذ الصورة واللوحة داخل المستطيل الأخضر.</small>`;
       els.ocrStatus.className = "ocr-status error";
     }
   }
@@ -1092,62 +1021,6 @@
   els.cancelCamera.addEventListener("click", closeCamera);
   els.captureBtn.addEventListener("click", captureAndRecognize);
 
-  // Upload plate image as fallback (works even if camera blocked)
-  els.uploadBtn.addEventListener("click", () => els.plateFile.click());
-  els.plateFile.addEventListener("change", async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if(!file) return;
-    els.ocrStatus.textContent = "⏳ جاري القراءة من الصورة...";
-    els.ocrStatus.className = "ocr-status processing";
-    els.ocrStatus.style.display = "block";
-    try{
-      const img = new Image();
-      img.onload = async () => {
-        const c = document.createElement("canvas");
-        const scale = Math.min(1200 / img.width, 1200 / img.height, 1);
-        c.width = Math.floor(img.width * scale);
-        c.height = Math.floor(img.height * scale);
-        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-
-        const res = await Promise.race([
-          recognizeFromCanvas(c),
-          new Promise((_,rej)=>setTimeout(()=>rej(new Error("TIMEOUT")), 18000))
-        ]);
-
-        const cleaned = String((res.data && res.data.text) ? res.data.text : "")
-          .toUpperCase()
-          .replace(/[^A-Z0-9\s]/g, " ")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        const m1 = cleaned.match(/\b(\d{3,4})\s*([A-Z]{2,4})\b/);
-        const m2 = cleaned.match(/\b([A-Z]{2,4})\s*(\d{3,4})\b/);
-        const plate = m1 ? `${m1[1]} ${m1[2]}` : (m2 ? `${m2[2]} ${m2[1]}` : cleaned);
-
-        if(plate){
-          els.plate.value = plate;
-          els.ocrStatus.innerHTML = `✅ تم قراءة اللوحة: <b>${plate}</b>`;
-          els.ocrStatus.className = "ocr-status success";
-          setTimeout(()=> closeCamera(), 1200);
-        }else{
-          els.ocrStatus.innerHTML = "❌ ما قدرنا نقرأ اللوحة من الصورة.";
-          els.ocrStatus.className = "ocr-status error";
-        }
-      };
-      img.onerror = () => {
-        els.ocrStatus.textContent = "تعذر فتح الصورة";
-        els.ocrStatus.className = "ocr-status error";
-      };
-      img.src = URL.createObjectURL(file);
-    }catch(err){
-      console.error(err);
-      els.ocrStatus.innerHTML = "❌ تعذر القراءة من الصورة.";
-      els.ocrStatus.className = "ocr-status error";
-    }finally{
-      els.plateFile.value = "";
-    }
-  });
-
   // Flash toggle
   document.getElementById("flashBtn").addEventListener("click", async () => {
     if (cameraStream) {
@@ -1174,11 +1047,6 @@
   });
 
   // ============ INITIALIZATION ============
-  try{
-    const httpsOk = (location.protocol === "https:" || ["localhost","127.0.0.1"].includes(location.hostname));
-    els.envNote.textContent = httpsOk ? "HTTPS ✅ | التقط صورة ثم اقرأ" : "⚠️ يلزم HTTPS لتشغيل الكاميرا";
-  }catch{}
-
   setNow();
   if(loadFromStorage()){
     els.empId.value = report.guard.empId || "";
