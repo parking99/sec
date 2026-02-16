@@ -306,11 +306,16 @@
       <div class="camera-container">
         <video id="cameraVideo" autoplay playsinline></video>
         <div class="plate-guide"></div>
-      </div>
+      
+      <img id="platePreview" style="display:none; width:100%; max-width:640px; margin-top:12px; border-radius:10px; border:1px solid var(--g); background:#f1f5f9;" alt="معاينة اللوحة" />
+      <div class="hint" id="previewHint" style="display:none; text-align:center; margin-top:8px;">✅ إذا كانت اللوحة واضحة اضغط <b>اقرأ اللوحة</b>، أو اختر <b>إعادة التصوير</b>.</div>
+</div>
       <canvas id="cameraCanvas"></canvas>
       <div class="camera-controls">
         <button class="primary" id="captureBtn" style="font-size:15px; padding:12px 24px;">📸 التقط وقراءة</button>
         <button class="orange" id="flashBtn" style="display:none;">💡 فلاش</button>
+        <button class="success" id="readBtn" style="display:none;">🔎 اقرأ اللوحة</button>
+        <button class="ghost" id="retakeBtn" style="display:none;">↩️ إعادة التصوير</button>
         <button class="ghost" id="cancelCamera">إلغاء</button>
       </div>
       <div id="ocrStatus" class="ocr-status" style="display:none;"></div>
@@ -383,6 +388,10 @@
     cameraModal: document.getElementById("cameraModal"),
     cameraVideo: document.getElementById("cameraVideo"),
     cameraCanvas: document.getElementById("cameraCanvas"),
+    platePreview: document.getElementById("platePreview"),
+    previewHint: document.getElementById("previewHint"),
+    readBtn: document.getElementById("readBtn"),
+    retakeBtn: document.getElementById("retakeBtn"),
     captureBtn: document.getElementById("captureBtn"),
     closeCamera: document.getElementById("closeCamera"),
     cancelCamera: document.getElementById("cancelCamera"),
@@ -744,418 +753,311 @@
     });
   });
 
-  // ============ CAMERA OCR (إصدار احترافي عالي الدقة) ============
-  // ملاحظة: Tesseract.js يعمل عبر Web Worker لتجنب تجميد الواجهة. (لا توجد طريقة رسمية موثوقة لتعطيل الـ Worker في المتصفح)
-  let ocrWorker = null;
-  let ocrBusy = false;
-  let torchOn = false;
-
-  const TESSERACT_CDN_BASE = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist";
-
-  async function ensureOcrWorker(){
-    if(ocrWorker) return ocrWorker;
-    // إنشاء عامل واحد وإعادة استخدامه (أدق وأسرع من Tesseract.recognize التي تنشئ عامل كل مرة)
-    ocrWorker = await Tesseract.createWorker({
-      logger: (m) => {
-        // لو فيه شاشة حالة مفتوحة
-        if(!els.ocrStatus || els.ocrStatus.style.display === "none") return;
-        if(m.status === "recognizing text" && typeof m.progress === "number"){
-          const pct = Math.round(m.progress * 100);
-          els.ocrStatus.textContent = `⏳ جاري قراءة اللوحة... ${pct}%`;
-        } else if(m.status && m.status !== "recognizing text"){
-          // تجاهل ضوضاء اللوج
-        }
-      },
-      workerPath: `${TESSERACT_CDN_BASE}/worker.min.js`,
-      corePath: `${TESSERACT_CDN_BASE}/tesseract-core.wasm.js`,
-      langPath: "https://tessdata.projectnaptha.com/4.0.0", // بيانات اللغات الرسمية
-    });
-
-    // تحميل اللغات المطلوبة + إعدادات عامة
-    await ocrWorker.loadLanguage("eng+ara");
-    await ocrWorker.initialize("eng+ara");
-
-    // إعدادات تزيد الدقة للوحات (سطر واحد/كتلة صغيرة)
-    await ocrWorker.setParameters({
-      tessedit_pageseg_mode: "7", // SINGLE_LINE
-      preserve_interword_spaces: "1",
-      user_defined_dpi: "300",
-    });
-
-    return ocrWorker;
-  }
-
+  // ============ CAMERA OCR - ENGLISH ONLY ============
   async function openCamera(){
     try {
-      // إعدادات كاميرا أفضل قدر الممكن (قد لا يدعمها بعض الأجهزة)
       const constraints = {
         video: {
-          facingMode: { ideal: "environment" },
+          facingMode: "environment",
           width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        },
-        audio: false
+          height: { ideal: 1080 },
+        }
       };
-
+      
       cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
       els.cameraVideo.srcObject = cameraStream;
-
-      // زر الفلاش إذا كان مدعوم
-      const flashBtn = document.getElementById("flashBtn");
-      if(flashBtn){
-        const track = cameraStream.getVideoTracks()[0];
-        const caps = track.getCapabilities ? track.getCapabilities() : {};
-        if(caps && caps.torch){
-          flashBtn.style.display = "inline-block";
-          flashBtn.textContent = "💡 فلاش";
-        } else {
-          flashBtn.style.display = "none";
-        }
+      
+      const track = cameraStream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities();
+      if (capabilities.torch) {
+        document.getElementById("flashBtn").style.display = "inline-block";
       }
-
+      
       els.cameraModal.classList.add("active");
+      resetCaptureUI();
       els.ocrStatus.style.display = "none";
-      els.ocrStatus.textContent = "";
-
-      // ملاحظة مهمة للمستخدم (HTTPS)
-      // الكاميرا تحتاج HTTPS أو localhost في المتصفح
     } catch(err){
       console.error("Camera error:", err);
-      alert("لا يمكن الوصول للكاميرا. تأكد من:\n• منح الأذونات للكاميرا\n• استخدام HTTPS أو localhost\n• عدم استخدام الكاميرا في تطبيق آخر");
+      alert("لا يمكن الوصول للكاميرا. تأكد من:\n• منح الأذونات\n• استخدام HTTPS أو localhost\n• عدم استخدام الكاميرا في تطبيق آخر");
     }
   }
 
   function closeCamera(){
-    // إطفاء الفلاش إذا كان شغال
-    try{
-      if(torchOn && cameraStream){
-        const track = cameraStream.getVideoTracks()[0];
-        track.applyConstraints({ advanced: [{ torch: false }] });
-      }
-    } catch(e){}
-
-    torchOn = false;
-
     if(cameraStream){
       cameraStream.getTracks().forEach(track => track.stop());
       cameraStream = null;
     }
     els.cameraModal.classList.remove("active");
     els.ocrStatus.style.display = "none";
-    els.ocrStatus.textContent = "";
+    resetCaptureUI();
   }
 
-  // ====== أدوات تحسين الصورة (بدون مكتبات) ======
-  function clamp255(x){ return x < 0 ? 0 : (x > 255 ? 255 : x); }
+  // Enhanced preprocessing
+  function preprocessImage(canvas) {
+    const ctx = canvas.getContext("2d");
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
 
-  function toGrayscale(imgData){
-    const d = imgData.data;
-    for(let i=0;i<d.length;i+=4){
-      const g = (0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2])|0;
-      d[i]=d[i+1]=d[i+2]=g;
+    // Grayscale
+    for (let i = 0; i < data.length; i += 4) {
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      data[i] = data[i + 1] = data[i + 2] = avg;
     }
-    return imgData;
-  }
 
-  function histogramEqualize(imgData){
-    // Equalization بسيطة على قناة الرمادي
-    const d = imgData.data;
-    const hist = new Array(256).fill(0);
-    const n = d.length/4;
-    for(let i=0;i<d.length;i+=4){ hist[d[i]]++; }
-    const cdf = new Array(256).fill(0);
-    let cum=0;
-    for(let i=0;i<256;i++){ cum += hist[i]; cdf[i]=cum; }
-    const cdfMin = cdf.find(v=>v>0) || 0;
-    for(let i=0;i<d.length;i+=4){
-      const v = d[i];
-      const eq = cdfMin ? Math.round((cdf[v]-cdfMin)/(n-cdfMin)*255) : v;
-      d[i]=d[i+1]=d[i+2]=clamp255(eq);
+    // High contrast + sharp threshold
+    for (let i = 0; i < data.length; i += 4) {
+      let val = data[i];
+      val = ((val - 128) * 2.0) + 128;
+      val = val > 140 ? 255 : 0;
+      data[i] = data[i + 1] = data[i + 2] = val;
     }
-    return imgData;
+
+    ctx.putImageData(imageData, 0, 0);
+    return canvas;
   }
 
-  function otsuThreshold(imgData){
-    const d = imgData.data;
-    const hist = new Array(256).fill(0);
-    for(let i=0;i<d.length;i+=4){ hist[d[i]]++; }
-    const total = d.length/4;
-    let sum=0;
-    for(let i=0;i<256;i++) sum += i*hist[i];
-
-    let sumB=0, wB=0, wF=0;
-    let varMax=0, threshold=128;
-
-    for(let t=0;t<256;t++){
-      wB += hist[t];
-      if(wB === 0) continue;
-      wF = total - wB;
-      if(wF === 0) break;
-
-      sumB += t*hist[t];
-      const mB = sumB / wB;
-      const mF = (sum - sumB) / wF;
-      const varBetween = wB*wF*(mB - mF)*(mB - mF);
-      if(varBetween > varMax){
-        varMax = varBetween;
-        threshold = t;
+  // Extract plate - ENGLISH ONLY
+  function extractPlate(text) {
+    // Only English letters and numbers
+    let cleaned = text.replace(/[^A-Z0-9\s]/gi, " ");
+    
+    // Corrections
+    const fix = {
+      'O':'0', 'o':'0', 'Q':'0', 'D':'0',
+      'I':'1', 'l':'1', 'L':'1', '|':'1',
+      'Z':'2', 'S':'5', 's':'5', 'G':'6',
+      'B':'8', 'T':'7'
+    };
+    
+    const parts = cleaned.split(/\s+/).filter(p => p.length > 1);
+    let letters = '', numbers = '';
+    
+    for (const part of parts) {
+      if (/^[A-Z]+$/i.test(part) && part.length >= 2) {
+        letters = part.toUpperCase();
+      } else if (/^\d+$/.test(part)) {
+        numbers = part;
+      } else {
+        const l = part.match(/[A-Z]+/i);
+        const n = part.match(/\d+/);
+        if (l && l[0].length >= 2) letters = l[0].toUpperCase();
+        if (n) numbers = n[0];
       }
     }
-    return threshold;
-  }
-
-  function binarize(imgData, threshold){
-    const d = imgData.data;
-    for(let i=0;i<d.length;i+=4){
-      const v = d[i] > threshold ? 255 : 0;
-      d[i]=d[i+1]=d[i+2]=v;
+    
+    // Apply corrections to numbers only
+    numbers = numbers.split('').map(c => fix[c] || c).join('');
+    
+    if (letters && numbers && letters.length >= 2 && numbers.length >= 3) {
+      return `${letters} ${numbers}`;
     }
-    return imgData;
+    
+    return cleaned.replace(/\s+/g, " ").trim().toUpperCase();
   }
 
-  function upscaleCanvas(srcCanvas, scale=2){
-    const out = document.createElement("canvas");
-    out.width = Math.max(1, Math.round(srcCanvas.width*scale));
-    out.height = Math.max(1, Math.round(srcCanvas.height*scale));
-    const octx = out.getContext("2d", { willReadFrequently:true });
-    octx.imageSmoothingEnabled = false;
-    octx.drawImage(srcCanvas, 0, 0, out.width, out.height);
-    return out;
+  
+  // ======== PLATE CAPTURE -> PREVIEW -> OCR (Saudi/English) ========
+  let capturedDataUrl = "";
+  let capturedMeta = { w:0, h:0 };
+
+  function showPreview(dataUrl){
+    capturedDataUrl = dataUrl || "";
+    els.platePreview.src = capturedDataUrl;
+    els.platePreview.style.display = capturedDataUrl ? "block" : "none";
+    els.previewHint.style.display = capturedDataUrl ? "block" : "none";
+
+    // Hide live video once captured
+    els.cameraVideo.style.display = capturedDataUrl ? "none" : "block";
+    const guide = els.cameraModal.querySelector(".plate-guide");
+    if(guide) guide.style.display = capturedDataUrl ? "none" : "block";
+
+    // Toggle buttons
+    els.captureBtn.style.display = capturedDataUrl ? "none" : "inline-block";
+    els.readBtn.style.display = capturedDataUrl ? "inline-block" : "none";
+    els.retakeBtn.style.display = capturedDataUrl ? "inline-block" : "none";
   }
 
-  function cropToGuide(fullCanvas){
-    // مطابق للمستطيل الأخضر: 80% عرض، 30% ارتفاع، وسط الشاشة
+  function resetCaptureUI(){
+    capturedDataUrl = "";
+    els.platePreview.removeAttribute("src");
+    els.platePreview.style.display = "none";
+    els.previewHint.style.display = "none";
+    els.cameraVideo.style.display = "block";
+    const guide = els.cameraModal.querySelector(".plate-guide");
+    if(guide) guide.style.display = "block";
+    els.captureBtn.style.display = "inline-block";
+    els.readBtn.style.display = "none";
+    els.retakeBtn.style.display = "none";
+  }
+
+  function cropFromCenterGuide(fullCanvas){
+    const cropW = fullCanvas.width * 0.75;
+    const cropH = fullCanvas.height * 0.25;
+    const cropX = (fullCanvas.width - cropW) / 2;
+    const cropY = (fullCanvas.height - cropH) / 2;
+
     const cropCanvas = document.createElement("canvas");
-    const cctx = cropCanvas.getContext("2d", { willReadFrequently:true });
-
-    const cropW = Math.round(fullCanvas.width * 0.80);
-    const cropH = Math.round(fullCanvas.height * 0.30);
-    const cropX = Math.round((fullCanvas.width - cropW)/2);
-    const cropY = Math.round((fullCanvas.height - cropH)/2);
-
-    cropCanvas.width = cropW;
-    cropCanvas.height = cropH;
-    cctx.drawImage(fullCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    cropCanvas.width = Math.max(1, Math.round(cropW));
+    cropCanvas.height = Math.max(1, Math.round(cropH));
+    const cropCtx = cropCanvas.getContext("2d");
+    cropCtx.drawImage(fullCanvas, cropX, cropY, cropW, cropH, 0, 0, cropCanvas.width, cropCanvas.height);
     return cropCanvas;
   }
 
-  function sharpnessScore(canvas){
-    // تقدير حدّة الصورة (variance of Laplacian تقريبية)
-    const ctx = canvas.getContext("2d", { willReadFrequently:true });
-    const img = ctx.getImageData(0,0,canvas.width,canvas.height);
-    const d = img.data;
-    let sum=0, sumSq=0, count=0;
-
-    // عينة كل 4 بكسل لتسريع
-    const w = canvas.width;
-    const h = canvas.height;
-    for(let y=1;y<h-1;y+=4){
-      for(let x=1;x<w-1;x+=4){
-        const i = (y*w + x)*4;
-        const c = d[i]; // رمادي غالباً
-        const up = d[((y-1)*w + x)*4];
-        const dn = d[((y+1)*w + x)*4];
-        const lf = d[(y*w + (x-1))*4];
-        const rt = d[(y*w + (x+1))*4];
-        const lap = (up + dn + lf + rt - 4*c);
-        const v = lap*lap;
-        sum += v;
-        sumSq += v*v;
-        count++;
-      }
-    }
-    if(count === 0) return 0;
-    const mean = sum / count;
-    const variance = (sumSq / count) - (mean*mean);
-    return variance;
+  function upscale2x(srcCanvas){
+    const c = document.createElement("canvas");
+    c.width = srcCanvas.width * 2;
+    c.height = srcCanvas.height * 2;
+    const cctx = c.getContext("2d");
+    cctx.imageSmoothingEnabled = false;
+    cctx.drawImage(srcCanvas, 0, 0, c.width, c.height);
+    return c;
   }
 
-  async function captureBestFrame(){
-    // خذ 3 لقطات متتابعة واختر الأوضح (يساعد جداً في الجوال بسبب اهتزاز اليد)
+  function invertCanvas(srcCanvas){
+    const c = document.createElement("canvas");
+    c.width = srcCanvas.width;
+    c.height = srcCanvas.height;
+    const ctx = c.getContext("2d");
+    ctx.drawImage(srcCanvas, 0, 0);
+    const d = ctx.getImageData(0, 0, c.width, c.height);
+    for(let i=0;i<d.data.length;i+=4){
+      d.data[i] = 255 - d.data[i];
+      d.data[i+1] = 255 - d.data[i+1];
+      d.data[i+2] = 255 - d.data[i+2];
+    }
+    ctx.putImageData(d, 0, 0);
+    return c;
+  }
+
+  function capturePhoto(){
     const video = els.cameraVideo;
-    const full = document.createElement("canvas");
-    const fctx = full.getContext("2d", { willReadFrequently:true });
+    const canvas = els.cameraCanvas;
+    const ctx = canvas.getContext("2d");
 
-    full.width = Math.max(1, video.videoWidth || 1280);
-    full.height = Math.max(1, video.videoHeight || 720);
-
-    const frames = [];
-    for(let k=0;k<3;k++){
-      fctx.drawImage(video, 0, 0, full.width, full.height);
-      const snapshot = document.createElement("canvas");
-      snapshot.width = full.width;
-      snapshot.height = full.height;
-      snapshot.getContext("2d").drawImage(full, 0, 0);
-      const cropped = cropToGuide(snapshot);
-      // تحويل لرمادي لقياس الحدّة
-      const cctx = cropped.getContext("2d", { willReadFrequently:true });
-      let img = cctx.getImageData(0,0,cropped.width,cropped.height);
-      img = toGrayscale(img);
-      cctx.putImageData(img,0,0);
-      frames.push({ canvas: cropped, score: sharpnessScore(cropped) });
-      await new Promise(r => requestAnimationFrame(()=>r()));
+    if(!video.videoWidth || !video.videoHeight){
+      setStatus("انتظر ثواني حتى تشتغل الكاميرا…");
+      return;
     }
-    frames.sort((a,b)=>b.score - a.score);
-    return frames[0].canvas;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+
+    const cropped = cropFromCenterGuide(canvas);
+    const upscaled = upscale2x(cropped);
+
+    capturedMeta = { w: upscaled.width, h: upscaled.height };
+    showPreview(upscaled.toDataURL("image/jpeg", 0.92));
   }
 
-  function normalizePlate(text){
-    // تنظيف قوي + تطبيع أرقام عربية هندية + تصحيح خلط الحروف/الأرقام
-    let s = String(text||"")
-      .replace(/[\n\r\t]+/g, " ")
-      .replace(/[^A-Za-z0-9\u0600-\u06FF\u0660-\u0669 ]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    const arabicToWestern = { '٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9' };
-    s = s.split("").map(ch => arabicToWestern[ch] || ch).join("");
-
-    // تصحيح أخطاء OCR شائعة (حروف/أرقام)
-    const map = {
-      'O':'0','Q':'0','D':'0',
-      'I':'1','L':'1','|':'1',
-      'Z':'2',
-      'S':'5',
-      'G':'6',
-      'B':'8'
-    };
-    s = s.split("").map(ch => map[ch] || ch).join("");
-
-    // أحرف إنجليزية فقط كبيرة (لمن يطلع مختلط)
-    s = s.toUpperCase();
-
-    // استخراج نمط سعودي شائع: 3 أحرف + 1-4 أرقام (أحياناً 4 أرقام)
-    const letters = (s.match(/[A-Z]{2,4}/g) || []).join(" ");
-    const nums = (s.match(/\d{1,4}/g) || []).join(" ");
-
-    // اختر أقوى تركيبة
-    const bestLetters = (letters.replace(/\s+/g,"").slice(0,4));
-    const bestNums = (nums.replace(/\s+/g,"").slice(0,4));
-
-    if(bestLetters && bestNums) return `${bestLetters} ${bestNums}`;
-    return s;
+  function timeoutPromise(ms){
+    return new Promise((_, rej) => setTimeout(() => rej(new Error("TIMEOUT")), ms));
   }
 
-  async function ocrWithVariants(worker, baseCanvas){
-    // جهّز نسخ متعددة وجرّب إعدادات مختلفة، ثم اختر الأعلى ثقة + شكل صحيح
-    const variants = [];
+  let ocrWorker = null;
+  async function getOcrWorker(){
+    if(ocrWorker) return ocrWorker;
 
-    // 1) الأصل المقصوص + تكبير
-    variants.push({ name:"orig", canvas: upscaleCanvas(baseCanvas, 2.0) });
+    els.ocrStatus.textContent = "⏳ جاري تجهيز محرك القراءة لأول مرة…";
+    els.ocrStatus.className = "ocr-status processing";
+    els.ocrStatus.style.display = "block";
 
-    // 2) تحسين تباين (equalize) + Otsu + تكبير
-    {
-      const c = upscaleCanvas(baseCanvas, 2.5);
-      const ctx = c.getContext("2d", { willReadFrequently:true });
-      let img = ctx.getImageData(0,0,c.width,c.height);
-      img = toGrayscale(img);
-      img = histogramEqualize(img);
-      const thr = otsuThreshold(img);
-      img = binarize(img, thr);
-      ctx.putImageData(img,0,0);
-      variants.push({ name:"bin", canvas: c });
-    }
-
-    // 3) رمادي فقط + تكبير
-    {
-      const c = upscaleCanvas(baseCanvas, 2.5);
-      const ctx = c.getContext("2d", { willReadFrequently:true });
-      let img = ctx.getImageData(0,0,c.width,c.height);
-      img = toGrayscale(img);
-      ctx.putImageData(img,0,0);
-      variants.push({ name:"gray", canvas: c });
-    }
-
-    const jobs = [];
-    // إعدادات القراءة: سطر واحد + whitelist يركز على الإنجليزية/الأرقام (والعربية موجودة باللانج)
-    const params = [
-      { psm: "7", whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 " }, // SINGLE_LINE
-      { psm: "6", whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 " }, // SINGLE_BLOCK
-      { psm: "8", whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 " }, // SINGLE_WORD (أحياناً مفيد للجزء الرقمي)
-      { psm: "7", whitelist: "" } // بدون whitelist (علشان العربي)
-    ];
-
-    for(const v of variants){
-      for(const p of params){
-        jobs.push({ variant: v.name, canvas: v.canvas, p });
-      }
-    }
-
-    const results = [];
-    for(let i=0;i<jobs.length;i++){
-      const j = jobs[i];
-      // تحديث حالة
-      els.ocrStatus.textContent = `⏳ قراءة اللوحة... (${i+1}/${jobs.length})`;
-      await worker.setParameters({
-        tessedit_pageseg_mode: j.p.psm,
-        tessedit_char_whitelist: j.p.whitelist,
-      });
-
-      const r = await worker.recognize(j.canvas);
-      const raw = (r && r.data && r.data.text) ? r.data.text : "";
-      const conf = (r && r.data && typeof r.data.confidence === "number") ? r.data.confidence : 0;
-      const norm = normalizePlate(raw);
-
-      results.push({
-        raw,
-        norm,
-        conf,
-        variant: j.variant,
-        psm: j.p.psm,
-        hasLetters: /[A-Z\u0600-\u06FF]/.test(norm),
-        hasNums: /\d/.test(norm),
-        score: conf
-          + (/[A-Z]/.test(norm) ? 5 : 0)
-          + (/\d/.test(norm) ? 5 : 0)
-          + ((/[A-Z]/.test(norm) && /\d/.test(norm)) ? 10 : 0)
-          - (norm.length < 3 ? 20 : 0)
-      });
-    }
-
-    results.sort((a,b)=>b.score - a.score);
-    return results[0] || { norm:"", conf:0, variant:"", psm:"" };
+    const w = await Tesseract.createWorker();
+    await w.loadLanguage("eng");
+    await w.initialize("eng");
+    await w.setParameters({
+      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ",
+      preserve_interword_spaces: "1",
+      tessedit_pageseg_mode: "7" // SINGLE_LINE
+    });
+    ocrWorker = w;
+    return ocrWorker;
   }
 
-  async function captureAndRecognize(){
-    if(ocrBusy) return;
-    ocrBusy = true;
+  async function runOcrOnCaptured(){
+    if(!capturedDataUrl){
+      setStatus("صوّر اللوحة أولاً");
+      return;
+    }
 
-    els.ocrStatus.textContent = "⏳ تجهيز...";
+    els.ocrStatus.textContent = "⏳ جاري قراءة اللوحة…";
     els.ocrStatus.className = "ocr-status processing";
     els.ocrStatus.style.display = "block";
 
     try{
-      const worker = await ensureOcrWorker();
+      const w = await getOcrWorker();
 
-      // خذ أفضل فريم (أوضح)
-      els.ocrStatus.textContent = "⏳ التقاط أفضل لقطة...";
-      const base = await captureBestFrame();
+      const baseImg = new Image();
+      baseImg.src = capturedDataUrl;
+      await new Promise((res, rej) => { baseImg.onload = res; baseImg.onerror = rej; });
 
-      // OCR متعدد النسخ/الإعدادات
-      els.ocrStatus.textContent = "⏳ قراءة اللوحة...";
-      const best = await ocrWithVariants(worker, base);
+      const baseCanvas = document.createElement("canvas");
+      baseCanvas.width = baseImg.naturalWidth || capturedMeta.w || 1;
+      baseCanvas.height = baseImg.naturalHeight || capturedMeta.h || 1;
+      baseCanvas.getContext("2d").drawImage(baseImg, 0, 0);
 
-      const plate = (best.norm || "").trim();
-      if(plate){
-        els.plate.value = plate;
-        const pct = Math.max(0, Math.min(100, Math.round(best.conf)));
-        els.ocrStatus.innerHTML = `✅ تم قراءة اللوحة: <b>${escapeHtml(plate)}</b><br><small>الدقة: ${pct}%</small>`;
-        els.ocrStatus.className = "ocr-status success";
+      const processed = document.createElement("canvas");
+      processed.width = baseCanvas.width;
+      processed.height = baseCanvas.height;
+      processed.getContext("2d").drawImage(baseCanvas, 0, 0);
+      preprocessImage(processed);
 
-        setTimeout(()=>closeCamera(), 2200);
-      } else {
-        els.ocrStatus.innerHTML = "❌ لم يتم التعرف على نص واضح. حاول التقاط الصورة من قرب وبإضاءة أقوى.";
-        els.ocrStatus.className = "ocr-status error";
+      const inverted = invertCanvas(processed);
+
+      const variants = [
+        { name: "أصلي", dataUrl: baseCanvas.toDataURL("image/png") },
+        { name: "معالج", dataUrl: processed.toDataURL("image/png") },
+        { name: "معكوس", dataUrl: inverted.toDataURL("image/png") },
+      ];
+
+      const results = [];
+
+      for(let i=0;i<variants.length;i++){
+        els.ocrStatus.textContent = `⏳ قراءة (${i+1}/3): ${variants[i].name}…`;
+        const out = await Promise.race([ w.recognize(variants[i].dataUrl), timeoutPromise(25000) ]);
+        const raw = (out.data.text || "").trim();
+        if(raw){
+          results.push({ text: raw, confidence: out.data.confidence ?? 0, method: variants[i].name });
+        }
       }
-    } catch(err){
+
+      if(results.length === 0) throw new Error("NO_TEXT");
+
+      let best = null, bestScore = -1;
+      for(const r of results){
+        const plate = extractPlate(r.text.trim());
+        let score = 0;
+        const norm = plate.replace(/\s+/g," ").trim();
+        if(/^[A-Z]{2,4}\s*\d{3,4}$/.test(norm)) score += 60;
+        if(/[A-Z]{2,4}/.test(norm)) score += 20;
+        if(/\d{3,4}/.test(norm)) score += 20;
+        if(norm.length >= 6) score += 10;
+        score += (Number(r.confidence || 0) / 100) * 20;
+        if(score > bestScore){
+          bestScore = score;
+          best = { plate: norm, ...r, score };
+        }
+      }
+
+      if(!best || !best.plate || best.plate.length < 3) throw new Error("BAD_PLATE");
+
+      els.plate.value = best.plate;
+      els.ocrStatus.innerHTML = `✅ تم قراءة اللوحة: <b style="font-size:18px; letter-spacing:2px;">${best.plate}</b><br><small>الدقة: ${Math.round(best.confidence||0)}% | الطريقة: ${best.method}</small>`;
+      els.ocrStatus.className = "ocr-status success";
+
+      setTimeout(() => { closeCamera(); }, 1800);
+
+    }catch(err){
       console.error("OCR Error:", err);
-      els.ocrStatus.innerHTML = "❌ حدث خطأ أثناء قراءة اللوحة. جرّب مرة أخرى أو أدخل اللوحة يدوياً.";
+      els.ocrStatus.innerHTML = `❌ ما قدرت أقرأ اللوحة بشكل واضح.<br><small>جرّب: إضاءة أقوى + قرب الكاميرا + خل اللوحة مستقيمة.</small>`;
       els.ocrStatus.className = "ocr-status error";
-    } finally {
-      ocrBusy = false;
     }
   }
-// ============ KEYBOARD SHORTCUTS ============
+
+
+
+  // ============ KEYBOARD SHORTCUTS ============
   document.addEventListener("keydown", (e) => {
     if(e.ctrlKey && e.key === "Enter"){
       e.preventDefault();
@@ -1193,7 +1095,9 @@
   els.btnCamera.addEventListener("click", openCamera);
   els.closeCamera.addEventListener("click", closeCamera);
   els.cancelCamera.addEventListener("click", closeCamera);
-  els.captureBtn.addEventListener("click", captureAndRecognize);
+  els.captureBtn.addEventListener("click", capturePhoto);
+  els.readBtn.addEventListener("click", runOcrOnCaptured);
+  els.retakeBtn.addEventListener("click", resetCaptureUI);
 
   // Flash toggle
   document.getElementById("flashBtn").addEventListener("click", async () => {
