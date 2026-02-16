@@ -308,6 +308,7 @@
         <div class="plate-guide"></div>
       </div>
       <canvas id="cameraCanvas"></canvas>
+      <input id="plateFile" type="file" accept="image/*" style="display:none" />
       <div class="camera-controls">
         <button class="primary" id="captureBtn" style="font-size:15px; padding:12px 24px;">📸 التقط وقراءة</button>
         <button class="orange" id="flashBtn" style="display:none;">💡 فلاش</button>
@@ -355,6 +356,7 @@
     reportDate: document.getElementById("reportDate"),
     reportTime: document.getElementById("reportTime"),
     status: document.getElementById("status"),
+    envNote: document.getElementById("envNote"),
 
     tower: document.getElementById("tower"),
     floor: document.getElementById("floor"),
@@ -384,6 +386,8 @@
     cameraVideo: document.getElementById("cameraVideo"),
     cameraCanvas: document.getElementById("cameraCanvas"),
     captureBtn: document.getElementById("captureBtn"),
+    uploadBtn: document.getElementById("uploadBtn"),
+    plateFile: document.getElementById("plateFile"),
     closeCamera: document.getElementById("closeCamera"),
     cancelCamera: document.getElementById("cancelCamera"),
     ocrStatus: document.getElementById("ocrStatus"),
@@ -409,6 +413,52 @@
   };
 
   let cameraStream = null;
+  // ============ TESSERACT (UNIVERSAL) ============
+  const TESS_BASE = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist";
+  const TESS_LANG = "eng";
+  const TESS_LANG_PATH = "https://tessdata.projectnaptha.com/4.0.0";
+
+  let ocrWorker = null;
+  let ocrReady = false;
+
+  async function initOcrOnce(){
+    if(ocrReady) return true;
+    if(ocrWorker && !ocrReady) return false;
+
+    try{
+      ocrWorker = await Tesseract.createWorker(TESS_LANG, 1, {
+        workerPath: `${TESS_BASE}/worker.min.js`,
+        corePath: `${TESS_BASE}/tesseract-core.wasm.js`,
+        langPath: TESS_LANG_PATH,
+        logger: m => {
+          if(m.status === "recognizing text"){
+            const pct = Math.round((m.progress || 0) * 100);
+            els.ocrStatus.textContent = `⏳ جاري القراءة... ${pct}%`;
+          }
+        }
+      });
+
+      await ocrWorker.setParameters({
+        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ",
+        tessedit_pageseg_mode: "7" // SINGLE_LINE
+      });
+
+      ocrReady = true;
+      return true;
+    }catch(e){
+      console.error("OCR init failed:", e);
+      ocrWorker = null;
+      ocrReady = false;
+      return false;
+    }
+  }
+
+  async function recognizeFromCanvas(canvas){
+    const ok = await initOcrOnce();
+    if(!ok) throw new Error("OCR_INIT_FAILED");
+    return await ocrWorker.recognize(canvas);
+  }
+
 
   function pad2(n){ return String(n).padStart(2,"0"); }
 
@@ -746,81 +796,59 @@
 
   // ============ CAMERA OCR - ENGLISH ONLY ============
   async function openCamera(){
-    // Close any previous stream first
-    closeCamera();
-
-    // Must be HTTPS (or localhost) for camera access
-    if (location.protocol !== "https:" && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
-      alert("الكاميرا تحتاج HTTPS. افتح الصفحة عبر GitHub Pages أو أي استضافة HTTPS.");
+    const isLocalhost = ["localhost","127.0.0.1"].includes(location.hostname);
+    if(location.protocol !== "https:" && !isLocalhost){
+      alert("الكاميرا تحتاج HTTPS. افتح الصفحة من GitHub Pages أو HTTPS.");
       return;
     }
 
     const tries = [
-      // Best effort: rear camera + reasonable HD
-      { video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
-      // Rear camera only
-      { video: { facingMode: { ideal: "environment" } }, audio: false },
-      // Any camera
-      { video: true, audio: false },
+      { video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio:false },
+      { video: { facingMode: "environment" }, audio:false },
+      { video: true, audio:false }
     ];
 
     let lastErr = null;
+    cameraStream = null;
 
-    try {
-      for (const constraints of tries) {
-        try {
-          cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-          break;
-        } catch (e) {
-          lastErr = e;
-          cameraStream = null;
-        }
+    for(const c of tries){
+      try{
+        cameraStream = await navigator.mediaDevices.getUserMedia(c);
+        break;
+      }catch(e){
+        lastErr = e;
+        cameraStream = null;
       }
+    }
 
-      if (!cameraStream) throw lastErr || new Error("تعذر الحصول على بث الكاميرا");
+    if(!cameraStream){
+      const name = (lastErr && lastErr.name) ? lastErr.name : "UnknownError";
+      const msg = (lastErr && lastErr.message) ? lastErr.message : "";
+      alert("تعذر فتح الكاميرا ("+name+").\n"
+        + "• تأكد أن الموقع HTTPS\n"
+        + "• Settings > Safari > Camera = Allow\n"
+        + "• جرّب إعادة تحميل الصفحة\n\n"
+        + (msg ? ("تفاصيل: "+msg) : ""));
+      return;
+    }
 
-      els.cameraVideo.srcObject = cameraStream;
+    els.cameraVideo.srcObject = cameraStream;
 
-      // iOS/Safari: ensure autoplay works
-      els.cameraVideo.muted = true;
-      els.cameraVideo.playsInline = true;
+    try { els.cameraVideo.muted = true; } catch {}
+    try { await els.cameraVideo.play(); } catch {}
 
-      try { await els.cameraVideo.play(); } catch (_) {}
-
-      // Torch (flash) if supported
-      try {
-        const track = cameraStream.getVideoTracks()[0];
-        const caps = track.getCapabilities ? track.getCapabilities() : {};
-        if (caps && caps.torch) {
-          document.getElementById("flashBtn").style.display = "inline-block";
-        } else {
-          document.getElementById("flashBtn").style.display = "none";
-        }
-      } catch (_) {
+    try{
+      const track = cameraStream.getVideoTracks()[0];
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      if(caps && caps.torch){
+        document.getElementById("flashBtn").style.display = "inline-block";
+      } else {
         document.getElementById("flashBtn").style.display = "none";
       }
+    }catch{}
 
-      els.cameraModal.classList.add("active");
-      els.ocrStatus.style.display = "none";
-    } catch (err) {
-      console.error("Camera error:", err);
-      const name = err && err.name ? err.name : "Error";
-      let msg = "لا يمكن الوصول للكاميرا.
-
-";
-      if (name === "NotAllowedError") {
-        msg += "تم رفض الإذن. فعّل الكاميرا للمتصفح ثم أعد المحاولة.";
-      } else if (name === "NotFoundError") {
-        msg += "لا توجد كاميرا متاحة على الجهاز.";
-      } else if (name === "NotReadableError") {
-        msg += "الكاميرا مشغولة في تطبيق آخر أو تعذر تشغيلها.";
-      } else if (name === "OverconstrainedError") {
-        msg += "إعدادات الكاميرا غير مدعومة. جرّب مرة أخرى.";
-      } else {
-        msg += "خطأ غير متوقع: " + name;
-      }
-      alert(msg);
-    }
+    els.cameraModal.classList.add("active");
+    els.ocrStatus.style.display = "none";
   }
 
   function closeCamera(){
@@ -898,142 +926,128 @@
   async function captureAndRecognize(){
     const video = els.cameraVideo;
     const canvas = els.cameraCanvas;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+    if(!video.videoWidth || !video.videoHeight){
+      els.ocrStatus.textContent = "⚠️ انتظر لحظة حتى تعمل الكاميرا ثم جرّب.";
+      els.ocrStatus.className = "ocr-status error";
+      els.ocrStatus.style.display = "block";
+      return;
+    }
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0);
 
-    // Crop to guide area
-    const cropCanvas = document.createElement('canvas');
-    const cropCtx = cropCanvas.getContext('2d');
-    
-    const cropW = canvas.width * 0.75;
-    const cropH = canvas.height * 0.25;
-    const cropX = (canvas.width - cropW) / 2;
-    const cropY = (canvas.height - cropH) / 2;
-    
+    const cropCanvas = document.createElement("canvas");
+    const cctx = cropCanvas.getContext("2d", { willReadFrequently: true });
+
+    const cropW = Math.floor(canvas.width * 0.75);
+    const cropH = Math.floor(canvas.height * 0.25);
+    const cropX = Math.floor((canvas.width - cropW) / 2);
+    const cropY = Math.floor((canvas.height - cropH) / 2);
+
     cropCanvas.width = cropW;
     cropCanvas.height = cropH;
-    cropCtx.drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    cctx.drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
-    // 2X upscale
-    const scaled = document.createElement('canvas');
-    scaled.width = cropW * 2;
-    scaled.height = cropH * 2;
-    const scaledCtx = scaled.getContext('2d');
-    scaledCtx.imageSmoothingEnabled = false;
-    scaledCtx.drawImage(cropCanvas, 0, 0, scaled.width, scaled.height);
+    // Downscale for speed/stability on phones
+    const maxW = 900;
+    if(cropCanvas.width > maxW){
+      const scale = maxW / cropCanvas.width;
+      const scaled = document.createElement("canvas");
+      scaled.width = Math.floor(cropCanvas.width * scale);
+      scaled.height = Math.floor(cropCanvas.height * scale);
+      scaled.getContext("2d").drawImage(cropCanvas, 0, 0, scaled.width, scaled.height);
 
-    els.ocrStatus.textContent = "⏳ جاري المعالجة...";
+      cropCanvas.width = scaled.width;
+      cropCanvas.height = scaled.height;
+      cctx.clearRect(0,0,cropCanvas.width,cropCanvas.height);
+      cctx.drawImage(scaled, 0, 0);
+    }
+
+    els.ocrStatus.textContent = "⏳ جاري القراءة...";
     els.ocrStatus.className = "ocr-status processing";
     els.ocrStatus.style.display = "block";
 
-    try {
-      const original = scaled.cloneNode();
-      original.getContext("2d").drawImage(scaled, 0, 0);
-      
-      const processed = scaled.cloneNode();
-      processed.getContext("2d").drawImage(scaled, 0, 0);
-      preprocessImage(processed);
+    const variants = [];
 
-      // Inverted
-      const inverted = scaled.cloneNode();
-      const invCtx = inverted.getContext("2d");
-      invCtx.drawImage(scaled, 0, 0);
-      const invData = invCtx.getImageData(0, 0, inverted.width, inverted.height);
-      for (let i = 0; i < invData.data.length; i += 4) {
-        invData.data[i] = 255 - invData.data[i];
-        invData.data[i+1] = 255 - invData.data[i+1];
-        invData.data[i+2] = 255 - invData.data[i+2];
+    function cloneCanvas(src){
+      const cc = document.createElement("canvas");
+      cc.width = src.width; cc.height = src.height;
+      cc.getContext("2d").drawImage(src,0,0);
+      return cc;
+    }
+
+    function toBW(src, invert=false){
+      const cc = cloneCanvas(src);
+      const x = cc.getContext("2d", { willReadFrequently: true });
+      const img = x.getImageData(0,0,cc.width,cc.height);
+      const d = img.data;
+      for(let i=0;i<d.length;i+=4){
+        const gray = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        const thr = 150;
+        let v = gray > thr ? 255 : 0;
+        if(invert) v = 255 - v;
+        d[i]=d[i+1]=d[i+2]=v;
       }
-      invCtx.putImageData(invData, 0, 0);
+      x.putImageData(img,0,0);
+      return cc;
+    }
 
-      const results = [];
-      const config = {
-        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ',
-        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-      };
+    variants.push({canvas: cloneCanvas(cropCanvas), tag:"أصلي"});
+    variants.push({canvas: toBW(cropCanvas,false), tag:"أبيض/أسود"});
+    variants.push({canvas: toBW(cropCanvas,true), tag:"معكوس"});
 
-      // 5 attempts
-      const attempts = [
-        {img: original, mode: Tesseract.PSM.SINGLE_LINE, name: "أصلي-خط"},
-        {img: processed, mode: Tesseract.PSM.SINGLE_LINE, name: "معالج-خط"},
-        {img: inverted, mode: Tesseract.PSM.SINGLE_LINE, name: "معكوس"},
-        {img: original, mode: Tesseract.PSM.SINGLE_BLOCK, name: "كتلة"},
-        {img: processed, mode: Tesseract.PSM.AUTO, name: "تلقائي"},
-      ];
+    function extract(text){
+      const cleaned = String(text||"")
+        .toUpperCase()
+        .replace(/[^A-Z0-9\s]/g," ")
+        .replace(/\s+/g," ")
+        .trim();
 
-      for (let i = 0; i < attempts.length; i++) {
-        els.ocrStatus.textContent = `⏳ محاولة ${i+1}/5...`;
-        try {
-          const result = await Tesseract.recognize(attempts[i].img.toDataURL("image/png"), 'eng', {
-            logger: m => {
-              if(m.status === "recognizing text"){
-                const percent = Math.round(m.progress * 100);
-                els.ocrStatus.textContent = `⏳ محاولة ${i+1}/5... ${percent}%`;
-              }
-            },
-            tessedit_char_whitelist: config.tessedit_char_whitelist,
-            tessedit_pageseg_mode: attempts[i].mode,
-          });
-          if (result.data.text.trim().length > 0) {
-            results.push({text: result.data.text, confidence: result.data.confidence, method: attempts[i].name});
-          }
-        } catch(e) { console.error(`Attempt ${i+1} failed:`, e); }
-      }
+      const m1 = cleaned.match(/\b(\d{3,4})\s*([A-Z]{2,4})\b/);
+      if(m1) return `${m1[1]} ${m1[2]}`;
 
-      if (results.length === 0) {
-        throw new Error("No text found");
-      }
+      const m2 = cleaned.match(/\b([A-Z]{2,4})\s*(\d{3,4})\b/);
+      if(m2) return `${m2[2]} ${m2[1]}`;
 
-      els.ocrStatus.textContent = "⏳ اختيار أفضل نتيجة...";
+      return cleaned;
+    }
 
-      // Find best
-      let best = null, bestScore = 0;
-      
-      for (const r of results) {
-        const plate = extractPlate(r.text.trim());
-        let score = 0;
-        if (plate.length >= 5) score += 20;
-        if (plate.length >= 7) score += 20;
-        if (/[A-Z]{2,4}/.test(plate)) score += 30;
-        if (/\d{3,4}/.test(plate)) score += 30;
-        score += (r.confidence / 100) * 20;
-        
-        if (score > bestScore) {
-          bestScore = score;
-          best = {plate, ...r, score};
+    const TIMEOUT_MS = 18000;
+    let best = {plate:"", score:-1};
+
+    for(const v of variants){
+      try{
+        els.ocrStatus.textContent = `⏳ جاري القراءة... (${v.tag})`;
+        const res = await Promise.race([
+          recognizeFromCanvas(v.canvas),
+          new Promise((_,rej)=>setTimeout(()=>rej(new Error("TIMEOUT")), TIMEOUT_MS))
+        ]);
+
+        const plate = extract(res.data && res.data.text);
+        const conf = Number(res.data && res.data.confidence || 0);
+
+        const score = conf
+          + ((/\d/.test(plate) && /[A-Z]/.test(plate)) ? 20 : 0)
+          + (plate.length >= 6 ? 10 : 0);
+
+        if(score > best.score){
+          best = {plate, score};
         }
+      }catch(e){
+        console.warn("OCR attempt failed:", v.tag, e);
       }
+    }
 
-      if(!best || best.plate.length < 3){
-        throw new Error("Invalid plate");
-      }
-      
+    if(best.plate){
       els.plate.value = best.plate;
-      const conf = Math.round(best.confidence);
-      els.ocrStatus.innerHTML = `
-        ✅ تم قراءة اللوحة: <b style="font-size:18px; letter-spacing:2px;">${best.plate}</b><br>
-        <small>الدقة: ${conf}% | الجودة: ${Math.round(best.score)}% | الطريقة: ${best.method}</small>
-      `;
+      els.ocrStatus.innerHTML = `✅ تم قراءة اللوحة: <b>${best.plate}</b>`;
       els.ocrStatus.className = "ocr-status success";
-      
-      console.log("All attempts:", results);
-      
-      setTimeout(() => {
-        closeCamera();
-      }, 3000);
-    } catch(err){
-      console.error("OCR Error:", err);
-      els.ocrStatus.innerHTML = `
-        ❌ لم يتم التعرف على اللوحة بوضوح<br>
-        <small>💡 نصائح:</small><br>
-        • تأكد من وجود إضاءة كافية<br>
-        • ضع اللوحة الإنجليزية في المستطيل<br>
-        • انتظر حتى تستقر الكاميرا<br>
-        <button class="primary" onclick="document.getElementById('captureBtn').click()" style="margin-top:10px;">📸 حاول مرة أخرى</button>
-      `;
+      setTimeout(() => closeCamera(), 1200);
+    }else{
+      els.ocrStatus.innerHTML = `❌ ما قدرنا نقرأ اللوحة.<br><small>جرّب قرب أكثر أو فعّل الإضاءة، أو استخدم رفع صورة.</small>`;
       els.ocrStatus.className = "ocr-status error";
     }
   }
@@ -1078,6 +1092,62 @@
   els.cancelCamera.addEventListener("click", closeCamera);
   els.captureBtn.addEventListener("click", captureAndRecognize);
 
+  // Upload plate image as fallback (works even if camera blocked)
+  els.uploadBtn.addEventListener("click", () => els.plateFile.click());
+  els.plateFile.addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    els.ocrStatus.textContent = "⏳ جاري القراءة من الصورة...";
+    els.ocrStatus.className = "ocr-status processing";
+    els.ocrStatus.style.display = "block";
+    try{
+      const img = new Image();
+      img.onload = async () => {
+        const c = document.createElement("canvas");
+        const scale = Math.min(1200 / img.width, 1200 / img.height, 1);
+        c.width = Math.floor(img.width * scale);
+        c.height = Math.floor(img.height * scale);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+
+        const res = await Promise.race([
+          recognizeFromCanvas(c),
+          new Promise((_,rej)=>setTimeout(()=>rej(new Error("TIMEOUT")), 18000))
+        ]);
+
+        const cleaned = String((res.data && res.data.text) ? res.data.text : "")
+          .toUpperCase()
+          .replace(/[^A-Z0-9\s]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        const m1 = cleaned.match(/\b(\d{3,4})\s*([A-Z]{2,4})\b/);
+        const m2 = cleaned.match(/\b([A-Z]{2,4})\s*(\d{3,4})\b/);
+        const plate = m1 ? `${m1[1]} ${m1[2]}` : (m2 ? `${m2[2]} ${m2[1]}` : cleaned);
+
+        if(plate){
+          els.plate.value = plate;
+          els.ocrStatus.innerHTML = `✅ تم قراءة اللوحة: <b>${plate}</b>`;
+          els.ocrStatus.className = "ocr-status success";
+          setTimeout(()=> closeCamera(), 1200);
+        }else{
+          els.ocrStatus.innerHTML = "❌ ما قدرنا نقرأ اللوحة من الصورة.";
+          els.ocrStatus.className = "ocr-status error";
+        }
+      };
+      img.onerror = () => {
+        els.ocrStatus.textContent = "تعذر فتح الصورة";
+        els.ocrStatus.className = "ocr-status error";
+      };
+      img.src = URL.createObjectURL(file);
+    }catch(err){
+      console.error(err);
+      els.ocrStatus.innerHTML = "❌ تعذر القراءة من الصورة.";
+      els.ocrStatus.className = "ocr-status error";
+    }finally{
+      els.plateFile.value = "";
+    }
+  });
+
   // Flash toggle
   document.getElementById("flashBtn").addEventListener("click", async () => {
     if (cameraStream) {
@@ -1104,6 +1174,11 @@
   });
 
   // ============ INITIALIZATION ============
+  try{
+    const httpsOk = (location.protocol === "https:" || ["localhost","127.0.0.1"].includes(location.hostname));
+    els.envNote.textContent = httpsOk ? "HTTPS ✅ | التقط صورة ثم اقرأ" : "⚠️ يلزم HTTPS لتشغيل الكاميرا";
+  }catch{}
+
   setNow();
   if(loadFromStorage()){
     els.empId.value = report.guard.empId || "";
