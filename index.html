@@ -782,30 +782,77 @@
   }
 
   // Enhanced preprocessing (fast + mobile-friendly)
-  function preprocessImage(canvas) {
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    const { width:w, height:h } = canvas;
-    const img = ctx.getImageData(0, 0, w, h);
-    const d = img.data;
+function preprocessImage(canvas, opts = {}) {
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const w = canvas.width, h = canvas.height;
 
-    // Grayscale
-    for (let i = 0; i < d.length; i += 4) {
-      const g = (d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114);
-      d[i] = d[i+1] = d[i+2] = g;
+  // Slight sharpen (unsharp-ish) to help OCR on mobile
+  try {
+    const src = ctx.getImageData(0, 0, w, h);
+    const out = ctx.createImageData(w, h);
+    const s = src.data, d = out.data;
+    const k = [0,-1,0,-1,5,-1,0,-1,0]; // sharpen kernel
+    for (let y=1; y<h-1; y++){
+      for (let x=1; x<w-1; x++){
+        let r=0,g=0,b=0;
+        let ki=0;
+        for (let yy=-1; yy<=1; yy++){
+          for (let xx=-1; xx<=1; xx++){
+            const i = ((y+yy)*w + (x+xx))*4;
+            const kw = k[ki++];
+            r += s[i]*kw; g += s[i+1]*kw; b += s[i+2]*kw;
+          }
+        }
+        const o = (y*w + x)*4;
+        d[o]   = Math.max(0, Math.min(255, r));
+        d[o+1] = Math.max(0, Math.min(255, g));
+        d[o+2] = Math.max(0, Math.min(255, b));
+        d[o+3] = 255;
+      }
     }
+    ctx.putImageData(out, 0, 0);
+  } catch(e){ /* ignore */ }
 
-    // Contrast + threshold (simple but effective for plates)
-    const contrast = 1.8; // 1.0 = none
-    const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-    for (let i = 0; i < d.length; i += 4) {
-      let v = factor * (d[i] - 128) + 128;
-      v = v > 155 ? 255 : 0;
-      d[i] = d[i+1] = d[i+2] = v;
-    }
+  const img = ctx.getImageData(0, 0, w, h);
+  const data = img.data;
 
-    ctx.putImageData(img, 0, 0);
-    return canvas;
+  // Grayscale + build histogram
+  const hist = new Array(256).fill(0);
+  const gray = new Uint8ClampedArray(w*h);
+  for (let i=0, p=0; i<data.length; i+=4, p++){
+    const g = (0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2]) | 0;
+    gray[p] = g;
+    hist[g]++;
   }
+
+  // Otsu threshold
+  const total = w*h;
+  let sum=0; for (let i=0;i<256;i++) sum += i*hist[i];
+  let sumB=0, wB=0, wF=0, varMax=0, threshold=140;
+  for (let t=0; t<256; t++){
+    wB += hist[t];
+    if (!wB) continue;
+    wF = total - wB;
+    if (!wF) break;
+    sumB += t*hist[t];
+    const mB = sumB / wB;
+    const mF = (sum - sumB) / wF;
+    const varBetween = wB*wF*(mB - mF)*(mB - mF);
+    if (varBetween > varMax) { varMax = varBetween; threshold = t; }
+  }
+
+  // Apply threshold (optionally invert)
+  const invert = !!opts.invert;
+  for (let p=0, i=0; p<gray.length; p++, i+=4){
+    const v = gray[p] > threshold ? 255 : 0;
+    const b = invert ? (255 - v) : v;
+    data[i] = data[i+1] = data[i+2] = b;
+    data[i+3] = 255;
+  }
+
+  ctx.putImageData(img, 0, 0);
+  return canvas;
+}
 
   // Extract Saudi plate (EN + digits) with strict formatting
   function extractPlateEN(text) {
@@ -869,39 +916,52 @@
   }
 
   // Crop: first to guide area (center), then take bottom band (EN + digits)
-  function cropPlateBottomBand(srcCanvas) {
-    const w = srcCanvas.width, h = srcCanvas.height;
+// Crop helper: first to guide area (center), then take bottom band (EN + digits)
+// We try multiple band slices because Saudi plates differ and hand distance varies.
+function cropPlateVariants(srcCanvas) {
+  const w = srcCanvas.width, h = srcCanvas.height;
 
-    // Guide area similar to overlay: center 80% width, 38% height
-    const guideW = Math.round(w * 0.80);
-    const guideH = Math.round(h * 0.38);
-    const guideX = Math.round((w - guideW) / 2);
-    const guideY = Math.round((h - guideH) / 2);
+  // Slightly taller guide than before to tolerate framing differences
+  const guideW = Math.round(w * 0.84);
+  const guideH = Math.round(h * 0.44);
+  const guideX = Math.round((w - guideW) / 2);
+  const guideY = Math.round((h - guideH) / 2);
 
-    const guide = document.createElement("canvas");
-    guide.width = guideW;
-    guide.height = guideH;
-    guide.getContext("2d").drawImage(srcCanvas, guideX, guideY, guideW, guideH, 0, 0, guideW, guideH);
+  const guide = document.createElement("canvas");
+  guide.width = guideW;
+  guide.height = guideH;
+  guide.getContext("2d").drawImage(srcCanvas, guideX, guideY, guideW, guideH, 0, 0, guideW, guideH);
 
-    // Bottom band: take lower 60% from guide (where EN+digits are)
-    const bandY = Math.round(guideH * 0.40);
-    const bandH = Math.round(guideH * 0.60);
+  // Bottom band specs: start%, height%
+  const specs = [
+    { start: 0.34, height: 0.66 }, // include more
+    { start: 0.40, height: 0.60 }, // balanced
+    { start: 0.48, height: 0.52 }, // tighter bottom
+    { start: 0.55, height: 0.45 }  // very tight bottom
+  ];
 
+  const variants = [];
+  for (const s of specs) {
+    const bandY = Math.round(guideH * s.start);
+    const bandH = Math.max(10, Math.round(guideH * s.height));
     const band = document.createElement("canvas");
     band.width = guideW;
     band.height = bandH;
     band.getContext("2d").drawImage(guide, 0, bandY, guideW, bandH, 0, 0, guideW, bandH);
 
-    // Upscale 2x for OCR
+    // Upscale 3x (better for iPhone)
     const up = document.createElement("canvas");
-    up.width = guideW * 2;
-    up.height = bandH * 2;
+    up.width = guideW * 3;
+    up.height = bandH * 3;
     const upCtx = up.getContext("2d");
-    upCtx.imageSmoothingEnabled = false;
+    upCtx.imageSmoothingEnabled = true;
+    upCtx.imageSmoothingQuality = "high";
     upCtx.drawImage(band, 0, 0, up.width, up.height);
 
-    return up;
+    variants.push({ canvas: up, tag: `band_${Math.round(s.start*100)}_${Math.round(s.height*100)}` });
   }
+  return variants;
+}
 
   // OCR with timeout (prevents hanging forever on some mobiles)
   function withTimeout(promise, ms, label) {
@@ -913,73 +973,224 @@
   }
 
   async function captureAndRecognize(){
-    const video = els.cameraVideo;
-    const canvas = els.cameraCanvas;
-    const ctx = canvas.getContext("2d");
+  const video = els.cameraVideo;
+  const canvas = els.cameraCanvas;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
-    // Ensure video is ready
-    if (!video || !video.videoWidth) {
-      els.ocrStatus.textContent = "⚠️ الكاميرا غير جاهزة. حاول مرة أخرى.";
-      els.ocrStatus.className = "ocr-status error";
-      els.ocrStatus.style.display = "block";
-      return;
-    }
+  if (!video || !video.videoWidth) {
+    els.ocrStatus.textContent = "⚠️ الكاميرا غير جاهزة. حاول مرة أخرى.";
+    els.ocrStatus.className = "ocr-status error";
+    els.ocrStatus.style.display = "block";
+    return;
+  }
 
+  // UI
+  els.ocrStatus.className = "ocr-status processing";
+  els.ocrStatus.style.display = "block";
+  els.ocrStatus.textContent = "⏳ تجهيز أفضل لقطة... (ثبّت الجوال لحظة)";
+
+  // Helper: capture current frame into canvas
+  function captureFrame(){
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0);
-
-    els.ocrStatus.textContent = "⏳ جاري تجهيز صورة اللوحة...";
-    els.ocrStatus.className = "ocr-status processing";
-    els.ocrStatus.style.display = "block";
-
-    try {
-      const cropped = cropPlateBottomBand(canvas);
-
-      // Try 2 variants: processed then original (sometimes processed over-thresholds)
-      const processed = cropped.cloneNode();
-      processed.getContext("2d").drawImage(cropped, 0, 0);
-      preprocessImage(processed);
-
-      const worker = await getOcrWorker();
-
-      els.ocrStatus.textContent = "⏳ جاري قراءة اللوحة...";
-      const r1 = await withTimeout(worker.recognize(processed), 20000, "OCR timeout");
-      let plate1 = extractPlateEN(r1.data.text);
-      let conf1 = Number(r1.data.confidence || 0);
-
-      // Fallback try original crop if confidence low
-      let plate = plate1, conf = conf1;
-      if ((!plate1 || plate1.length < 5 || conf1 < 45)) {
-        const r2 = await withTimeout(worker.recognize(cropped), 20000, "OCR timeout");
-        const plate2 = extractPlateEN(r2.data.text);
-        const conf2 = Number(r2.data.confidence || 0);
-
-        if (conf2 > conf1) {
-          plate = plate2;
-          conf = conf2;
-        }
-      }
-
-      // Final strict check: 2-4 letters + 3-4 digits
-      const ok = /^[A-Z]{2,4}\s[0-9]{3,4}$/.test(plate);
-
-      if(ok){
-        els.plate.value = plate;
-        els.ocrStatus.innerHTML = `✅ تم قراءة اللوحة: <b>${plate}</b><br><small>الدقة: ${Math.round(conf)}%</small>`;
-        els.ocrStatus.className = "ocr-status success";
-        setTimeout(() => closeCamera(), 1200);
-      } else {
-        els.ocrStatus.innerHTML = `⚠️ تم قراءة نص لكن يحتاج تعديل:<br><b>${plate || "—"}</b><br><small>عدلها يدويًا أو أعد التصوير (قرب أكثر وثبّت اليد).</small>`;
-        els.ocrStatus.className = "ocr-status error";
-        // Keep camera open for retry
-      }
-    } catch(err){
-      console.error("OCR Error:", err);
-      els.ocrStatus.innerHTML = `❌ تعذر قراءة اللوحة الآن.<br><small>جرّب: إضاءة أقوى + قرب أكثر + ثبّت الكاميرا + خذ الصورة واللوحة داخل المستطيل الأخضر.</small>`;
-      els.ocrStatus.className = "ocr-status error";
-    }
   }
+
+  // Helper: create a cropped canvas from a source canvas
+  function cropFrom(srcCanvas, x, y, w, h, scale=3){
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(w * scale));
+    c.height = Math.max(1, Math.round(h * scale));
+    const cctx = c.getContext("2d", { willReadFrequently: true });
+    // upscale using drawImage (helps OCR)
+    cctx.imageSmoothingEnabled = true;
+    cctx.drawImage(srcCanvas, x, y, w, h, 0, 0, c.width, c.height);
+    return c;
+  }
+
+  // Helper: sharpness score (variance of Laplacian-ish using simple kernel)
+  function sharpnessScore(cnv){
+    const cctx = cnv.getContext("2d", { willReadFrequently: true });
+    const w = cnv.width, h = cnv.height;
+    const img = cctx.getImageData(0, 0, w, h).data;
+    // sample grid for speed
+    const step = Math.max(1, Math.floor(Math.min(w,h) / 120));
+    let mean = 0, m2 = 0, n = 0;
+
+    // Laplacian kernel center-weighted approximation
+    // L = 4*center - up - down - left - right
+    function grayAt(px){
+      const r = img[px], g = img[px+1], b = img[px+2];
+      return (0.299*r + 0.587*g + 0.114*b);
+    }
+
+    for (let y = step; y < h-step; y += step){
+      for (let x = step; x < w-step; x += step){
+        const p = (y*w + x)*4;
+        const c = grayAt(p);
+        const up = grayAt(((y-step)*w + x)*4);
+        const dn = grayAt(((y+step)*w + x)*4);
+        const lf = grayAt((y*w + (x-step))*4);
+        const rt = grayAt((y*w + (x+step))*4);
+        const lap = 4*c - up - dn - lf - rt;
+        n++;
+        const delta = lap - mean;
+        mean += delta / n;
+        m2 += delta * (lap - mean);
+      }
+    }
+    const variance = n > 1 ? (m2 / (n-1)) : 0;
+    return variance;
+  }
+
+  // 1) Burst capture عدة لقطات ونختار أوضح وحدة
+  const burst = 5;
+  let bestFrame = null;
+  let bestScore = -1;
+
+  for (let k=0; k<burst; k++){
+    captureFrame();
+    // crop guide-like center band quickly for scoring
+    const w = canvas.width, h = canvas.height;
+    const cw = w * 0.86, ch = h * 0.32;
+    const cx = (w - cw) / 2, cy = (h - ch) / 2;
+    const scoreCanvas = cropFrom(canvas, cx, cy, cw, ch, 1);
+    const s = sharpnessScore(scoreCanvas);
+    if (s > bestScore){
+      bestScore = s;
+      bestFrame = document.createElement("canvas");
+      bestFrame.width = canvas.width;
+      bestFrame.height = canvas.height;
+      bestFrame.getContext("2d").drawImage(canvas, 0, 0);
+    }
+    // small delay between frames
+    await new Promise(r => setTimeout(r, 120));
+  }
+
+  if (!bestFrame){
+    els.ocrStatus.textContent = "❌ لم أستطع التقاط لقطة واضحة. حاول مرة أخرى.";
+    els.ocrStatus.className = "ocr-status error";
+    return;
+  }
+
+  els.ocrStatus.textContent = "⏳ قراءة اللوحة...";
+
+  // 2) جهّز مجموعة قصّات متعددة (اللوحة قد تكون أعلى/أسفل حسب المسافة)
+  const W = bestFrame.width, H = bestFrame.height;
+
+  const cropSpecs = [
+    // center band (most common)
+    { x: 0.07*W, y: 0.34*H, w: 0.86*W, h: 0.32*H },
+    // slightly higher
+    { x: 0.07*W, y: 0.28*H, w: 0.86*W, h: 0.28*H },
+    // slightly lower
+    { x: 0.07*W, y: 0.40*H, w: 0.86*W, h: 0.28*H },
+    // wider center (some phones zoom)
+    { x: 0.03*W, y: 0.36*H, w: 0.94*W, h: 0.30*H },
+  ];
+
+  // 3) OCR على عدة نسخ: خام + معالج + معكوس (اختيار أفضل نتيجة)
+  const worker = await getOcrWorker();
+
+  // Timeout guard (prevents "جاري..." forever)
+  const withTimeout = (p, ms=18000) => Promise.race([
+    p,
+    new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
+  ]);
+
+  const candidates = [];
+
+  async function runOne(imgCanvas, tag){
+    // Run OCR (English letters + digits only for better stability)
+    const { data } = await withTimeout(worker.recognize(imgCanvas));
+    const raw = (data && data.text) ? data.text : "";
+    const plate = extractPlateEN(raw);
+    const conf = (data && typeof data.confidence === "number") ? data.confidence : 0;
+
+    // Score: prefer having both letters+digits and proper length
+    const hasLetters = /[A-Z]{2,4}/.test(plate);
+    const hasDigits  = /\d{3,4}/.test(plate);
+    const lenOK = plate.replace(/\s/g,"").length >= 5 && plate.replace(/\s/g,"").length <= 8;
+
+    let score = conf;
+    if (hasLetters && hasDigits) score += 20;
+    if (lenOK) score += 10;
+
+    candidates.push({ plate, conf, score, tag, raw: raw.trim() });
+  }
+
+  // Build and OCR all variants (but keep it bounded for speed)
+  let step = 0;
+  const totalSteps = cropSpecs.length * 3;
+  for (const spec of cropSpecs){
+    const base = cropFrom(bestFrame, spec.x, spec.y, spec.w, spec.h, 3);
+
+    step++; els.ocrStatus.textContent = `⏳ قراءة اللوحة... (${step}/${totalSteps})`;
+    await runOne(base, "خام");
+
+    const proc = document.createElement("canvas");
+    proc.width = base.width; proc.height = base.height;
+    proc.getContext("2d", { willReadFrequently:true }).drawImage(base, 0, 0);
+    preprocessImage(proc, { invert:false });
+
+    step++; els.ocrStatus.textContent = `⏳ قراءة اللوحة... (${step}/${totalSteps})`;
+    await runOne(proc, "معالجة");
+
+    const inv = document.createElement("canvas");
+    inv.width = base.width; inv.height = base.height;
+    inv.getContext("2d", { willReadFrequently:true }).drawImage(base, 0, 0);
+    preprocessImage(inv, { invert:true });
+
+    step++; els.ocrStatus.textContent = `⏳ قراءة اللوحة... (${step}/${totalSteps})`;
+    await runOne(inv, "معكوس");
+  }
+
+  // pick best
+  candidates.sort((a,b)=> b.score - a.score);
+  const top = candidates.filter(c => c.plate && c.plate.length >= 3).slice(0, 5);
+
+  if (!top.length){
+    els.ocrStatus.className = "ocr-status error";
+    els.ocrStatus.innerHTML = `
+      ❌ لم أستطع قراءة اللوحة بشكل واضح.<br>
+      <small>جرّب: قرب اللوحة أكثر + إضاءة قوية + تثبيت الجوال.</small>
+    `;
+    return;
+  }
+
+  // Show options (human-in-the-loop = أعلى دقة عملياً)
+  const best = top[0];
+  els.plate.value = best.plate;
+
+  const buttons = top.map((c, idx) => {
+    const conf = Math.round(c.conf);
+    const label = `${c.plate} (${conf}%)`;
+    return `<button class="quick-btn" data-plate="${c.plate}" style="border-color:#cbd5e1; font-weight:700;">${label}</button>`;
+  }).join("");
+
+  els.ocrStatus.className = "ocr-status success";
+  els.ocrStatus.innerHTML = `
+    ✅ تم اقتراح اللوحة: <b>${best.plate}</b><br>
+    <small>اختر الصحيح إذا كان مختلف:</small>
+    <div class="quick-actions" style="justify-content:center; margin-top:8px;">${buttons}</div>
+    <div style="margin-top:8px;">
+      <small style="color:#475569;">💡 إذا ما طلعت دقيقة: قرّب اللوحة داخل الإطار الأخضر وثبّت 1-2 ثانية.</small>
+    </div>
+  `;
+
+  // attach handlers
+  els.ocrStatus.querySelectorAll("button[data-plate]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      els.plate.value = btn.getAttribute("data-plate") || "";
+      // close camera after selection
+      setTimeout(() => closeCamera(), 250);
+    });
+  });
+
+  // auto-close after a while (if user is ok)
+  setTimeout(() => closeCamera(), 4500);
+}
+
 
   // ============ KEYBOARD SHORTCUTS ============
   document.addEventListener("keydown", (e) => {
