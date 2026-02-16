@@ -294,7 +294,7 @@
   // ضع رابط الـ Web App هنا:
   const SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw1ZFPgrPVDpOgggiXEUw4y0ILcSuuvsrandDXSNjg4Ag0DOWx4JfcQIcn5rKwlLP5eEA/exec";
   // (اختياري) لو سويت حماية بمفتاح في Apps Script حطه هنا، وإلا خله فاضي:
-  const SHEET_SECRET_KEY = "";
+  const SHEET_SECRET_KEY = ""; // اختياري
   const SHEET_OUTBOX_KEY = "parking_sheet_outbox_v1";
 
   const EMPLOYEES = { "88840": "محمد حمد القحطاني" };
@@ -474,6 +474,8 @@
         await fetch(SHEET_WEBAPP_URL, {
           method: "POST",
           mode: "no-cors",
+          cache: "no-store",
+          keepalive: true,
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
         });
