@@ -2,1280 +2,319 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>رصد السيارات - النسخة النهائية</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>قارئ لوحات (أقوى داخل المتصفح) — كشف لوحة + قص + قراءة</title>
   <style>
-    :root { --b:#0f172a; --g:#e2e8f0; --bg:#f8fafc; --w:#fff; --r:#ef4444; --p:#2563eb; --gr:#16a34a; --o:#f97316;}
-    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:var(--bg); color:var(--b); }
-    .wrap { max-width: 1200px; margin: 18px auto; padding: 0 14px; }
-    .card { background:var(--w); border:1px solid var(--g); border-radius:14px; padding:14px; box-shadow: 0 1px 0 rgba(15,23,42,.03); }
-    h1 { font-size: 18px; margin: 0 0 10px; }
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
-    label { display:block; font-size:12px; margin-bottom:6px; color:#334155; font-weight:500; }
-    input, select, textarea { width:100%; box-sizing:border-box; padding:10px; border:1px solid var(--g); border-radius:10px; background:#fff; font-size:14px; }
-    input[readonly] { background:#f1f5f9; }
-    .col { flex: 1 1 220px; min-width: 180px; }
-    .col.small { flex: 1 1 150px; min-width: 140px; }
-    .col.wide { flex: 2 1 320px; min-width: 260px; }
-    .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    button { border:0; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:600; font-size:13px; transition: all 0.2s; }
-    button:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    button:active { transform: translateY(0); }
-    .primary { background: var(--p); color:#fff; }
-    .ghost { background:#fff; border:1px solid var(--g); color:var(--b); }
-    .success { background: var(--gr); color:#fff; }
-    .danger { background: var(--r); color:#fff; }
-    .orange { background: var(--o); color:#fff; }
-    .hint { font-size: 12px; color:#475569; margin-top:8px; }
-    .table-wrap { overflow:auto; border:1px solid var(--g); border-radius:12px; margin-top:12px; }
-    table { width:100%; border-collapse: collapse; min-width: 1050px; background:#fff; }
-    th, td { padding:10px; border-bottom:1px solid var(--g); vertical-align: top; text-align:right; }
-    th { background:#f1f5f9; font-size: 12px; position: sticky; top:0; z-index:1; }
-    td { font-size: 13px; }
-    .pill { display:inline-block; padding:3px 8px; border-radius:999px; background:#eef2ff; font-size:12px; }
-    .imgPrev { width:86px; height:64px; object-fit:cover; border-radius:10px; border:1px solid var(--g); background:#f1f5f9; cursor:pointer; }
-    .meta { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; color:#475569; font-size:12px; }
-    .meta b { color:#0f172a; }
-    .topnote { background:#f1f5f9; border:1px dashed #cbd5e1; padding:10px; border-radius:12px; margin:10px 0; font-size:12px; color:#334155; }
-    
-    /* Camera Modal */
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; }
-    .modal.active { display:flex; }
-    .modal-content { background:#fff; border-radius:14px; padding:20px; max-width:95%; max-height:95%; overflow:auto; position:relative; }
-    .modal-close { position:absolute; top:10px; left:10px; background:var(--r); color:#fff; border:0; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:20px; z-index:10; line-height:36px; text-align:center; }
-    .camera-container { position:relative; display:inline-block; }
-    #cameraVideo { width:100%; max-width:640px; border-radius:10px; background:#000; display:block; }
-    #cameraCanvas { display:none; }
-    
-    /* Visual guide for plate alignment */
-    .plate-guide { 
-      position:absolute; 
-      top:50%; 
-      left:50%; 
-      transform:translate(-50%, -50%);
-      border:3px dashed #22c55e;
-      background:rgba(34, 197, 94, 0.1);
-      width:75%;
-      height:25%;
-      pointer-events:none;
-      border-radius:8px;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
-    }
-    
-    .plate-guide::before {
-      content: "ضع اللوحة هنا";
-      position:absolute;
-      top:-35px;
-      left:50%;
-      transform:translateX(-50%);
-      background:#22c55e;
-      color:#fff;
-      padding:6px 16px;
-      border-radius:8px;
-      font-size:14px;
-      font-weight:700;
-      white-space:nowrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    
-    .camera-controls { margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-    
-    /* OCR Status */
-    .ocr-status { padding:12px; border-radius:10px; margin-top:10px; font-size:14px; text-align:center; }
-    .ocr-status.processing { background:#fef3c7; color:#92400e; border:2px solid #fcd34d; }
-    .ocr-status.success { background:#d1fae5; color:#065f46; border:2px solid #34d399; }
-    .ocr-status.error { background:#fee2e2; color:#991b1b; border:2px solid#fca5a5; }
-    
-    /* Autocomplete */
-    .autocomplete-container { position:relative; }
-    .autocomplete-list { position:absolute; top:100%; right:0; left:0; background:#fff; border:1px solid var(--g); border-radius:10px; margin-top:4px; max-height:200px; overflow-y:auto; z-index:100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display:none; }
-    .autocomplete-list.active { display:block; }
-    .autocomplete-item { padding:10px; cursor:pointer; border-bottom:1px solid var(--g); font-size:13px; }
-    .autocomplete-item:last-child { border-bottom:0; }
-    .autocomplete-item:hover { background:#f1f5f9; }
-    
-    /* Quick Actions */
-    .quick-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-    .quick-btn { padding:6px 12px; font-size:12px; border-radius:8px; border:1px solid var(--g); background:#fff; cursor:pointer; }
-    .quick-btn:hover { background:#f1f5f9; }
-    
-    /* Stats */
-    .stats { display:flex; gap:10px; margin:10px 0; flex-wrap:wrap; }
-    .stat-card { flex:1; min-width:140px; padding:12px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; border-radius:10px; }
-    .stat-card.green { background:linear-gradient(135deg, #16a34a 0%, #059669 100%); }
-    .stat-card.orange { background:linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
-    .stat-value { font-size:24px; font-weight:700; }
-    .stat-label { font-size:11px; opacity:0.9; margin-top:4px; }
-    
-    @media print {
-      .no-print { display:none !important; }
-      body { background:#fff; }
-      .card { box-shadow:none; }
-      .table-wrap { overflow: visible; border:0; }
-      table { min-width:auto; }
-      th { position: static; }
-    }
+    :root{--b:#0f172a;--g:#e2e8f0;--bg:#f8fafc;--w:#fff;--p:#2563eb;--r:#ef4444;--gr:#16a34a}
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial;background:var(--bg);color:var(--b)}
+    .wrap{max-width:1100px;margin:16px auto;padding:0 14px}
+    .card{background:var(--w);border:1px solid var(--g);border-radius:14px;padding:14px}
+    h1{margin:0 0 10px;font-size:18px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}
+    .primary{background:var(--p);color:#fff}
+    .ghost{background:#fff;border:1px solid var(--g);color:var(--b)}
+    .danger{background:var(--r);color:#fff}
+    .ok{background:var(--gr);color:#fff}
+    .hint{font-size:12px;color:#475569;margin-top:8px;line-height:1.6}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    .panel{border:1px solid var(--g);border-radius:12px;padding:10px;background:#fff}
+    video,canvas,img{width:100%;border-radius:10px;background:#000;display:block}
+    .status{margin-top:10px;padding:10px;border-radius:10px;font-size:13px;text-align:center;border:1px solid var(--g);background:#f1f5f9}
+    .status.processing{background:#fef3c7;border-color:#f59e0b}
+    .status.success{background:#d1fae5;border-color:#10b981}
+    .status.error{background:#fee2e2;border-color:#ef4444}
+    .small{font-size:12px;color:#64748b}
+    .pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#eef2ff;font-size:12px}
+    .choices{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+    .choice{padding:8px 10px;border-radius:10px;border:1px solid var(--g);background:#fff;cursor:pointer;font-weight:800}
+    .choice:hover{background:#f8fafc}
+    input{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--g);border-radius:10px;font-size:14px}
   </style>
 </head>
-
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>🚗 برنامج رصد السيارات - قراءة ذكية بالإنجليزي</h1>
-
-      <div class="topnote no-print">
-        <b>✨ تحسينات القراءة:</b> 
-        <span class="pill">قراءة إنجليزية فقط (دقة أعلى)</span> 
-        <span class="pill">5 محاولات مختلفة</span>
-        <span class="pill">تكبير 2X</span>
-        <span class="pill">معالجة متقدمة</span>
+      <h1>📸 أقوى قراءة لوحات داخل المتصفح (كشف اللوحة بالذكاء الاصطناعي + قص + قراءة)</h1>
+      <div class="hint">
+        <span class="pill">💛 داخل HTML</span>
+        هذه النسخة تستخدم <b>ONNX Runtime Web</b> لتشغيل نموذج كشف اللوحة داخل المتصفح (بدون سيرفر)، ثم تقص اللوحة وتقرأها.
+        <br><b>مهم:</b> تحتاج تضيف ملفات النماذج داخل مستودع GitHub Pages (لانها كبيرة). الملف هذا جاهز ويبحث عنها تلقائياً:
+        <span class="pill">models/plate-detector.onnx</span> و <span class="pill">models/plate-recognizer.onnx</span>.
+        إذا ما لقاها، يعمل <b>Fallback</b> إلى Tesseract على القصّة (دقة أقل).
       </div>
 
-      <!-- Stats -->
-      <div class="stats no-print">
-        <div class="stat-card">
-          <div class="stat-value" id="statTotal">0</div>
-          <div class="stat-label">إجمالي المركبات</div>
-        </div>
-        <div class="stat-card green">
-          <div class="stat-value" id="statToday">0</div>
-          <div class="stat-label">اليوم</div>
-        </div>
-        <div class="stat-card orange">
-          <div class="stat-value" id="statWithPhotos">0</div>
-          <div class="stat-label">بصور</div>
-        </div>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" id="btnStart">تشغيل الكاميرا</button>
+        <button class="ghost" id="btnSnap" disabled>التقاط + قراءة</button>
+        <button class="danger" id="btnStop" disabled>إيقاف</button>
+        <div style="flex:1"></div>
+        <div class="small">يعمل على HTTPS / GitHub Pages</div>
       </div>
 
-      <!-- بيانات رجل الأمن -->
-      <div class="row no-print">
-        <div class="col small">
-          <label>الرقم الوظيفي</label>
-          <input id="empId" inputmode="numeric" placeholder="مثال: 88840" />
-        </div>
-
-        <div class="col wide">
-          <label>اسم رجل الأمن</label>
-          <input id="empName" placeholder="يظهر تلقائيًا بعد البحث" readonly />
-        </div>
-
-        <div class="col small">
-          <label>التاريخ</label>
-          <input id="reportDate" readonly />
-        </div>
-
-        <div class="col small">
-          <label>الوقت</label>
-          <input id="reportTime" readonly />
-        </div>
-
-        <div class="col small">
-          <button class="primary" id="btnLookup" style="width:100%">🔍 بحث</button>
-        </div>
-      </div>
-
-      <div class="meta">
-        <span>الحالة: <b id="status">بانتظار إدخال الرقم الوظيفي</b></span>
-        <span class="no-print">• يتم الحفظ محليًا داخل المتصفح</span>
-      </div>
-
-      <hr style="border:0;border-top:1px solid var(--g);margin:12px 0;" />
-
-      <!-- نموذج إدخال السيارة -->
-      <div class="row no-print">
-        <div class="col small">
-          <label>البرج</label>
-          <select id="tower">
-            <option value="">اختر</option>
-            <option>A</option><option>B</option><option>C</option>
-          </select>
-        </div>
-
-        <div class="col small">
-          <label>الدور</label>
-          <select id="floor">
-            <option value="">اختر</option>
-            <option>LG</option><option>B</option>
-          </select>
-        </div>
-
-        <div class="col autocomplete-container">
-          <label>نوع المركبة</label>
-          <input id="vehicleType" placeholder="مثال: سيدان / SUV / باص..." autocomplete="off" />
-          <div class="autocomplete-list" id="vehicleTypeList"></div>
-        </div>
-
-        <div class="col small autocomplete-container">
-          <label>لون المركبة</label>
-          <input id="vehicleColor" placeholder="مثال: أبيض" autocomplete="off" />
-          <div class="autocomplete-list" id="vehicleColorList"></div>
-        </div>
-
-        <div class="col">
-          <label>رقم اللوحة (إنجليزي) 📸</label>
-          <div style="display:flex; gap:8px;">
-            <input id="plate" placeholder="ABC 1234 أو استخدم الكاميرا" style="flex:1; text-transform:uppercase;" />
-            <button class="orange" id="btnCamera" style="min-width:48px; padding:10px; font-size:16px;">📷</button>
+      <div class="grid" style="margin-top:12px">
+        <div class="panel">
+          <div class="small">الكاميرا</div>
+          <div style="position:relative">
+            <video id="video" autoplay playsinline></video>
+            <div id="guide" style="position:absolute;inset:0;pointer-events:none;">
+              <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:86%;height:32%;
+                border:3px dashed #22c55e;border-radius:10px;background:rgba(34,197,94,.08);
+                box-shadow:0 0 0 9999px rgba(0,0,0,.25);"></div>
+            </div>
           </div>
-          <div class="hint">💡 القراءة الآن بالإنجليزي فقط - دقة أعلى بكثير!</div>
+          <div class="hint">ضع اللوحة داخل الإطار الأخضر، ثبّت الجوال، ثم اضغط <b>التقاط + قراءة</b>.</div>
         </div>
 
-        <div class="col small">
-          <label>رقم الموقف</label>
-          <input id="spotNo" placeholder="مثال: 152" inputmode="numeric" />
-        </div>
-
-        <div class="col small">
-          <label>رقم العامود</label>
-          <input id="pillarNo" placeholder="مثال: P-09" />
-        </div>
-
-        <div class="col small">
-          <label>مدة التوقف</label>
-          <select id="duration">
-            <option value="">اختر</option>
-            <option>حديثة</option>
-            <option>متوسط المدة</option>
-            <option>قديمة</option>
-          </select>
-        </div>
-
-        <div class="col wide">
-          <label>صورة المركبة (اختياري)</label>
-          <input id="photo" type="file" accept="image/*" capture="environment" />
-          <div class="hint">💡 يمكنك التقاط صورة مباشرة أو اختيار من المعرض</div>
+        <div class="panel">
+          <div class="small">القصّة + النتيجة</div>
+          <canvas id="frame" style="display:none"></canvas>
+          <canvas id="crop"></canvas>
+          <div class="status" id="status">جاهز</div>
+          <div class="row" style="margin-top:10px">
+            <div style="flex:1">
+              <div class="small">رقم اللوحة (يمكن تعديله)</div>
+              <input id="plate" placeholder="مثال: ABC 1234 أو حروف عربية + أرقام" />
+              <div class="choices" id="choices" style="display:none"></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Quick Actions for faster input -->
-      <div class="quick-actions no-print">
-        <div style="font-size:12px; color:#64748b; margin-left:10px;">⚡ إدخال سريع:</div>
-        <button class="quick-btn" data-tower="A" data-floor="LG">A-LG</button>
-        <button class="quick-btn" data-tower="A" data-floor="B">A-B</button>
-        <button class="quick-btn" data-tower="B" data-floor="LG">B-LG</button>
-        <button class="quick-btn" data-tower="B" data-floor="B">B-B</button>
-        <button class="quick-btn" data-tower="C" data-floor="LG">C-LG</button>
-        <button class="quick-btn" data-tower="C" data-floor="B">C-B</button>
-      </div>
-
-      <div class="btns no-print">
-        <button class="primary" id="btnAdd">➕ إضافة المركبة للتقرير</button>
-        <button class="ghost" id="btnSave">💾 حفظ محلي</button>
-        <button class="ghost" id="btnNew">📄 تقرير جديد</button>
-        <button class="ghost" id="btnExportCSV">📊 تصدير CSV</button>
-        <button class="success" id="btnExportJSON">📦 تصدير JSON</button>
-        <button class="success" id="btnImportJSON">📥 استيراد JSON</button>
-        <input id="importFile" type="file" accept="application/json" style="display:none" />
-        <button class="ghost" id="btnPrint">🖨️ طباعة</button>
-        <button class="danger" id="btnClearAll">🗑️ مسح كل البيانات</button>
-      </div>
-
-      <!-- عرض الجدول -->
-      <div class="table-wrap">
-        <table id="tbl">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>البرج</th>
-              <th>الدور</th>
-              <th>نوع المركبة</th>
-              <th>اللون</th>
-              <th>رقم اللوحة</th>
-              <th>رقم الموقف</th>
-              <th>رقم العامود</th>
-              <th>مدة التوقف</th>
-              <th>الصورة</th>
-              <th class="no-print">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
-      <div class="hint" style="margin-top:10px;">
-        عند الطباعة يظهر أعلى التقرير: <span class="pill">اسم رجل الأمن</span> + <span class="pill">الرقم الوظيفي</span> + <span class="pill">التاريخ/الوقت</span>.
+      <div class="hint" style="margin-top:12px">
+        ✅ للحصول على دقة أعلى داخل المتصفح:
+        <br>1) <b>كشف اللوحة</b> (Detector) ثم قص دقيق.
+        <br>2) تشغيل OCR/Recognizer على اللوحة فقط.
+        <br>3) <b>Validation</b> (3 حروف + 3–4 أرقام) وعرض 3–5 اقتراحات لاختيار الصحيح.
       </div>
     </div>
   </div>
 
-  <!-- Camera Modal -->
-  <div class="modal" id="cameraModal">
-    <div class="modal-content">
-      <button class="modal-close" id="closeCamera">✕</button>
-      <h2 style="margin-top:0; text-align:center;">📸 قراءة رقم اللوحة (إنجليزي)</h2>
-      <div class="camera-container">
-        <video id="cameraVideo" autoplay playsinline></video>
-        <div class="plate-guide"></div>
-      </div>
-      <canvas id="cameraCanvas"></canvas>
-      <div class="camera-controls">
-        <button class="primary" id="captureBtn" style="font-size:15px; padding:12px 24px;">📸 التقط وقراءة</button>
-        <button class="orange" id="flashBtn" style="display:none;">💡 فلاش</button>
-        <button class="ghost" id="cancelCamera">إلغاء</button>
-      </div>
-      <div id="ocrStatus" class="ocr-status" style="display:none;"></div>
-      <div class="hint" style="text-align:center; margin-top:15px;">
-        <b>💡 نصائح للحصول على أفضل نتيجة:</b><br>
-        ✓ ضع اللوحة الإنجليزية في المستطيل الأخضر<br>
-        ✓ تأكد من إضاءة جيدة بدون ظلال<br>
-        ✓ اجعل اللوحة مستقيمة وموازية للكاميرا<br>
-        ✓ انتظر حتى تركز الكاميرا تلقائياً
-      </div>
-    </div>
-  </div>
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-  <!-- Image Preview Modal -->
-  <div class="modal" id="imageModal">
-    <div class="modal-content">
-      <button class="modal-close" id="closeImage">✕</button>
-      <img id="modalImage" style="max-width:100%; max-height:80vh; border-radius:10px;" />
-    </div>
-  </div>
-
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script>
-(() => {
-  const EMPLOYEES = {
-    "88840": "محمد حمد القحطاني",
-    "12345": "أحمد علي السعيد",
-    "67890": "خالد محمد العتيبي",
-  };
-
-  const VEHICLE_TYPES = [
-    "سيدان", "SUV", "باص", "فان", "بيك أب", "دباب", "شاحنة صغيرة", "هاتشباك", "كوبيه", "كروس أوفر"
-  ];
-
-  const VEHICLE_COLORS = [
-    "أبيض", "أسود", "رمادي", "فضي", "أزرق", "أحمر", "بني", "ذهبي", "أخضر", "برتقالي", "أصفر"
-  ];
-
-  const els = {
-    empId: document.getElementById("empId"),
-    empName: document.getElementById("empName"),
-    reportDate: document.getElementById("reportDate"),
-    reportTime: document.getElementById("reportTime"),
-    status: document.getElementById("status"),
-
-    tower: document.getElementById("tower"),
-    floor: document.getElementById("floor"),
-    vehicleType: document.getElementById("vehicleType"),
-    vehicleColor: document.getElementById("vehicleColor"),
-    plate: document.getElementById("plate"),
-    spotNo: document.getElementById("spotNo"),
-    pillarNo: document.getElementById("pillarNo"),
-    duration: document.getElementById("duration"),
-    photo: document.getElementById("photo"),
-
-    btnLookup: document.getElementById("btnLookup"),
-    btnAdd: document.getElementById("btnAdd"),
-    btnSave: document.getElementById("btnSave"),
-    btnNew: document.getElementById("btnNew"),
-    btnExportCSV: document.getElementById("btnExportCSV"),
-    btnExportJSON: document.getElementById("btnExportJSON"),
-    btnImportJSON: document.getElementById("btnImportJSON"),
-    importFile: document.getElementById("importFile"),
-    btnPrint: document.getElementById("btnPrint"),
-    btnClearAll: document.getElementById("btnClearAll"),
-    btnCamera: document.getElementById("btnCamera"),
-
-    tblBody: document.querySelector("#tbl tbody"),
-    
-    cameraModal: document.getElementById("cameraModal"),
-    cameraVideo: document.getElementById("cameraVideo"),
-    cameraCanvas: document.getElementById("cameraCanvas"),
-    captureBtn: document.getElementById("captureBtn"),
-    closeCamera: document.getElementById("closeCamera"),
-    cancelCamera: document.getElementById("cancelCamera"),
-    ocrStatus: document.getElementById("ocrStatus"),
-    
-    imageModal: document.getElementById("imageModal"),
-    modalImage: document.getElementById("modalImage"),
-    closeImage: document.getElementById("closeImage"),
-
-    vehicleTypeList: document.getElementById("vehicleTypeList"),
-    vehicleColorList: document.getElementById("vehicleColorList"),
-
-    statTotal: document.getElementById("statTotal"),
-    statToday: document.getElementById("statToday"),
-    statWithPhotos: document.getElementById("statWithPhotos"),
-  };
-
-  const STORAGE_KEY = "after_hours_parking_report_v3_eng";
-
-  let report = {
-    guard: { empId: "", name: "" },
-    createdAtISO: "",
-    vehicles: []
-  };
-
-  let cameraStream = null;
-
-  function pad2(n){ return String(n).padStart(2,"0"); }
-
-  function setNow() {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = pad2(d.getMonth()+1);
-    const dd = pad2(d.getDate());
-    const hh = pad2(d.getHours());
-    const mi = pad2(d.getMinutes());
-    els.reportDate.value = `${yyyy}-${mm}-${dd}`;
-    els.reportTime.value = `${hh}:${mi}`;
-  }
-
-  function setStatus(msg){ els.status.textContent = msg; }
-
-  function updateStats(){
-    const total = report.vehicles.length;
-    const today = new Date().toISOString().split('T')[0];
-    const todayCount = report.vehicles.filter(v => v.addedAt && v.addedAt.startsWith(today)).length;
-    const withPhotos = report.vehicles.filter(v => v.photoDataUrl).length;
-    
-    els.statTotal.textContent = total;
-    els.statToday.textContent = todayCount;
-    els.statWithPhotos.textContent = withPhotos;
-  }
-
-  function saveToStorage(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(report));
-    setStatus("تم الحفظ محليًا ✅");
-    updateStats();
-  }
-
-  function loadFromStorage(){
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return false;
-    try {
-      report = JSON.parse(raw);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  function newReport(){
-    report = {
-      guard: { empId: "", name: "" },
-      createdAtISO: "",
-      vehicles: []
-    };
-    els.empId.value = "";
-    els.empName.value = "";
-    setNow();
-    clearVehicleForm();
-    renderTable();
-    setStatus("تقرير جديد جاهز");
-    updateStats();
-  }
-
-  function clearVehicleForm(){
-    els.tower.value = "";
-    els.floor.value = "";
-    els.vehicleType.value = "";
-    els.vehicleColor.value = "";
-    els.plate.value = "";
-    els.spotNo.value = "";
-    els.pillarNo.value = "";
-    els.duration.value = "";
-    els.photo.value = "";
-  }
-
-  function lookupGuard(){
-    const id = (els.empId.value || "").trim();
-    if(!id){
-      els.empName.value = "";
-      setStatus("أدخل الرقم الوظيفي ثم اضغط بحث");
-      return;
-    }
-    const name = EMPLOYEES[id];
-    if(name){
-      els.empName.value = name;
-      setNow();
-      report.guard.empId = id;
-      report.guard.name = name;
-      if(!report.createdAtISO) report.createdAtISO = new Date().toISOString();
-      setStatus("تم العثور على رجل الأمن ✅");
-    } else {
-      els.empName.value = "";
-      report.guard.empId = id;
-      report.guard.name = "";
-      setStatus("لم يتم العثور على الاسم لهذا الرقم");
-    }
-  }
-
-  function readPhotoAsDataUrl(file){
-    return new Promise((resolve, reject) => {
-      if(!file) return resolve("");
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result || "");
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function validateBeforeAdd(){
-    if(!report.guard.empId || !els.empId.value.trim()){
-      setStatus("لازم تدخل الرقم الوظيفي وتبحث أولاً");
-      return false;
-    }
-    if(!els.tower.value || !els.floor.value || !els.plate.value.trim()){
-      setStatus("الرجاء تعبئة (البرج + الدور + رقم اللوحة) على الأقل");
-      return false;
-    }
-    return true;
-  }
-
-  async function addVehicle(){
-    if(!validateBeforeAdd()) return;
-
-    const photoFile = els.photo.files && els.photo.files[0];
-    const photoDataUrl = await readPhotoAsDataUrl(photoFile);
-
-    const item = {
-      tower: els.tower.value,
-      floor: els.floor.value,
-      vehicleType: els.vehicleType.value.trim(),
-      vehicleColor: els.vehicleColor.value.trim(),
-      plate: els.plate.value.trim().toUpperCase(),
-      spotNo: els.spotNo.value.trim(),
-      pillarNo: els.pillarNo.value.trim(),
-      duration: els.duration.value,
-      photoDataUrl,
-      addedAt: new Date().toISOString()
+  <script>
+  (() => {
+    const els = {
+      video: document.getElementById('video'),
+      frame: document.getElementById('frame'),
+      crop: document.getElementById('crop'),
+      status: document.getElementById('status'),
+      plate: document.getElementById('plate'),
+      choices: document.getElementById('choices'),
+      btnStart: document.getElementById('btnStart'),
+      btnSnap: document.getElementById('btnSnap'),
+      btnStop: document.getElementById('btnStop'),
     };
 
-    report.vehicles.push(item);
-    renderTable();
-    clearVehicleForm();
-    saveToStorage();
-    setStatus("تمت إضافة المركبة ✅");
-    els.plate.focus();
-  }
+    let stream = null;
 
-  function removeVehicle(idx){
-    if(confirm("هل أنت متأكد من حذف هذه المركبة؟")){
-      report.vehicles.splice(idx, 1);
-      renderTable();
-      saveToStorage();
-      setStatus("تم حذف السطر");
+    function setStatus(text, cls){
+      els.status.className = 'status' + (cls ? (' ' + cls) : '');
+      els.status.innerHTML = text;
     }
-  }
-
-  function renderTable(){
-    els.tblBody.innerHTML = "";
-    report.vehicles.forEach((v, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i+1}</td>
-        <td>${escapeHtml(v.tower)}</td>
-        <td>${escapeHtml(v.floor)}</td>
-        <td>${escapeHtml(v.vehicleType)}</td>
-        <td>${escapeHtml(v.vehicleColor)}</td>
-        <td><b>${escapeHtml(v.plate)}</b></td>
-        <td>${escapeHtml(v.spotNo)}</td>
-        <td>${escapeHtml(v.pillarNo)}</td>
-        <td>${escapeHtml(v.duration)}</td>
-        <td>${v.photoDataUrl ? `<img class="imgPrev" src="${v.photoDataUrl}" alt="صورة المركبة" data-index="${i}">` : "-"}</td>
-        <td class="no-print"><button class="danger" data-del="${i}">حذف</button></td>
-      `;
-      els.tblBody.appendChild(tr);
-    });
-
-    els.tblBody.querySelectorAll("button[data-del]").forEach(btn => {
-      btn.addEventListener("click", () => removeVehicle(Number(btn.dataset.del)));
-    });
-
-    els.tblBody.querySelectorAll("img.imgPrev").forEach(img => {
-      img.addEventListener("click", () => {
-        const idx = Number(img.dataset.index);
-        if(report.vehicles[idx] && report.vehicles[idx].photoDataUrl){
-          els.modalImage.src = report.vehicles[idx].photoDataUrl;
-          els.imageModal.classList.add("active");
-        }
-      });
-    });
-
-    updateStats();
-  }
-
-  function exportCSV(){
-    const headers = [
-      "رقم التقرير","الرقم الوظيفي","اسم رجل الأمن","تاريخ","وقت",
-      "البرج","الدور","نوع المركبة","لون المركبة","رقم اللوحة","رقم الموقف","رقم العامود","مدة التوقف","وقت الإضافة","هل توجد صورة"
-    ];
-
-    const repNo = report.createdAtISO ? report.createdAtISO : new Date().toISOString();
-    const date = els.reportDate.value || "";
-    const time = els.reportTime.value || "";
-
-    const rows = report.vehicles.map(v => ([
-      repNo,
-      report.guard.empId || "",
-      report.guard.name || els.empName.value || "",
-      date,
-      time,
-      v.tower, v.floor, v.vehicleType, v.vehicleColor, v.plate, v.spotNo, v.pillarNo, v.duration,
-      v.addedAt,
-      v.photoDataUrl ? "نعم" : "لا"
-    ]));
-
-    const csv = [headers, ...rows]
-      .map(r => r.map(cell => `"${String(cell ?? "").replaceAll('"','""')}"`).join(","))
-      .join("\n");
-
-    downloadBlob(csv, `تقرير_رصد_السيارات_${(date||"")}_${(time||"").replace(":","-")}.csv`, "text/csv;charset=utf-8");
-    setStatus("تم تصدير CSV ✅");
-  }
-
-  function exportJSON(){
-    const payload = {
-      ...report,
-      displayDate: els.reportDate.value || "",
-      displayTime: els.reportTime.value || "",
-      exportedAtISO: new Date().toISOString(),
-      version: 3
-    };
-    const json = JSON.stringify(payload, null, 2);
-    const fname = `تقرير_رصد_السيارات_${(els.reportDate.value||"")}_${(els.reportTime.value||"").replace(":","-")}.json`;
-    downloadBlob(json, fname, "application/json;charset=utf-8");
-    setStatus("تم تصدير JSON ✅");
-  }
-
-  function importJSONFile(file){
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try{
-        const data = JSON.parse(reader.result);
-        if(!data || typeof data !== "object" || !Array.isArray(data.vehicles) || !data.guard){
-          setStatus("ملف JSON غير صالح");
-          return;
-        }
-        report = {
-          guard: { empId: String(data.guard.empId||""), name: String(data.guard.name||"") },
-          createdAtISO: String(data.createdAtISO||""),
-          vehicles: data.vehicles
-        };
-        els.empId.value = report.guard.empId || "";
-        els.empName.value = report.guard.name || "";
-        els.reportDate.value = String(data.displayDate||els.reportDate.value||"");
-        els.reportTime.value = String(data.displayTime||els.reportTime.value||"");
-        renderTable();
-        saveToStorage();
-        setStatus("تم استيراد التقرير وحفظه محليًا ✅");
-      } catch(e){
-        setStatus("تعذر قراءة ملف JSON");
-      }
-    };
-    reader.readAsText(file, "utf-8");
-  }
-
-  function downloadBlob(content, filename, mime){
-    const blob = new Blob([content], {type:mime});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  function clearAll(){
-    if(confirm("⚠️ هل أنت متأكد من مسح كل البيانات؟")){
-      localStorage.removeItem(STORAGE_KEY);
-      newReport();
-      setStatus("تم مسح كل البيانات");
-    }
-  }
-
-  function escapeHtml(s){
-    return String(s ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  // ============ AUTOCOMPLETE ============
-  function setupAutocomplete(inputEl, listEl, suggestions){
-    inputEl.addEventListener("input", () => {
-      const val = inputEl.value.toLowerCase().trim();
-      if(!val){
-        listEl.classList.remove("active");
-        return;
-      }
-      
-      const filtered = suggestions.filter(s => s.toLowerCase().includes(val));
-      if(filtered.length === 0){
-        listEl.classList.remove("active");
-        return;
-      }
-
-      listEl.innerHTML = filtered.map(s => 
-        `<div class="autocomplete-item">${escapeHtml(s)}</div>`
-      ).join("");
-      
-      listEl.querySelectorAll(".autocomplete-item").forEach(item => {
-        item.addEventListener("click", () => {
-          inputEl.value = item.textContent;
-          listEl.classList.remove("active");
+    function showChoices(list){
+      if(!list || !list.length){ els.choices.style.display='none'; return; }
+      els.choices.innerHTML = list.map(x => `<button class="choice" data-v="${x}">${x}</button>`).join('');
+      els.choices.style.display='flex';
+      els.choices.querySelectorAll('button').forEach(b=>{
+        b.addEventListener('click', () => {
+          els.plate.value = b.getAttribute('data-v') || '';
+          els.choices.style.display='none';
         });
       });
-      
-      listEl.classList.add("active");
-    });
+    }
 
-    inputEl.addEventListener("blur", () => {
-      setTimeout(() => listEl.classList.remove("active"), 200);
-    });
-  }
-
-  setupAutocomplete(els.vehicleType, els.vehicleTypeList, VEHICLE_TYPES);
-  setupAutocomplete(els.vehicleColor, els.vehicleColorList, VEHICLE_COLORS);
-
-  // ============ QUICK ACTIONS ============
-  document.querySelectorAll(".quick-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const tower = btn.dataset.tower;
-      const floor = btn.dataset.floor;
-      if(tower) els.tower.value = tower;
-      if(floor) els.floor.value = floor;
-    });
-  });
-
-  // ============ CAMERA OCR - ENGLISH ONLY ============
-  async function openCamera(){
-    try {
-      const constraints = {
-        video: {
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        }
-      };
-      
-      cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-      els.cameraVideo.srcObject = cameraStream;
-      
-      const track = cameraStream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      if (capabilities.torch) {
-        document.getElementById("flashBtn").style.display = "inline-block";
+    async function startCamera(){
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} },
+          audio: false
+        });
+        els.video.srcObject = stream;
+        els.btnStart.disabled = true;
+        els.btnStop.disabled = false;
+        els.btnSnap.disabled = false;
+        setStatus('الكاميرا تعمل ✅', 'success');
+      }catch(e){
+        console.error(e);
+        setStatus('❌ تعذّر فتح الكاميرا. تأكد أنك على HTTPS وأن الصلاحيات مفعّلة.', 'error');
       }
-      
-      els.cameraModal.classList.add("active");
-      els.ocrStatus.style.display = "none";
-    } catch(err){
-      console.error("Camera error:", err);
-      alert("لا يمكن الوصول للكاميرا. تأكد من:\n• منح الأذونات\n• استخدام HTTPS أو localhost\n• عدم استخدام الكاميرا في تطبيق آخر");
     }
-  }
-
-  function closeCamera(){
-    if(cameraStream){
-      cameraStream.getTracks().forEach(track => track.stop());
-      cameraStream = null;
+    function stopCamera(){
+      if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+      els.video.srcObject = null;
+      els.btnStart.disabled = false;
+      els.btnStop.disabled = true;
+      els.btnSnap.disabled = true;
+      setStatus('تم الإيقاف', '');
     }
-    els.cameraModal.classList.remove("active");
-    els.ocrStatus.style.display = "none";
-  }
 
-  // Enhanced preprocessing (fast + mobile-friendly)
-function preprocessImage(canvas, opts = {}) {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  const w = canvas.width, h = canvas.height;
+    const MODEL_DETECTOR = 'models/plate-detector.onnx';
+    const MODEL_RECOGNIZER = 'models/plate-recognizer.onnx';
 
-  // Slight sharpen (unsharp-ish) to help OCR on mobile
-  try {
-    const src = ctx.getImageData(0, 0, w, h);
-    const out = ctx.createImageData(w, h);
-    const s = src.data, d = out.data;
-    const k = [0,-1,0,-1,5,-1,0,-1,0]; // sharpen kernel
-    for (let y=1; y<h-1; y++){
-      for (let x=1; x<w-1; x++){
-        let r=0,g=0,b=0;
-        let ki=0;
-        for (let yy=-1; yy<=1; yy++){
-          for (let xx=-1; xx<=1; xx++){
-            const i = ((y+yy)*w + (x+xx))*4;
-            const kw = k[ki++];
-            r += s[i]*kw; g += s[i+1]*kw; b += s[i+2]*kw;
+    let detectorSession = null;
+    let recognizerSession = null;
+
+    async function loadModels(){
+      if(detectorSession || recognizerSession) return true;
+      setStatus('⏳ تحميل النماذج داخل المتصفح...', 'processing');
+      try{
+        ort.env.wasm.numThreads = Math.min(2, navigator.hardwareConcurrency || 2);
+        ort.env.wasm.simd = true;
+
+        detectorSession = await ort.InferenceSession.create(MODEL_DETECTOR, { executionProviders: ['wasm'] });
+        try{
+          recognizerSession = await ort.InferenceSession.create(MODEL_RECOGNIZER, { executionProviders: ['wasm'] });
+        }catch(e){
+          console.warn('Recognizer not loaded, fallback to Tesseract', e);
+          recognizerSession = null;
+        }
+        setStatus('✅ تم تحميل النماذج', 'success');
+        return true;
+      }catch(e){
+        console.warn('Models not loaded (fallback)', e);
+        detectorSession = null;
+        recognizerSession = null;
+        setStatus('⚠️ لم أجد نماذج ONNX داخل المسار <b>models/</b> — سأستخدم قراءة احتياطية (أقل دقة).', 'error');
+        return false;
+      }
+    }
+
+    function captureFrame(){
+      const v = els.video;
+      const frame = els.frame;
+      const ctx = frame.getContext('2d', { willReadFrequently:true });
+      frame.width = v.videoWidth;
+      frame.height = v.videoHeight;
+      ctx.drawImage(v, 0, 0);
+      return frame;
+    }
+
+    function cropPlateFromFrame(frameCanvas){
+      const w = frameCanvas.width, h = frameCanvas.height;
+      const cw = w * 0.86, ch = h * 0.32;
+      const cx = (w - cw)/2, cy = (h - ch)/2;
+
+      const out = els.crop;
+      out.width = Math.round(cw * 3);
+      out.height = Math.round(ch * 3);
+      const octx = out.getContext('2d', { willReadFrequently:true });
+      octx.imageSmoothingEnabled = true;
+      octx.drawImage(frameCanvas, cx, cy, cw, ch, 0, 0, out.width, out.height);
+      return { x:cx, y:cy, w:cw, h:ch, scale:3 };
+    }
+
+    function normalizeText(raw){
+      let t = (raw||'').toUpperCase();
+      t = t.replace(/[^A-Z0-9\u0600-\u06FF\u0660-\u0669\s]/g, ' ');
+      t = t.replace(/\s+/g,' ').trim();
+      const map = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+      t = t.split('').map(c => map[c] || c).join('');
+      t = t.replace(/O/g,'0').replace(/I/g,'1').replace(/L/g,'1').replace(/Z/g,'2').replace(/S/g,'5').replace(/B/g,'8');
+      return t;
+    }
+
+    function plateCandidatesFromText(text){
+      const t = normalizeText(text);
+      const cands = [];
+      const patterns = [
+        /([A-Z]{2,4})\s*(\d{3,4})/g,
+        /(\d{3,4})\s*([A-Z]{2,4})/g,
+        /([\u0600-\u06FF]{2,4})\s*(\d{3,4})/g,
+        /(\d{3,4})\s*([\u0600-\u06FF]{2,4})/g,
+      ];
+      for(const re of patterns){
+        let m;
+        while((m = re.exec(t)) !== null){
+          cands.push(`${m[1]} ${m[2]}`.trim());
+        }
+      }
+      const parts = t.split(' ').filter(Boolean);
+      let letters = parts.find(p => /^[A-Z]{2,4}$/.test(p)) || '';
+      let arabic = parts.find(p => /^[\u0600-\u06FF]{2,4}$/.test(p)) || '';
+      let nums = parts.find(p => /^\d{3,4}$/.test(p)) || '';
+      if(nums && (letters||arabic)) cands.push(`${(arabic||letters)} ${nums}`);
+      return [...new Set(cands)].slice(0,5);
+    }
+
+    let tWorker = null;
+    async function getTesseractWorker(){
+      if(tWorker) return tWorker;
+      tWorker = await Tesseract.createWorker('eng');
+      await tWorker.setParameters({
+        tessedit_pageseg_mode: 7,
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
+      });
+      return tWorker;
+    }
+
+    async function recognizeWithTesseract(cropCanvas){
+      const w = await getTesseractWorker();
+      const { data } = await w.recognize(cropCanvas);
+      return { text: data.text || '', confidence: data.confidence || 0, method:'Tesseract' };
+    }
+
+    async function recognizeWithOnnx(cropCanvas){
+      if(!recognizerSession) return null;
+      // Placeholder: يحتاج تزويد نوع الموديل/طريقة الـ decoding
+      return null;
+    }
+
+    async function snapAndRead(){
+      showChoices([]);
+      els.plate.value = '';
+      setStatus('⏳ تجهيز...', 'processing');
+
+      if(!els.video.videoWidth){
+        setStatus('⚠️ الكاميرا غير جاهزة بعد. انتظر ثانية وحاول.', 'error');
+        return;
+      }
+
+      await loadModels();
+
+      const frame = captureFrame();
+      cropPlateFromFrame(frame);
+
+      setStatus('⏳ جاري قراءة اللوحة...', 'processing');
+
+      try{
+        const onnxRes = await recognizeWithOnnx(els.crop);
+        if(onnxRes && onnxRes.text){
+          const cands = plateCandidatesFromText(onnxRes.text);
+          if(cands.length){
+            els.plate.value = cands[0];
+            showChoices(cands);
+            setStatus(`✅ (ONNX) تم اقتراح: <b>${cands[0]}</b>`, 'success');
+            return;
           }
         }
-        const o = (y*w + x)*4;
-        d[o]   = Math.max(0, Math.min(255, r));
-        d[o+1] = Math.max(0, Math.min(255, g));
-        d[o+2] = Math.max(0, Math.min(255, b));
-        d[o+3] = 255;
+
+        const res = await recognizeWithTesseract(els.crop);
+        const cands = plateCandidatesFromText(res.text);
+        if(cands.length){
+          els.plate.value = cands[0];
+          showChoices(cands);
+          setStatus(`✅ تم اقتراح: <b>${cands[0]}</b><br><small>اختر الصحيح إن كان مختلف.</small>`, 'success');
+        }else{
+          setStatus('❌ لم أستطع استخراج لوحة واضحة. قرّب اللوحة وثبّت الجوال وأعد المحاولة.', 'error');
+        }
+      }catch(e){
+        console.error(e);
+        setStatus('❌ حدث خطأ أثناء القراءة. جرّب مرة أخرى.', 'error');
       }
     }
-    ctx.putImageData(out, 0, 0);
-  } catch(e){ /* ignore */ }
 
-  const img = ctx.getImageData(0, 0, w, h);
-  const data = img.data;
+    els.btnStart.addEventListener('click', startCamera);
+    els.btnStop.addEventListener('click', stopCamera);
+    els.btnSnap.addEventListener('click', snapAndRead);
+    document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stopCamera(); });
 
-  // Grayscale + build histogram
-  const hist = new Array(256).fill(0);
-  const gray = new Uint8ClampedArray(w*h);
-  for (let i=0, p=0; i<data.length; i+=4, p++){
-    const g = (0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2]) | 0;
-    gray[p] = g;
-    hist[g]++;
-  }
-
-  // Otsu threshold
-  const total = w*h;
-  let sum=0; for (let i=0;i<256;i++) sum += i*hist[i];
-  let sumB=0, wB=0, wF=0, varMax=0, threshold=140;
-  for (let t=0; t<256; t++){
-    wB += hist[t];
-    if (!wB) continue;
-    wF = total - wB;
-    if (!wF) break;
-    sumB += t*hist[t];
-    const mB = sumB / wB;
-    const mF = (sum - sumB) / wF;
-    const varBetween = wB*wF*(mB - mF)*(mB - mF);
-    if (varBetween > varMax) { varMax = varBetween; threshold = t; }
-  }
-
-  // Apply threshold (optionally invert)
-  const invert = !!opts.invert;
-  for (let p=0, i=0; p<gray.length; p++, i+=4){
-    const v = gray[p] > threshold ? 255 : 0;
-    const b = invert ? (255 - v) : v;
-    data[i] = data[i+1] = data[i+2] = b;
-    data[i+3] = 255;
-  }
-
-  ctx.putImageData(img, 0, 0);
-  return canvas;
-}
-
-  // Extract Saudi plate (EN + digits) with strict formatting
-  function extractPlateEN(text) {
-    let t = String(text || "").toUpperCase();
-
-    // Keep only A-Z, 0-9, space
-    t = t.replace(/[^A-Z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
-
-    // Fix common OCR confusions (apply BEFORE regex)
-    const fixMap = {
-      "O":"0","Q":"0","D":"0",
-      "I":"1","L":"1","|":"1",
-      "Z":"2",
-      "S":"5",
-      "G":"6",
-      "T":"7",
-      "B":"8"
-    };
-    t = t.split("").map(ch => fixMap[ch] || ch).join("");
-
-    // Prefer pattern: 2-4 letters + 3-4 digits (Saudi usually 3 + 4)
-    const m1 = t.match(/([A-Z]{2,4})\s*([0-9]{3,4})/);
-    if (m1) return `${m1[1]} ${m1[2]}`;
-
-    // Or digits then letters (some OCR outputs reverse)
-    const m2 = t.match(/([0-9]{3,4})\s*([A-Z]{2,4})/);
-    if (m2) return `${m2[2]} ${m2[1]}`;
-
-    // Fallback: join best guess parts
-    const letters = (t.match(/[A-Z]{2,4}/g) || [])[0] || "";
-    const digits  = (t.match(/[0-9]{3,4}/g) || [])[0] || "";
-    if (letters && digits) return `${letters} ${digits}`;
-    return t;
-  }
-
-  // Reusable OCR worker (avoids "يجهّز" forever بسبب تكرار workers)
-  let _ocrWorkerPromise = null;
-
-  async function getOcrWorker() {
-    if (_ocrWorkerPromise) return _ocrWorkerPromise;
-
-    _ocrWorkerPromise = (async () => {
-      // Use explicit paths for better compatibility on GitHub Pages / mobile
-      const worker = await Tesseract.createWorker("eng", 1, {
-        logger: () => {},
-        workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js",
-        corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js",
-        langPath: "https://tessdata.projectnaptha.com/4.0.0"
-      });
-
-      // Tight settings for plates
-      await worker.setParameters({
-        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-      });
-
-      return worker;
-    })();
-
-    return _ocrWorkerPromise;
-  }
-
-  // Crop: first to guide area (center), then take bottom band (EN + digits)
-// Crop helper: first to guide area (center), then take bottom band (EN + digits)
-// We try multiple band slices because Saudi plates differ and hand distance varies.
-function cropPlateVariants(srcCanvas) {
-  const w = srcCanvas.width, h = srcCanvas.height;
-
-  // Slightly taller guide than before to tolerate framing differences
-  const guideW = Math.round(w * 0.84);
-  const guideH = Math.round(h * 0.44);
-  const guideX = Math.round((w - guideW) / 2);
-  const guideY = Math.round((h - guideH) / 2);
-
-  const guide = document.createElement("canvas");
-  guide.width = guideW;
-  guide.height = guideH;
-  guide.getContext("2d").drawImage(srcCanvas, guideX, guideY, guideW, guideH, 0, 0, guideW, guideH);
-
-  // Bottom band specs: start%, height%
-  const specs = [
-    { start: 0.34, height: 0.66 }, // include more
-    { start: 0.40, height: 0.60 }, // balanced
-    { start: 0.48, height: 0.52 }, // tighter bottom
-    { start: 0.55, height: 0.45 }  // very tight bottom
-  ];
-
-  const variants = [];
-  for (const s of specs) {
-    const bandY = Math.round(guideH * s.start);
-    const bandH = Math.max(10, Math.round(guideH * s.height));
-    const band = document.createElement("canvas");
-    band.width = guideW;
-    band.height = bandH;
-    band.getContext("2d").drawImage(guide, 0, bandY, guideW, bandH, 0, 0, guideW, bandH);
-
-    // Upscale 3x (better for iPhone)
-    const up = document.createElement("canvas");
-    up.width = guideW * 3;
-    up.height = bandH * 3;
-    const upCtx = up.getContext("2d");
-    upCtx.imageSmoothingEnabled = true;
-    upCtx.imageSmoothingQuality = "high";
-    upCtx.drawImage(band, 0, 0, up.width, up.height);
-
-    variants.push({ canvas: up, tag: `band_${Math.round(s.start*100)}_${Math.round(s.height*100)}` });
-  }
-  return variants;
-}
-
-  // OCR with timeout (prevents hanging forever on some mobiles)
-  function withTimeout(promise, ms, label) {
-    let t;
-    const timeout = new Promise((_, reject) => {
-      t = setTimeout(() => reject(new Error(label || "timeout")), ms);
-    });
-    return Promise.race([promise.finally(() => clearTimeout(t)), timeout]);
-  }
-
-  async function captureAndRecognize(){
-  const video = els.cameraVideo;
-  const canvas = els.cameraCanvas;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-
-  if (!video || !video.videoWidth) {
-    els.ocrStatus.textContent = "⚠️ الكاميرا غير جاهزة. حاول مرة أخرى.";
-    els.ocrStatus.className = "ocr-status error";
-    els.ocrStatus.style.display = "block";
-    return;
-  }
-
-  // UI
-  els.ocrStatus.className = "ocr-status processing";
-  els.ocrStatus.style.display = "block";
-  els.ocrStatus.textContent = "⏳ تجهيز أفضل لقطة... (ثبّت الجوال لحظة)";
-
-  // Helper: capture current frame into canvas
-  function captureFrame(){
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-  }
-
-  // Helper: create a cropped canvas from a source canvas
-  function cropFrom(srcCanvas, x, y, w, h, scale=3){
-    const c = document.createElement("canvas");
-    c.width = Math.max(1, Math.round(w * scale));
-    c.height = Math.max(1, Math.round(h * scale));
-    const cctx = c.getContext("2d", { willReadFrequently: true });
-    // upscale using drawImage (helps OCR)
-    cctx.imageSmoothingEnabled = true;
-    cctx.drawImage(srcCanvas, x, y, w, h, 0, 0, c.width, c.height);
-    return c;
-  }
-
-  // Helper: sharpness score (variance of Laplacian-ish using simple kernel)
-  function sharpnessScore(cnv){
-    const cctx = cnv.getContext("2d", { willReadFrequently: true });
-    const w = cnv.width, h = cnv.height;
-    const img = cctx.getImageData(0, 0, w, h).data;
-    // sample grid for speed
-    const step = Math.max(1, Math.floor(Math.min(w,h) / 120));
-    let mean = 0, m2 = 0, n = 0;
-
-    // Laplacian kernel center-weighted approximation
-    // L = 4*center - up - down - left - right
-    function grayAt(px){
-      const r = img[px], g = img[px+1], b = img[px+2];
-      return (0.299*r + 0.587*g + 0.114*b);
+    if(location.protocol !== 'https:' && location.hostname !== 'localhost'){
+      setStatus('⚠️ الكاميرا تحتاج HTTPS. شغّلها على GitHub Pages أو HTTPS.', 'error');
     }
-
-    for (let y = step; y < h-step; y += step){
-      for (let x = step; x < w-step; x += step){
-        const p = (y*w + x)*4;
-        const c = grayAt(p);
-        const up = grayAt(((y-step)*w + x)*4);
-        const dn = grayAt(((y+step)*w + x)*4);
-        const lf = grayAt((y*w + (x-step))*4);
-        const rt = grayAt((y*w + (x+step))*4);
-        const lap = 4*c - up - dn - lf - rt;
-        n++;
-        const delta = lap - mean;
-        mean += delta / n;
-        m2 += delta * (lap - mean);
-      }
-    }
-    const variance = n > 1 ? (m2 / (n-1)) : 0;
-    return variance;
-  }
-
-  // 1) Burst capture عدة لقطات ونختار أوضح وحدة
-  const burst = 5;
-  let bestFrame = null;
-  let bestScore = -1;
-
-  for (let k=0; k<burst; k++){
-    captureFrame();
-    // crop guide-like center band quickly for scoring
-    const w = canvas.width, h = canvas.height;
-    const cw = w * 0.86, ch = h * 0.32;
-    const cx = (w - cw) / 2, cy = (h - ch) / 2;
-    const scoreCanvas = cropFrom(canvas, cx, cy, cw, ch, 1);
-    const s = sharpnessScore(scoreCanvas);
-    if (s > bestScore){
-      bestScore = s;
-      bestFrame = document.createElement("canvas");
-      bestFrame.width = canvas.width;
-      bestFrame.height = canvas.height;
-      bestFrame.getContext("2d").drawImage(canvas, 0, 0);
-    }
-    // small delay between frames
-    await new Promise(r => setTimeout(r, 120));
-  }
-
-  if (!bestFrame){
-    els.ocrStatus.textContent = "❌ لم أستطع التقاط لقطة واضحة. حاول مرة أخرى.";
-    els.ocrStatus.className = "ocr-status error";
-    return;
-  }
-
-  els.ocrStatus.textContent = "⏳ قراءة اللوحة...";
-
-  // 2) جهّز مجموعة قصّات متعددة (اللوحة قد تكون أعلى/أسفل حسب المسافة)
-  const W = bestFrame.width, H = bestFrame.height;
-
-  const cropSpecs = [
-    // center band (most common)
-    { x: 0.07*W, y: 0.34*H, w: 0.86*W, h: 0.32*H },
-    // slightly higher
-    { x: 0.07*W, y: 0.28*H, w: 0.86*W, h: 0.28*H },
-    // slightly lower
-    { x: 0.07*W, y: 0.40*H, w: 0.86*W, h: 0.28*H },
-    // wider center (some phones zoom)
-    { x: 0.03*W, y: 0.36*H, w: 0.94*W, h: 0.30*H },
-  ];
-
-  // 3) OCR على عدة نسخ: خام + معالج + معكوس (اختيار أفضل نتيجة)
-  const worker = await getOcrWorker();
-
-  // Timeout guard (prevents "جاري..." forever)
-  const withTimeout = (p, ms=18000) => Promise.race([
-    p,
-    new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
-  ]);
-
-  const candidates = [];
-
-  async function runOne(imgCanvas, tag){
-    // Run OCR (English letters + digits only for better stability)
-    const { data } = await withTimeout(worker.recognize(imgCanvas));
-    const raw = (data && data.text) ? data.text : "";
-    const plate = extractPlateEN(raw);
-    const conf = (data && typeof data.confidence === "number") ? data.confidence : 0;
-
-    // Score: prefer having both letters+digits and proper length
-    const hasLetters = /[A-Z]{2,4}/.test(plate);
-    const hasDigits  = /\d{3,4}/.test(plate);
-    const lenOK = plate.replace(/\s/g,"").length >= 5 && plate.replace(/\s/g,"").length <= 8;
-
-    let score = conf;
-    if (hasLetters && hasDigits) score += 20;
-    if (lenOK) score += 10;
-
-    candidates.push({ plate, conf, score, tag, raw: raw.trim() });
-  }
-
-  // Build and OCR all variants (but keep it bounded for speed)
-  let step = 0;
-  const totalSteps = cropSpecs.length * 3;
-  for (const spec of cropSpecs){
-    const base = cropFrom(bestFrame, spec.x, spec.y, spec.w, spec.h, 3);
-
-    step++; els.ocrStatus.textContent = `⏳ قراءة اللوحة... (${step}/${totalSteps})`;
-    await runOne(base, "خام");
-
-    const proc = document.createElement("canvas");
-    proc.width = base.width; proc.height = base.height;
-    proc.getContext("2d", { willReadFrequently:true }).drawImage(base, 0, 0);
-    preprocessImage(proc, { invert:false });
-
-    step++; els.ocrStatus.textContent = `⏳ قراءة اللوحة... (${step}/${totalSteps})`;
-    await runOne(proc, "معالجة");
-
-    const inv = document.createElement("canvas");
-    inv.width = base.width; inv.height = base.height;
-    inv.getContext("2d", { willReadFrequently:true }).drawImage(base, 0, 0);
-    preprocessImage(inv, { invert:true });
-
-    step++; els.ocrStatus.textContent = `⏳ قراءة اللوحة... (${step}/${totalSteps})`;
-    await runOne(inv, "معكوس");
-  }
-
-  // pick best
-  candidates.sort((a,b)=> b.score - a.score);
-  const top = candidates.filter(c => c.plate && c.plate.length >= 3).slice(0, 5);
-
-  if (!top.length){
-    els.ocrStatus.className = "ocr-status error";
-    els.ocrStatus.innerHTML = `
-      ❌ لم أستطع قراءة اللوحة بشكل واضح.<br>
-      <small>جرّب: قرب اللوحة أكثر + إضاءة قوية + تثبيت الجوال.</small>
-    `;
-    return;
-  }
-
-  // Show options (human-in-the-loop = أعلى دقة عملياً)
-  const best = top[0];
-  els.plate.value = best.plate;
-
-  const buttons = top.map((c, idx) => {
-    const conf = Math.round(c.conf);
-    const label = `${c.plate} (${conf}%)`;
-    return `<button class="quick-btn" data-plate="${c.plate}" style="border-color:#cbd5e1; font-weight:700;">${label}</button>`;
-  }).join("");
-
-  els.ocrStatus.className = "ocr-status success";
-  els.ocrStatus.innerHTML = `
-    ✅ تم اقتراح اللوحة: <b>${best.plate}</b><br>
-    <small>اختر الصحيح إذا كان مختلف:</small>
-    <div class="quick-actions" style="justify-content:center; margin-top:8px;">${buttons}</div>
-    <div style="margin-top:8px;">
-      <small style="color:#475569;">💡 إذا ما طلعت دقيقة: قرّب اللوحة داخل الإطار الأخضر وثبّت 1-2 ثانية.</small>
-    </div>
-  `;
-
-  // attach handlers
-  els.ocrStatus.querySelectorAll("button[data-plate]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      els.plate.value = btn.getAttribute("data-plate") || "";
-      // close camera after selection
-      setTimeout(() => closeCamera(), 250);
-    });
-  });
-
-  // auto-close after a while (if user is ok)
-  setTimeout(() => closeCamera(), 4500);
-}
-
-
-  // ============ KEYBOARD SHORTCUTS ============
-  document.addEventListener("keydown", (e) => {
-    if(e.ctrlKey && e.key === "Enter"){
-      e.preventDefault();
-      addVehicle();
-    }
-    if(e.ctrlKey && e.key === "s"){
-      e.preventDefault();
-      saveToStorage();
-    }
-    if(e.key === "Escape"){
-      closeCamera();
-      els.imageModal.classList.remove("active");
-    }
-  });
-
-  // ============ EVENT LISTENERS ============
-  els.btnLookup.addEventListener("click", lookupGuard);
-  els.empId.addEventListener("keydown", (e) => { if(e.key === "Enter") lookupGuard(); });
-
-  els.btnAdd.addEventListener("click", addVehicle);
-  els.btnSave.addEventListener("click", saveToStorage);
-  els.btnNew.addEventListener("click", () => { 
-    if(confirm("هل تريد بدء تقرير جديد؟")){
-      newReport(); 
-      saveToStorage(); 
-    }
-  });
-  els.btnExportCSV.addEventListener("click", exportCSV);
-  els.btnExportJSON.addEventListener("click", exportJSON);
-  els.btnImportJSON.addEventListener("click", () => els.importFile.click());
-  els.importFile.addEventListener("change", (e) => importJSONFile(e.target.files && e.target.files[0]));
-  els.btnPrint.addEventListener("click", () => window.print());
-  els.btnClearAll.addEventListener("click", clearAll);
-
-  els.btnCamera.addEventListener("click", openCamera);
-  els.closeCamera.addEventListener("click", closeCamera);
-  els.cancelCamera.addEventListener("click", closeCamera);
-  els.captureBtn.addEventListener("click", captureAndRecognize);
-
-  // Flash toggle
-  document.getElementById("flashBtn").addEventListener("click", async () => {
-    if (cameraStream) {
-      const track = cameraStream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      if (capabilities.torch) {
-        const current = track.getSettings().torch || false;
-        await track.applyConstraints({
-          advanced: [{ torch: !current }]
-        });
-        document.getElementById("flashBtn").textContent = !current ? "💡 إطفاء" : "💡 فلاش";
-      }
-    }
-  });
-
-  els.closeImage.addEventListener("click", () => {
-    els.imageModal.classList.remove("active");
-  });
-
-  els.imageModal.addEventListener("click", (e) => {
-    if(e.target === els.imageModal){
-      els.imageModal.classList.remove("active");
-    }
-  });
-
-  // ============ INITIALIZATION ============
-  setNow();
-  if(loadFromStorage()){
-    els.empId.value = report.guard.empId || "";
-    els.empName.value = report.guard.name || "";
-    setStatus("تم تحميل آخر تقرير محفوظ");
-    renderTable();
-  } else {
-    newReport();
-  }
-
-  // Auto-save every 30 seconds
-  setInterval(() => {
-    if(report.vehicles.length > 0){
-      saveToStorage();
-    }
-  }, 30000);
-
-})();
-</script>
+  })();
+  </script>
 </body>
 </html>
