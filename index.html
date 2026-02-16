@@ -290,6 +290,13 @@
 
 <script>
 (() => {
+  // ===== Google Sheets Sync (Apps Script Web App) =====
+  // ضع رابط الـ Web App هنا:
+  const SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxWSfNn9dSgSycdrG5mQLteCS8Bb-xU9PG2e-NAJB-TWiJOffowK_MPje0vmDXDWRDU/exec";
+  // (اختياري) لو سويت حماية بمفتاح في Apps Script حطه هنا، وإلا خله فاضي:
+  const SHEET_SECRET_KEY = "";
+  const SHEET_OUTBOX_KEY = "parking_sheet_outbox_v1";
+
   const EMPLOYEES = { "88840": "محمد حمد القحطاني" };
 
   const els = {
@@ -422,7 +429,73 @@
     }
     return true;
   }
-  async function addVehicle(){
+  
+  function buildSheetPayload(item){
+    return {
+      key: SHEET_SECRET_KEY || undefined,
+      date: els.reportDate.value || "",
+      time: els.reportTime.value || "",
+      empId: report.guard.empId || (els.empId.value||"").trim(),
+      empName: report.guard.name || els.empName.value || "",
+      tower: item.tower || "",
+      floor: item.floor || "",
+      vehicleType: item.vehicleType || "",
+      vehicleColor: item.vehicleColor || "",
+      plate: item.plate || "",
+      spotNo: item.spotNo || "",
+      pillarNo: item.pillarNo || "",
+      duration: item.duration || "",
+      addedAt: item.addedAt || new Date().toISOString(),
+      source: "GitHubPages"
+    };
+  }
+
+  function loadOutbox(){
+    try { return JSON.parse(localStorage.getItem(SHEET_OUTBOX_KEY) || "[]") || []; }
+    catch { return []; }
+  }
+  function saveOutbox(list){
+    localStorage.setItem(SHEET_OUTBOX_KEY, JSON.stringify(list || []));
+  }
+
+  async function flushOutbox(){
+    const outbox = loadOutbox();
+    if(!outbox.length) return;
+
+    // نحاول نرسل الموجود واحد واحد (لو فشل، نوقف ونبقي الباقي)
+    while(outbox.length){
+      const payload = outbox[0];
+
+      // لو المفتاح فاضي، احذف الحقل عشان ما يسبب مشاكل في السكربت
+      if(!SHEET_SECRET_KEY) delete payload.key;
+
+      try{
+        // ملاحظة: نستخدم text/plain + no-cors لتجنب مشاكل CORS على GitHub Pages/iOS
+        await fetch(SHEET_WEBAPP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        // لو وصلنا هنا غالبًا تم الإرسال (أو على الأقل خرج الطلب)
+        outbox.shift();
+        saveOutbox(outbox);
+      } catch(e){
+        // الشبكة/الطلب فشل: نطلع ونحاول لاحقًا
+        break;
+      }
+    }
+  }
+
+  function enqueueToSheet(item){
+    const outbox = loadOutbox();
+    outbox.push(buildSheetPayload(item));
+    saveOutbox(outbox);
+    // إرسال مباشر + بنحاول مرة ثانية تلقائيًا كل فترة
+    flushOutbox();
+  }
+
+async function addVehicle(){
     if(!validateBeforeAdd()) return;
     const photoFile = els.photo.files?.[0];
     const photoDataUrl = await readPhotoAsDataUrl(photoFile);
@@ -435,6 +508,8 @@
     };
     report.vehicles.push(item);
     renderTable(); clearVehicleForm(); saveToStorage();
+    // إرسال للسجل في Google Sheet (مع طابور إرسال في حال انقطاع النت)
+    enqueueToSheet(item);
     setStatus("تمت الإضافة ✅"); els.plate.focus();
   }
   function removeVehicle(idx){
@@ -719,7 +794,10 @@
   } else {
     newReport();
   }
-  setInterval(() => { if(report.vehicles.length > 0) saveToStorage(); }, 30000);
+
+  // حاول إرسال أي بيانات معلّقة إلى Google Sheet
+  flushOutbox();
+  setInterval(() => { if(report.vehicles.length > 0) saveToStorage(); flushOutbox(); }, 30000);
 })();
 </script>
 </body>
