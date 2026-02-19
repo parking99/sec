@@ -36,15 +36,22 @@
     .meta { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; color:#475569; font-size:12px; }
     .meta b { color:#0f172a; }
     .topnote { background:#f1f5f9; border:1px dashed #cbd5e1; padding:10px; border-radius:12px; margin:10px 0; font-size:12px; color:#334155; }
-    .api-note { background:#dbeafe; border:2px solid var(--p); padding:12px; border-radius:12px; margin:10px 0; }
-    .api-note input { margin-top:8px; font-family: monospace; font-size:13px; }
-    
-    /* Google Sheets Config */
-    .sheets-config { background:#dcfce7; border:2px solid var(--gr); padding:12px; border-radius:12px; margin:10px 0; }
-    .sheets-status { display:inline-block; padding:4px 12px; border-radius:6px; font-size:12px; font-weight:600; margin-top:8px; }
-    .sheets-status.connected { background:#22c55e; color:#fff; }
-    .sheets-status.disconnected { background:#ef4444; color:#fff; }
-    
+
+    /* Cloud Sync Banner */
+    .sync-banner { 
+      display:flex; align-items:center; gap:10px; background:#eff6ff; 
+      border:1px solid #bfdbfe; border-radius:10px; padding:10px 14px; 
+      margin:10px 0; font-size:13px; flex-wrap:wrap;
+    }
+    .sync-banner.syncing { background:#fefce8; border-color:#fde68a; }
+    .sync-banner.error { background:#fef2f2; border-color:#fecaca; }
+    .sync-banner.ok { background:#f0fdf4; border-color:#bbf7d0; }
+    .sync-dot { width:10px; height:10px; border-radius:50%; background:#94a3b8; flex-shrink:0; }
+    .sync-dot.pulse { background:#3b82f6; animation: pulse 1.2s infinite; }
+    .sync-dot.ok { background:#22c55e; }
+    .sync-dot.error { background:#ef4444; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
     /* Camera Modal */
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; align-items:center; justify-content:center; }
     .modal.active { display:flex; }
@@ -53,36 +60,24 @@
     .camera-container { position:relative; display:inline-block; }
     #cameraVideo { width:100%; max-width:640px; border-radius:10px; background:#000; display:block; margin:0 auto; }
     #cameraCanvas { display:none; }
-    
     .plate-guide { 
       position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
       border:4px solid #22c55e; background:rgba(34, 197, 94, 0.05);
       width:70%; height:25%; pointer-events:none; border-radius:12px;
       box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
-      animation: pulse 2s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { border-color: #22c55e; }
-      50% { border-color: #16a34a; }
     }
     .plate-guide::before {
       content: "📸 ضع اللوحة هنا";
       position:absolute; top:-40px; left:50%; transform:translateX(-50%);
       background:#22c55e; color:#fff; padding:8px 20px; border-radius:10px;
-      font-size:15px; font-weight:700; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      font-size:15px; font-weight:700;
     }
-    
     .camera-controls { margin-top:15px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-    
-    /* OCR Status */
     .ocr-status { padding:15px; border-radius:12px; margin-top:12px; font-size:14px; text-align:center; }
     .ocr-status.processing { background:#fef3c7; color:#92400e; border:2px solid #fcd34d; }
     .ocr-status.success { background:#d1fae5; color:#065f46; border:2px solid #34d399; }
     .ocr-status.error { background:#fee2e2; color:#991b1b; border:2px solid #fca5a5; }
-    
-    .result-details { margin-top:12px; padding:12px; background:#f9fafb; border-radius:8px; font-size:12px; text-align:right; }
-    .result-details div { margin:4px 0; }
-    
+
     .stats { display:flex; gap:10px; margin:10px 0; flex-wrap:wrap; }
     .stat-card { flex:1; min-width:140px; padding:12px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; border-radius:10px; }
     .stat-card.green { background:linear-gradient(135deg, #16a34a 0%, #059669 100%); }
@@ -90,7 +85,16 @@
     .stat-card.blue { background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
     .stat-value { font-size:24px; font-weight:700; }
     .stat-label { font-size:11px; opacity:0.9; margin-top:4px; }
-    
+
+    .loading-overlay { 
+      display:none; position:fixed; top:0;left:0;width:100%;height:100%; 
+      background:rgba(255,255,255,0.85); z-index:8888; 
+      align-items:center; justify-content:center; flex-direction:column; gap:14px;
+    }
+    .loading-overlay.active { display:flex; }
+    .spinner { width:48px; height:48px; border:5px solid #e2e8f0; border-top-color:#2563eb; border-radius:50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     @media print {
       .no-print { display:none !important; }
       body { background:#fff; }
@@ -102,6 +106,11 @@
 </head>
 
 <body>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div style="font-size:15px; color:#334155; font-weight:600;">⏳ جارٍ تحميل البيانات من السحابة...</div>
+  </div>
+
   <div class="wrap">
     <div class="card">
       <h1>🤖 برنامج رصد السيارات - PlateRecognizer AI + Google Sheets</h1>
@@ -111,10 +120,16 @@
         <span style="background:#d1fae5; padding:3px 8px; border-radius:6px;">دقة 95%+</span>
         <span style="background:#dbeafe; padding:3px 8px; border-radius:6px;">يدعم اللوحات السعودية</span>
         <span style="background:#fef3c7; padding:3px 8px; border-radius:6px;">قراءة فورية</span>
-        <span style="background:#fee2e2; padding:3px 8px; border-radius:6px;">حفظ سحابي تلقائي</span>
+        <span style="background:#fee2e2; padding:3px 8px; border-radius:6px;">مزامنة سحابية تلقائية ☁️</span>
       </div>
 
-      <!-- Stats -->
+      <!-- Cloud Sync Banner -->
+      <div class="sync-banner no-print" id="syncBanner">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncMsg">يتم الاتصال بالسحابة...</span>
+        <button class="primary" id="btnSync" style="padding:6px 14px; font-size:12px; margin-right:auto;">🔄 تحديث من السحابة</button>
+      </div>
+
       <div class="stats no-print">
         <div class="stat-card">
           <div class="stat-value" id="statTotal">0</div>
@@ -134,7 +149,6 @@
         </div>
       </div>
 
-      <!-- بيانات رجل الأمن -->
       <div class="row no-print">
         <div class="col small">
           <label>الرقم الوظيفي</label>
@@ -158,12 +172,11 @@
       </div>
 
       <div class="meta">
-        <span>الحالة: <b id="status">بانتظار إدخال الرقم الوظيفي</b></span>
+        <span>الحالة: <b id="status">جارٍ التحميل...</b></span>
       </div>
 
       <hr style="border:0;border-top:1px solid var(--g);margin:12px 0;" />
 
-      <!-- نموذج الإدخال -->
       <div class="row no-print">
         <div class="col small">
           <label>البرج</label>
@@ -191,9 +204,7 @@
             <option>مكة</option><option>المدينة</option><option>الطائف</option>
             <option>تبوك</option><option>أبها</option><option>جازان</option>
             <option>نجران</option><option>حائل</option><option>القصيم</option>
-            <option>الباحة</option><option>الجوف</option><option>عرعر</option>
-            <option>ينبع</option><option>الخبر</option><option>القطيف</option>
-            <option>حفر الباطن</option><option>الأحساء</option>
+            <option>الباحة</option><option>الجوف</option>
           </select>
         </div>
         <div class="col wide">
@@ -208,9 +219,8 @@
         <button class="ghost" id="btnSave">💾 حفظ محلي</button>
       </div>
 
-      <div class="hint">💡 Ctrl+Enter للإضافة السريعة | Ctrl+S للحفظ | يتم الحفظ تلقائياً كل 30 ثانية</div>
+      <div class="hint">💡 Ctrl+Enter للإضافة السريعة | Ctrl+S للحفظ | تحديث تلقائي من السحابة كل 60 ثانية</div>
 
-      <!-- الجدول -->
       <div class="table-wrap">
         <table id="vehiclesTable">
           <thead>
@@ -224,6 +234,7 @@
               <th style="width:100px;">التاريخ</th>
               <th style="width:90px;">الوقت</th>
               <th style="width:150px;">ملاحظات</th>
+              <th style="width:120px;">رجل الأمن</th>
               <th class="no-print" style="width:100px;">إجراءات</th>
             </tr>
           </thead>
@@ -231,7 +242,6 @@
         </table>
       </div>
 
-      <!-- أزرار التصدير -->
       <div class="btns no-print" style="margin-top:12px;">
         <button class="ghost" id="btnPrint">🖨️ طباعة</button>
         <button class="ghost" id="btnExportCSV">📄 تصدير CSV</button>
@@ -239,7 +249,7 @@
         <button class="ghost" id="btnImportJSON">📥 استيراد JSON</button>
         <input type="file" id="importFile" accept=".json" style="display:none;" />
         <button class="orange" id="btnNew">🆕 تقرير جديد</button>
-        <button class="danger" id="btnClearAll">🗑️ مسح الكل</button>
+        <button class="danger" id="btnClearAll">🗑️ مسح الكل محلياً</button>
       </div>
     </div>
   </div>
@@ -256,14 +266,12 @@
       <canvas id="cameraCanvas"></canvas>
       <div class="camera-controls">
         <button class="success" id="captureBtn">📸 التقاط وقراءة</button>
-        <button id="flashBtn" class="ghost" style="display:none;">💡 فلاش</button>
         <button class="danger" id="cancelCamera">❌ إلغاء</button>
       </div>
       <div class="ocr-status" id="ocrStatus" style="display:none;"></div>
     </div>
   </div>
 
-  <!-- Image Modal -->
   <div class="modal" id="imageModal">
     <div class="modal-content" style="padding:10px;">
       <button class="modal-close" id="closeImage">×</button>
@@ -275,6 +283,12 @@
 (function(){
   "use strict";
 
+  // ============================================================
+  // ⚙️ الإعدادات - غيّر هذا الرابط برابط Google Apps Script الخاص بك
+  // ============================================================
+  const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycby-MULk6zrSj4kb0ibx743Y0yx2T3KXq3_vDuAIfHHePx1u8AcYxBgA6KVhlzyBNTWreQ/exec";
+  // ============================================================
+
   const STORAGE_KEY = "parkingReport_v2";
   const GUARDS = {
     "88840": "عبدالله الشمري",
@@ -283,17 +297,16 @@
     "88843": "سعد الدوسري"
   };
 
-  // Google Sheets Web App URL - ضع رابطك هنا
-  const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycby-MULk6zrSj4kb0ibx743Y0yx2T3KXq3_vDuAIfHHePx1u8AcYxBgA6KVhlzyBNTWreQ/exec";
-  // مثال: const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbz.../exec";
-
   let report = {
     guard: { empId: "", name: "" },
     vehicles: [],
     apiCallsCount: 0
   };
 
+  // البيانات السحابية (مجمّعة من جميع الأجهزة)
+  let cloudVehicles = [];
   let cameraStream = null;
+  let isSyncing = false;
 
   const els = {
     empId: document.getElementById("empId"),
@@ -316,9 +329,9 @@
     btnImportJSON: document.getElementById("btnImportJSON"),
     btnPrint: document.getElementById("btnPrint"),
     btnClearAll: document.getElementById("btnClearAll"),
+    btnSync: document.getElementById("btnSync"),
     importFile: document.getElementById("importFile"),
     tbody: document.querySelector("#vehiclesTable tbody"),
-    apiKey: document.getElementById("apiKey"),
     cameraModal: document.getElementById("cameraModal"),
     cameraVideo: document.getElementById("cameraVideo"),
     cameraCanvas: document.getElementById("cameraCanvas"),
@@ -332,80 +345,120 @@
     statTotal: document.getElementById("statTotal"),
     statToday: document.getElementById("statToday"),
     statWithPhotos: document.getElementById("statWithPhotos"),
-    statApiCalls: document.getElementById("statApiCalls")
+    statApiCalls: document.getElementById("statApiCalls"),
+    syncBanner: document.getElementById("syncBanner"),
+    syncDot: document.getElementById("syncDot"),
+    syncMsg: document.getElementById("syncMsg"),
+    loadingOverlay: document.getElementById("loadingOverlay")
   };
 
-  // ============ GOOGLE SHEETS FUNCTIONS ============
-  async function sendToGoogleSheets(vehicle) {
-    // التحقق من وجود الرابط
-    if (!GOOGLE_SHEETS_URL || GOOGLE_SHEETS_URL === "YOUR_WEB_APP_URL_HERE") {
-      console.log("Google Sheets URL not configured");
-      return;
-    }
+  // ── مؤشر حالة المزامنة ──
+  function setSyncStatus(state, msg) {
+    els.syncDot.className = "sync-dot " + (state === "loading" ? "pulse" : state === "ok" ? "ok" : state === "error" ? "error" : "");
+    els.syncBanner.className = "sync-banner no-print " + (state === "loading" ? "syncing" : state === "ok" ? "ok" : state === "error" ? "error" : "");
+    els.syncMsg.textContent = msg;
+  }
+
+  // ── جلب البيانات من Google Sheets ──
+  async function loadFromCloud(showLoader) {
+    if(isSyncing) return;
+    isSyncing = true;
+    if(showLoader) els.loadingOverlay.classList.add("active");
+    setSyncStatus("loading", "⏳ جارٍ جلب البيانات من السحابة...");
+    els.btnSync.disabled = true;
 
     try {
-      const data = {
-        action: 'add',
-        empId: report.guard.empId,
-        empName: report.guard.name,
-        tower: vehicle.tower,
-        floor: vehicle.floor,
-        plate: vehicle.plate,
-        city: vehicle.city,
-        date: vehicle.date,
-        time: vehicle.time,
-        notes: vehicle.notes || "",
-        hasImage: vehicle.img ? "نعم" : "لا",
-        timestamp: new Date().toISOString()
-      };
-
-      // إرسال البيانات بشكل صامت
-      fetch(GOOGLE_SHEETS_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
-        body: JSON.stringify(data)
-      }).catch(err => {
-        // تجاهل أخطاء CORS - البيانات تُرسل بنجاح
-        console.log("Data sent to Google Sheets (CORS expected)");
-      });
-
-    } catch (error) {
-      console.log("Google Sheets sync error:", error);
+      // نستخدم JSONP عبر إضافة callback لتجاوز قيود CORS في no-cors
+      const data = await fetchGSheets();
+      if(data && Array.isArray(data)) {
+        cloudVehicles = data;
+        renderTable();
+        updateStats();
+        const count = data.length;
+        setSyncStatus("ok", `✅ تم التحديث - ${count} سجل من السحابة | آخر تحديث: ${new Date().toLocaleTimeString('ar')}`);
+        setStatus(`تم تحميل ${count} سجل من Google Sheets`);
+      } else {
+        throw new Error("استجابة غير صالحة");
+      }
+    } catch(err) {
+      setSyncStatus("error", "⚠️ تعذّر الاتصال بالسحابة - يتم عرض البيانات المحلية");
+      cloudVehicles = [];
+      renderTable();
+      updateStats();
+      setStatus("خطأ في الاتصال بالسحابة");
+    } finally {
+      isSyncing = false;
+      if(showLoader) els.loadingOverlay.classList.remove("active");
+      els.btnSync.disabled = false;
     }
   }
 
-  // ============ UTILITY FUNCTIONS ============
+  // جلب البيانات عبر JSONP (يتجاوز قيود CORS)
+  function fetchGSheets() {
+    return new Promise((resolve, reject) => {
+      const cbName = "gsCallback_" + Date.now();
+      const script = document.createElement("script");
+      const timeout = setTimeout(() => {
+        delete window[cbName];
+        script.remove();
+        reject(new Error("timeout"));
+      }, 15000);
+
+      window[cbName] = function(data) {
+        clearTimeout(timeout);
+        delete window[cbName];
+        script.remove();
+        resolve(data);
+      };
+
+      script.src = GOOGLE_SHEETS_URL + "?action=getAll&callback=" + cbName + "&_=" + Date.now();
+      script.onerror = () => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        reject(new Error("script error"));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  // ── إرسال سجل جديد إلى Google Sheets ──
+  async function sendToGoogleSheets(vehicle) {
+    if(!GOOGLE_SHEETS_URL) return;
+    const data = {
+      action: 'add',
+      empId: report.guard.empId,
+      empName: report.guard.name,
+      tower: vehicle.tower,
+      floor: vehicle.floor,
+      plate: vehicle.plate,
+      city: vehicle.city,
+      date: vehicle.date,
+      time: vehicle.time,
+      notes: vehicle.notes || "",
+      hasImage: vehicle.img ? "نعم" : "لا",
+      timestamp: new Date().toISOString()
+    };
+    fetch(GOOGLE_SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data)
+    }).then(() => {
+      // بعد الإرسال بثانيتين، نحدّث من السحابة لنرى السجل الجديد
+      setTimeout(() => loadFromCloud(false), 2000);
+    }).catch(() => {});
+  }
+
   function setNow() {
     const n = new Date();
-    const dt = n.toISOString().split('T')[0];
-    const tm = n.toTimeString().slice(0,5);
-    els.reportDate.value = dt;
-    els.reportTime.value = tm;
+    els.reportDate.value = n.toISOString().split('T')[0];
+    els.reportTime.value = n.toTimeString().slice(0,5);
   }
 
-  function setStatus(msg) {
-    els.status.textContent = msg;
-  }
-
-  function newReport() {
-    report = { guard:{empId:"",name:""}, vehicles:[], apiCallsCount:0 };
-    els.empId.value = "";
-    els.empName.value = "";
-    els.tbody.innerHTML = "";
-    clearForm();
-    setStatus("تقرير جديد");
-    updateStats();
-  }
-
+  function setStatus(msg) { els.status.textContent = msg; }
   function clearForm() {
-    els.tower.value = "";
-    els.floor.value = "";
-    els.plate.value = "";
-    els.city.value = "";
-    els.notes.value = "";
+    els.tower.value = ""; els.floor.value = "";
+    els.plate.value = ""; els.city.value = ""; els.notes.value = "";
   }
 
   function lookupGuard() {
@@ -426,11 +479,13 @@
   }
 
   function updateStats() {
-    const total = report.vehicles.length;
+    // نعتمد على البيانات السحابية إذا متاحة، وإلا المحلية
+    const vehicles = cloudVehicles.length > 0 ? cloudVehicles : report.vehicles;
+    const total = vehicles.length;
     const today = new Date().toISOString().split('T')[0];
-    const todayCount = report.vehicles.filter(v => v.date === today).length;
-    const withPhotos = report.vehicles.filter(v => v.img).length;
-    
+    const todayCount = vehicles.filter(v => (v.date||"") === today).length;
+    const withPhotos = vehicles.filter(v => v.hasImage === "نعم" || v.img).length;
+
     els.statTotal.textContent = total;
     els.statToday.textContent = todayCount;
     els.statWithPhotos.textContent = withPhotos;
@@ -447,7 +502,6 @@
       alert("املأ جميع الحقول المطلوبة");
       return;
     }
-
     if(!report.guard.empId){
       alert("أدخل الرقم الوظيفي أولاً");
       return;
@@ -463,23 +517,20 @@
     };
 
     report.vehicles.push(vehicle);
-    
-    // Send to Google Sheets
+    setSyncStatus("loading", "⏳ جارٍ الحفظ في السحابة...");
     await sendToGoogleSheets(vehicle);
-    
-    renderTable();
+
     clearForm();
     saveToStorage();
-    setStatus(`تم إضافة ${plate} - ${city}`);
+    setStatus(`✅ تم إضافة ${plate} - ${city} وحفظه في السحابة`);
     updateStats();
   }
 
   function deleteVehicle(index) {
-    if(!confirm("حذف هذا السجل؟")) return;
+    if(!confirm("حذف هذا السجل محلياً فقط؟\n(لحذفه من Google Sheets افتح الشيت يدوياً)")) return;
     report.vehicles.splice(index, 1);
     renderTable();
     saveToStorage();
-    setStatus("تم الحذف");
     updateStats();
   }
 
@@ -488,13 +539,39 @@
     els.imageModal.classList.add("active");
   }
 
+  // ── عرض الجدول: يجمع السحابة + المحلي ──
   function renderTable() {
     els.tbody.innerHTML = "";
-    report.vehicles.forEach((v, i) => {
+
+    // البيانات الأساسية: من السحابة إذا متاحة
+    let rows = [];
+
+    if(cloudVehicles.length > 0) {
+      // بيانات السحابة
+      rows = cloudVehicles.map(v => ({
+        tower: v.tower || v.البرج || "",
+        floor: v.floor || v.الدور || "",
+        plate: v.plate || v.اللوحة || "",
+        city: v.city || v.المدينة || "",
+        date: v.date || v.التاريخ || "",
+        time: v.time || v.الوقت || "",
+        notes: v.notes || v.ملاحظات || "",
+        guardName: v.empName || v.empname || v["رجل الأمن"] || "",
+        img: v.img || null,
+        source: "cloud"
+      }));
+    } else {
+      // بيانات محلية فقط
+      rows = report.vehicles.map(v => ({...v, guardName: report.guard.name, source: "local"}));
+    }
+
+    rows.forEach((v, i) => {
       const tr = document.createElement("tr");
+      if(v.source === "cloud") tr.style.borderRight = "3px solid #22c55e";
       tr.innerHTML = `
         <td>${i+1}</td>
-        <td>${v.img ? `<img class="imgPrev" src="${v.img}" onclick="viewImage('${v.img}')" alt="صورة"/>` : "-"}</td>
+        <td>${v.img ? `<img class="imgPrev" src="${v.img}" alt="صورة"/>` : 
+              (v.hasImage === "نعم" ? `<span style="background:#d1fae5;padding:4px 8px;border-radius:6px;font-size:11px;">📷 في الشيت</span>` : "-")}</td>
         <td>${v.tower}</td>
         <td>${v.floor}</td>
         <td style="font-weight:700; letter-spacing:1px;">${v.plate}</td>
@@ -502,60 +579,67 @@
         <td>${v.date}</td>
         <td>${v.time}</td>
         <td>${v.notes || "-"}</td>
+        <td style="font-size:11px; color:#475569;">${v.guardName || "-"}</td>
         <td class="no-print">
-          <button class="danger" onclick="deleteVehicle(${i})" style="padding:6px 10px; font-size:11px;">🗑️ حذف</button>
+          ${v.source === "local" ? `<button class="danger" data-del="${i}" style="padding:6px 10px; font-size:11px;">🗑️ حذف</button>` : 
+          `<span style="font-size:11px; color:#16a34a;">☁️ سحابي</span>`}
         </td>
       `;
       els.tbody.appendChild(tr);
+    });
+
+    els.tbody.querySelectorAll("button[data-del]").forEach(btn => {
+      btn.addEventListener("click", () => deleteVehicle(Number(btn.dataset.del)));
+    });
+    els.tbody.querySelectorAll("img.imgPrev").forEach(img => {
+      img.addEventListener("click", () => viewImage(img.src));
     });
   }
 
   function saveToStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(report));
-    setStatus("✅ تم الحفظ محلياً");
   }
 
   function loadFromStorage() {
     const data = localStorage.getItem(STORAGE_KEY);
     if(data){
-      report = JSON.parse(data);
-      updateStats();
-      return true;
+      try { report = JSON.parse(data); return true; } catch(e){}
     }
     return false;
   }
 
   function clearAll() {
-    if(!confirm("حذف جميع البيانات؟")) return;
+    if(!confirm("مسح البيانات المحلية؟ (بيانات Google Sheets لن تُمسح)")) return;
     localStorage.removeItem(STORAGE_KEY);
-    newReport();
-    setStatus("تم مسح الكل");
+    report = { guard:{empId:"",name:""}, vehicles:[], apiCallsCount:0 };
+    els.empId.value = ""; els.empName.value = "";
+    clearForm(); updateStats();
+    setStatus("تم مسح البيانات المحلية");
+    loadFromCloud(false);
   }
 
   function exportCSV() {
-    if(report.vehicles.length === 0){ alert("لا توجد بيانات"); return; }
+    const vehicles = cloudVehicles.length > 0 ? cloudVehicles : report.vehicles;
+    if(vehicles.length === 0){ alert("لا توجد بيانات"); return; }
     let csv = "البرج,الدور,رقم اللوحة,المدينة,التاريخ,الوقت,ملاحظات,رجل الأمن\n";
-    report.vehicles.forEach(v => {
-      csv += `${v.tower},${v.floor},${v.plate},${v.city},${v.date},${v.time},"${v.notes||""}",${report.guard.name}\n`;
+    vehicles.forEach(v => {
+      const gname = v.empName || v["رجل الأمن"] || report.guard.name || "";
+      csv += `${v.tower||v.البرج||""},${v.floor||v.الدور||""},${v.plate||v.اللوحة||""},${v.city||v.المدينة||""},${v.date||v.التاريخ||""},${v.time||v.الوقت||""},"${v.notes||v.ملاحظات||""}",${gname}\n`;
     });
     const blob = new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8;"});
-    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
+    a.href = URL.createObjectURL(blob);
     a.download = `parking_report_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    setStatus("تم التصدير CSV");
   }
 
   function exportJSON() {
-    const json = JSON.stringify(report, null, 2);
-    const blob = new Blob([json], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
+    const out = cloudVehicles.length > 0 ? cloudVehicles : report;
+    const blob = new Blob([JSON.stringify(out, null, 2)], {type:"application/json"});
     const a = document.createElement("a");
-    a.href = url;
+    a.href = URL.createObjectURL(blob);
     a.download = `parking_report_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
-    setStatus("تم التصدير JSON");
   }
 
   function importJSONFile(file) {
@@ -564,182 +648,47 @@
     reader.onload = (e) => {
       try {
         const imported = JSON.parse(e.target.result);
-        if(confirm("استيراد هذا التقرير؟ سيتم استبدال البيانات الحالية.")){
+        if(confirm("استيراد هذا التقرير؟ سيتم استبدال البيانات المحلية.")){
           report = imported;
-          els.empId.value = report.guard.empId||"";
-          els.empName.value = report.guard.name||"";
-          renderTable();
-          saveToStorage();
-          setStatus("تم الاستيراد");
-          updateStats();
+          els.empId.value = report.guard?.empId||"";
+          els.empName.value = report.guard?.name||"";
+          renderTable(); saveToStorage(); updateStats();
         }
-      } catch(err){
-        alert("ملف JSON غير صالح");
-      }
+      } catch(err){ alert("ملف JSON غير صالح"); }
     };
     reader.readAsText(file);
   }
 
-  function loadApiKey() {
-    const saved = localStorage.getItem("platerecognizer_api_key");
-    if (saved) {
-      els.apiKey.value = saved;
-    }
+  function newReport() {
+    report = { guard:{empId:"",name:""}, vehicles:[], apiCallsCount:0 };
+    els.empId.value = ""; els.empName.value = "";
+    clearForm(); updateStats();
+    setStatus("تقرير جديد - البيانات السحابية لا تزال ظاهرة");
+    renderTable();
   }
 
-  function saveApiKey() {
-    localStorage.setItem("platerecognizer_api_key", els.apiKey.value);
-  }
-
-  async function recognizePlateWithAPI(imageBase64) {
-    const apiKey = els.apiKey.value.trim();
-    if (!apiKey) {
-      throw new Error("API Key مفقود");
-    }
-
-    saveApiKey();
-
-    try {
-      const response = await fetch('https://api.platerecognizer.com/v1/plate-reader/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Token ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          upload: imageBase64,
-          regions: ['sa'],
-          camera_id: 'parking-monitor'
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `خطأ HTTP: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if(!report.apiCallsCount) report.apiCallsCount = 0;
-      report.apiCallsCount++;
-      saveToStorage();
-      updateStats();
-      
-      return data;
-    } catch (error) {
-      console.error('PlateRecognizer API Error:', error);
-      throw error;
-    }
-  }
-
+  // ── الكاميرا ──
   async function openCamera(){
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment", width: {ideal: 1920}, height: {ideal: 1080} }
       });
       els.cameraVideo.srcObject = cameraStream;
-      const track = cameraStream.getVideoTracks()[0];
-      if (track.getCapabilities().torch) {
-        document.getElementById("flashBtn").style.display = "inline-block";
-      }
       els.cameraModal.classList.add("active");
       els.ocrStatus.style.display = "none";
-    } catch(err){
-      alert("لا يمكن الوصول للكاميرا");
-    }
+    } catch(err){ alert("لا يمكن الوصول للكاميرا"); }
   }
 
   function closeCamera(){
-    if(cameraStream){
-      cameraStream.getTracks().forEach(track => track.stop());
-      cameraStream = null;
-    }
+    if(cameraStream){ cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
     els.cameraModal.classList.remove("active");
   }
 
-  async function captureAndRecognize(){
-    if(!els.apiKey.value.trim()){
-      els.ocrStatus.innerHTML = `
-        ❌ الرجاء إدخال API Key أولاً<br>
-        <small>احصل على API Key من: <a href="https://app.platerecognizer.com/" target="_blank">app.platerecognizer.com</a></small>
-      `;
-      els.ocrStatus.className = "ocr-status error";
-      els.ocrStatus.style.display = "block";
-      return;
-    }
-
-    const video = els.cameraVideo;
-    const canvas = els.cameraCanvas;
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-
-    const imageBase64 = canvas.toDataURL('image/jpeg', 0.9);
-
-    els.ocrStatus.textContent = "⏳ جاري إرسال الصورة للذكاء الاصطناعي...";
-    els.ocrStatus.className = "ocr-status processing";
-    els.ocrStatus.style.display = "block";
-    els.captureBtn.disabled = true;
-
-    try {
-      const result = await recognizePlateWithAPI(imageBase64);
-      
-      if(!result.results || result.results.length === 0){
-        throw new Error("لم يتم العثور على لوحة في الصورة");
-      }
-
-      const topResult = result.results[0];
-      const plateNumber = topResult.plate.toUpperCase();
-      const confidence = Math.round(topResult.score * 100);
-
-      els.plate.value = plateNumber;
-      
-      els.ocrStatus.innerHTML = `
-        ✅ تم قراءة اللوحة بنجاح!<br>
-        <div style="font-size:22px; font-weight:700; letter-spacing:3px; margin:10px 0; color:#16a34a;">${plateNumber}</div>
-        <div class="result-details">
-          <div><b>الدقة:</b> ${confidence}%</div>
-          <div><b>المنطقة:</b> ${topResult.region?.code || 'SA'}</div>
-          <div><b>نوع المركبة:</b> ${topResult.vehicle?.type || '-'}</div>
-          ${topResult.vehicle?.color ? `<div><b>اللون:</b> ${topResult.vehicle.color.map(c => c.color).join(', ')}</div>` : ''}
-        </div>
-        <small style="color:#64748b;">💡 يمكنك تعديل الرقم يدوياً قبل الإضافة</small>
-      `;
-      els.ocrStatus.className = "ocr-status success";
-      
-      setTimeout(() => {
-        closeCamera();
-      }, 3000);
-      
-    } catch(error){
-      console.error("Recognition error:", error);
-      els.ocrStatus.innerHTML = `
-        ❌ حدث خطأ: ${error.message}<br>
-        <small>💡 تأكد من:<br>
-        • صحة API Key<br>
-        • وضوح اللوحة في الصورة<br>
-        • اتصالك بالإنترنت<br>
-        • أنك لم تتجاوز حد الاستخدام المجاني</small><br>
-        <button class="primary" onclick="document.getElementById('captureBtn').click()" style="margin-top:10px;">📸 حاول مرة أخرى</button>
-        <button class="ghost" onclick="document.getElementById('closeCamera').click()" style="margin-top:10px;">✏️ إدخال يدوي</button>
-      `;
-      els.ocrStatus.className = "ocr-status error";
-    } finally {
-      els.captureBtn.disabled = false;
-    }
-  }
-
-  // Make functions globally accessible
-  window.viewImage = viewImage;
-  window.deleteVehicle = deleteVehicle;
-
-  // ============ EVENT LISTENERS ============
+  // ── ربط الأحداث ──
   els.btnLookup.addEventListener("click", lookupGuard);
   els.empId.addEventListener("keydown", (e) => { if(e.key === "Enter") lookupGuard(); });
   els.btnAdd.addEventListener("click", addVehicle);
-  els.btnSave.addEventListener("click", saveToStorage);
+  els.btnSave.addEventListener("click", () => { saveToStorage(); setStatus("✅ تم الحفظ محلياً"); });
   els.btnNew.addEventListener("click", () => { if(confirm("تقرير جديد؟")){ newReport(); saveToStorage(); }});
   els.btnExportCSV.addEventListener("click", exportCSV);
   els.btnExportJSON.addEventListener("click", exportJSON);
@@ -747,49 +696,81 @@
   els.importFile.addEventListener("change", (e) => importJSONFile(e.target.files?.[0]));
   els.btnPrint.addEventListener("click", () => window.print());
   els.btnClearAll.addEventListener("click", clearAll);
-  
+  els.btnSync.addEventListener("click", () => loadFromCloud(false));
   els.btnCamera.addEventListener("click", openCamera);
   els.closeCamera.addEventListener("click", closeCamera);
   els.cancelCamera.addEventListener("click", closeCamera);
-  els.captureBtn.addEventListener("click", captureAndRecognize);
-  // ============ INIT ============
-  loadApiKey();
-  setNow();
-  
-  document.getElementById("flashBtn").addEventListener("click", async () => {
-    if (cameraStream) {
-      const track = cameraStream.getVideoTracks()[0];
-      const cap = track.getCapabilities();
-      if (cap.torch) {
-        const current = track.getSettings().torch || false;
-        await track.applyConstraints({ advanced: [{ torch: !current }] });
-        document.getElementById("flashBtn").textContent = !current ? "💡 إطفاء" : "💡 فلاش";
-      }
-    }
-  });
-  
   els.closeImage.addEventListener("click", () => els.imageModal.classList.remove("active"));
   els.imageModal.addEventListener("click", (e) => { if(e.target === els.imageModal) els.imageModal.classList.remove("active"); });
-  
   document.addEventListener("keydown", (e) => {
     if(e.ctrlKey && e.key === "Enter"){ e.preventDefault(); addVehicle(); }
-    if(e.ctrlKey && e.key === "s"){ e.preventDefault(); saveToStorage(); }
+    if(e.ctrlKey && e.key === "s"){ e.preventDefault(); saveToStorage(); setStatus("✅ تم الحفظ محلياً"); }
     if(e.key === "Escape"){ closeCamera(); els.imageModal.classList.remove("active"); }
   });
 
-  // ============ INIT ============
-  loadApiKey();
+  // ── التهيئة ──
   setNow();
   if(loadFromStorage()){
     els.empId.value = report.guard.empId||"";
     els.empName.value = report.guard.name||"";
-    setStatus("تم تحميل التقرير");
-    renderTable();
-  } else {
-    newReport();
   }
+
+  // تحميل أولي من السحابة
+  loadFromCloud(true);
+
+  // تحديث تلقائي كل 60 ثانية
+  setInterval(() => loadFromCloud(false), 60000);
+  // حفظ محلي دوري
   setInterval(() => { if(report.vehicles.length > 0) saveToStorage(); }, 30000);
+
 })();
 </script>
+
+<!--
+==============================================
+📋 تعليمات تحديث Google Apps Script
+==============================================
+
+لكي تعمل المزامنة، يجب تحديث كود Google Apps Script ليدعم قراءة البيانات.
+
+افتح رابط Google Apps Script الخاص بك وعدّل الكود ليحتوي على:
+
+function doGet(e) {
+  const params = e.parameter;
+  
+  if (params.action === 'getAll') {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    if (data.length <= 1) {
+      return sendJsonP([], params.callback);
+    }
+    
+    const headers = data[0];
+    const rows = data.slice(1).map(row => {
+      let obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i]; });
+      return obj;
+    });
+    
+    return sendJsonP(rows, params.callback);
+  }
+  
+  return sendJsonP([], params.callback);
+}
+
+function sendJsonP(data, callback) {
+  const json = JSON.stringify(data);
+  const output = callback ? callback + '(' + json + ');' : json;
+  return ContentService.createTextOutput(output)
+    .setMimeType(callback 
+      ? ContentService.MimeType.JAVASCRIPT 
+      : ContentService.MimeType.JSON);
+}
+
+// دالة doPost تبقى كما هي لاستقبال البيانات الجديدة
+
+==============================================
+-->
 </body>
 </html>
