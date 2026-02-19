@@ -1,25 +1,26 @@
 <!doctype html>
+
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>رصد السيارات - PlateRecognizer AI 🎯</title>
   <style>
-    :root { --b:#0f172a; --g:#e2e8f0; --bg:#f8fafc; --w:#fff; --r:#ef4444; --p:#2563eb; --gr:#16a34a; --o:#f97316;}
+    :root { --b:#0f172a; --g:#e2e8f0; --bg:#f1f5f9; --w:#fff; --r:#ef4444; --p:#2563eb; --gr:#16a34a; --o:#f97316;}
     body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:var(--bg); color:var(--b); }
     .wrap { max-width: 1200px; margin: 18px auto; padding: 0 14px; }
-    .card { background:var(--w); border:1px solid var(--g); border-radius:14px; padding:14px; box-shadow: 0 1px 0 rgba(15,23,42,.03); }
+    .card { background:var(--w); border:1px solid var(--g); border-radius:14px; padding:14px; box-shadow: 0 2px 12px rgba(15,23,42,.07); }
     h1 { font-size: 18px; margin: 0 0 10px; }
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
-    label { display:block; font-size:12px; margin-bottom:6px; color:#334155; font-weight:500; }
+    label { display:block; font-size:12px; margin-bottom:6px; color:#334155; font-weight:600; }
     input, select { width:100%; box-sizing:border-box; padding:10px; border:1px solid var(--g); border-radius:10px; background:#fff; font-size:14px; }
     input[readonly] { background:#f1f5f9; }
     .col { flex: 1 1 220px; min-width: 180px; }
     .col.small { flex: 1 1 150px; min-width: 140px; }
     .col.wide { flex: 2 1 320px; min-width: 260px; }
     .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    button { border:0; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:600; font-size:13px; transition: all 0.2s; }
-    button:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    button { border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px; transition: all 0.2s; }
+    button:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
     button:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
     .primary { background: var(--p); color:#fff; }
     .ghost { background:#fff; border:1px solid var(--g); color:var(--b); }
@@ -27,16 +28,10 @@
     .danger { background: var(--r); color:#fff; }
     .orange { background: var(--o); color:#fff; }
     .hint { font-size: 12px; color:#475569; margin-top:8px; }
-    .table-wrap { overflow:auto; border:1px solid var(--g); border-radius:12px; margin-top:12px; }
-    table { width:100%; border-collapse: collapse; min-width: 1050px; background:#fff; }
-    th, td { padding:10px; border-bottom:1px solid var(--g); vertical-align: top; text-align:right; }
-    th { background:#f1f5f9; font-size: 12px; position: sticky; top:0; z-index:1; }
-    td { font-size: 13px; }
-    .imgPrev { width:86px; height:64px; object-fit:cover; border-radius:10px; border:1px solid var(--g); cursor:pointer; }
     .meta { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; color:#475569; font-size:12px; }
     .topnote { background:#f1f5f9; border:1px dashed #cbd5e1; padding:10px; border-radius:12px; margin:10px 0; font-size:12px; color:#334155; }
 
-    /* Sync Banner */
+    /* ── Sync Banner ── */
     .sync-banner { display:flex; align-items:center; gap:10px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 14px; margin:10px 0; font-size:13px; flex-wrap:wrap; }
     .sync-banner.syncing { background:#fefce8; border-color:#fde68a; }
     .sync-banner.error   { background:#fef2f2; border-color:#fecaca; }
@@ -47,24 +42,129 @@
     .sync-dot.error { background:#ef4444; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
 
+    /* ── Stats ── */
+    .stats { display:flex; gap:10px; margin:10px 0; flex-wrap:wrap; }
+    .stat-card { flex:1; min-width:140px; padding:14px; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(102,126,234,.3); }
+    .stat-card.green  { background:linear-gradient(135deg,#16a34a,#059669); box-shadow:0 2px 8px rgba(22,163,74,.3); }
+    .stat-card.orange { background:linear-gradient(135deg,#f97316,#ea580c); box-shadow:0 2px 8px rgba(249,115,22,.3); }
+    .stat-card.blue   { background:linear-gradient(135deg,#2563eb,#1d4ed8); box-shadow:0 2px 8px rgba(37,99,235,.3); }
+    .stat-value { font-size:28px; font-weight:800; }
+    .stat-label { font-size:11px; opacity:.9; margin-top:4px; }
+
+    /* ══════════════════════════════════
+       ── TABLE STYLES ──
+    ══════════════════════════════════ */
+    .table-wrap { overflow:auto; border-radius:14px; margin-top:14px; box-shadow:0 2px 16px rgba(15,23,42,.08); }
+    table { width:100%; border-collapse: collapse; min-width: 980px; background:#fff; }
+
+    /* رأس الجدول */
+    thead tr { background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); }
+    th {
+      padding:13px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      text-align:right;
+      position: sticky;
+      top:0;
+      z-index:2;
+      border-bottom: 2px solid #1d4ed8;
+      white-space:nowrap;
+    }
+    th:first-child { border-radius:14px 0 0 0; }
+    th:last-child  { border-radius:0 14px 0 0; }
+
+    /* صفوف الجدول */
+    tbody tr { transition: background 0.15s; }
+    tbody tr:nth-child(odd)  { background: #f8fafc; }
+    tbody tr:nth-child(even) { background: #ffffff; }
+    tbody tr:hover           { background: #eff6ff !important; }
+    tbody tr:last-child td:first-child { border-radius:0 0 0 14px; }
+    tbody tr:last-child td:last-child  { border-radius:0 0 14px 0; }
+
+    td {
+      padding: 11px 12px;
+      font-size: 13px;
+      border-bottom: 1px solid #e8edf3;
+      vertical-align: middle;
+      text-align:right;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* رقم الصف */
+    td:first-child {
+      font-weight: 700;
+      color: #94a3b8;
+      font-size: 12px;
+      width: 40px;
+      text-align: center;
+    }
+
+    /* ── تظليل رقم اللوحة ── */
+    .plate-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: #fff;
+      padding: 5px 14px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+      box-shadow: 0 2px 6px rgba(37,99,235,.35);
+      white-space: nowrap;
+    }
+
+    /* باقي الخلايا */
+    .tower-badge {
+      display:inline-block;
+      background:#dbeafe; color:#1d4ed8;
+      padding:3px 10px; border-radius:6px;
+      font-weight:700; font-size:12px;
+    }
+    .floor-badge {
+      display:inline-block;
+      background:#fef3c7; color:#92400e;
+      padding:3px 10px; border-radius:6px;
+      font-weight:700; font-size:12px;
+    }
+    .city-badge {
+      display:inline-block;
+      background:#f0fdf4; color:#16a34a;
+      padding:3px 10px; border-radius:6px;
+      font-weight:600; font-size:12px;
+    }
+    .guard-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      background:#f5f3ff; color:#5b21b6;
+      padding:3px 10px; border-radius:6px;
+      font-weight:600; font-size:11px;
+    }
+    .date-cell { color:#475569; font-size:12px; }
+    .time-cell {
+      font-weight:700; color:#0f172a;
+      background:#f1f5f9; padding:3px 8px;
+      border-radius:6px; font-size:12px;
+      display:inline-block;
+    }
+    .imgPrev { width:72px; height:54px; object-fit:cover; border-radius:8px; border:2px solid #e2e8f0; cursor:pointer; transition:transform 0.2s; }
+    .imgPrev:hover { transform:scale(1.08); }
+    .notes-cell { color:#64748b; font-size:12px; max-width:130px; }
+
+    /* حالة فارغة */
+    .empty-state { text-align:center; padding:50px 20px; color:#94a3b8; }
+    .empty-state .icon { font-size:48px; margin-bottom:10px; }
+    .empty-state p { margin:4px 0; font-size:14px; }
+
     /* Script Box */
     .script-box { background:#0f172a; border-radius:12px; padding:16px; margin:10px 0; direction:ltr; }
     .script-box pre { color:#e2e8f0; font-family:monospace; font-size:12px; margin:0; white-space:pre-wrap; overflow:auto; }
     .copy-btn { float:left; background:#2563eb; color:#fff; border:0; border-radius:6px; padding:5px 12px; cursor:pointer; font-size:12px; margin-bottom:6px; }
 
-    /* Stats */
-    .stats { display:flex; gap:10px; margin:10px 0; flex-wrap:wrap; }
-    .stat-card { flex:1; min-width:140px; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border-radius:10px; }
-    .stat-card.green  { background:linear-gradient(135deg,#16a34a,#059669); }
-    .stat-card.orange { background:linear-gradient(135deg,#f97316,#ea580c); }
-    .stat-card.blue   { background:linear-gradient(135deg,#2563eb,#1d4ed8); }
-    .stat-value { font-size:24px; font-weight:700; }
-    .stat-label { font-size:11px; opacity:.9; margin-top:4px; }
-
     /* Modal */
-    .modal { display:none; position:fixed; top:0;left:0;width:100%;height:100%; background:rgba(0,0,0,.95); z-index:9999; align-items:center; justify-content:center; }
+    .modal { display:none; position:fixed; top:0;left:0;width:100%;height:100%; background:rgba(0,0,0,.9); z-index:9999; align-items:center; justify-content:center; }
     .modal.active { display:flex; }
-    .modal-content { background:#fff; border-radius:14px; padding:20px; max-width:95%; max-height:95%; overflow:auto; position:relative; }
+    .modal-content { background:#fff; border-radius:16px; padding:22px; max-width:95%; max-height:95%; overflow:auto; position:relative; }
     .modal-close { position:absolute; top:10px; left:10px; background:var(--r); color:#fff; border:0; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:20px; line-height:36px; text-align:center; }
 
     /* Camera */
@@ -76,22 +176,23 @@
     .camera-controls { margin-top:15px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
 
     /* Loading */
-    .loading-overlay { display:none; position:fixed; top:0;left:0;width:100%;height:100%; background:rgba(255,255,255,.85); z-index:8888; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
+    .loading-overlay { display:none; position:fixed; top:0;left:0;width:100%;height:100%; background:rgba(255,255,255,.88); z-index:8888; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
     .loading-overlay.active { display:flex; }
-    .spinner { width:48px; height:48px; border:5px solid #e2e8f0; border-top-color:#2563eb; border-radius:50%; animation:spin .8s linear infinite; }
+    .spinner { width:52px; height:52px; border:5px solid #e2e8f0; border-top-color:#2563eb; border-radius:50%; animation:spin .8s linear infinite; }
     @keyframes spin { to{transform:rotate(360deg)} }
 
-    /* Setup Modal */
     .setup-step { background:#f8fafc; border:1px solid var(--g); border-radius:10px; padding:12px; margin:10px 0; }
     .setup-step h4 { margin:0 0 6px; color:#1d4ed8; font-size:14px; }
-    .badge { display:inline-block; background:#2563eb; color:#fff; border-radius:20px; padding:2px 10px; font-size:12px; font-weight:700; margin-left:6px; }
+    .badge-num { display:inline-block; background:#2563eb; color:#fff; border-radius:20px; padding:2px 10px; font-size:12px; font-weight:700; margin-left:6px; }
 
     @media print {
       .no-print { display:none !important; }
       body { background:#fff; }
-      .table-wrap { overflow:visible; border:0; }
+      .table-wrap { overflow:visible; box-shadow:none; }
       table { min-width:auto; }
       th { position:static; }
+      thead tr { background: #1e3a8a !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      tbody tr:nth-child(odd) { background:#f8fafc !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     }
   </style>
 </head>
@@ -99,21 +200,20 @@
 
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
-  <div style="font-size:15px;color:#334155;font-weight:600;" id="loadingMsg">⏳ جارٍ تحميل البيانات من السحابة...</div>
+  <div style="font-size:15px;color:#334155;font-weight:600;" id="loadingMsg">⏳ جارٍ تحميل البيانات من Google Sheets...</div>
 </div>
 
 <div class="wrap"><div class="card">
-  <h1>🤖 برنامج رصد السيارات - PlateRecognizer AI + Google Sheets</h1>
+  <h1>🤖 برنامج رصد السيارات — PlateRecognizer AI + Google Sheets</h1>
 
   <div class="topnote no-print">
     <b>✨ المميزات:</b>
-    <span style="background:#d1fae5;padding:3px 8px;border-radius:6px;">مزامنة سحابية ☁️</span>
+    <span style="background:#d1fae5;padding:3px 8px;border-radius:6px;">☁️ مزامنة سحابية</span>
     <span style="background:#dbeafe;padding:3px 8px;border-radius:6px;">يدعم اللوحات السعودية</span>
-    <span style="background:#fef3c7;padding:3px 8px;border-radius:6px;">قراءة فورية</span>
-    <span style="background:#fee2e2;padding:3px 8px;border-radius:6px;">تحديث تلقائي كل 60 ثانية</span>
+    <span style="background:#fef3c7;padding:3px 8px;border-radius:6px;">جدول منظّم</span>
+    <span style="background:#fee2e2;padding:3px 8px;border-radius:6px;">تحديث كل 60 ثانية</span>
   </div>
 
-  <!-- Sync Status Bar -->
   <div class="sync-banner no-print" id="syncBanner">
     <div class="sync-dot" id="syncDot"></div>
     <span id="syncMsg">يتم الاتصال بالسحابة...</span>
@@ -123,7 +223,6 @@
     </div>
   </div>
 
-  <!-- Stats -->
   <div class="stats no-print">
     <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">إجمالي المركبات</div></div>
     <div class="stat-card green"><div class="stat-value" id="statToday">0</div><div class="stat-label">اليوم</div></div>
@@ -131,7 +230,6 @@
     <div class="stat-card blue"><div class="stat-value" id="statApiCalls">0</div><div class="stat-label">تمت إضافتها</div></div>
   </div>
 
-  <!-- Guard Info -->
   <div class="row no-print">
     <div class="col small"><label>الرقم الوظيفي</label><input id="empId" inputmode="numeric" placeholder="88840" /></div>
     <div class="col wide"><label>اسم رجل الأمن</label><input id="empName" placeholder="يظهر تلقائياً" readonly /></div>
@@ -139,11 +237,9 @@
     <div class="col small"><label>الوقت</label><input id="reportTime" readonly /></div>
     <div class="col small"><button class="primary" id="btnLookup" style="width:100%">🔍 بحث</button></div>
   </div>
-
   <div class="meta"><span>الحالة: <b id="status">جارٍ التحميل...</b></span></div>
   <hr style="border:0;border-top:1px solid var(--g);margin:12px 0;" />
 
-  <!-- Vehicle Inputs -->
   <div class="row no-print">
     <div class="col small">
       <label>البرج</label>
@@ -168,30 +264,35 @@
     <div class="col wide"><label>ملاحظات</label><input id="notes" placeholder="اختياري" /></div>
   </div>
 
-  <div class="btns">
+  <div class="btns no-print">
     <button class="success" id="btnAdd">➕ إضافة وحفظ بالسحابة</button>
     <button class="primary" id="btnCamera">📸 التقاط بالكاميرا</button>
     <button class="ghost" id="btnSave">💾 حفظ محلي</button>
   </div>
-  <div class="hint">💡 Ctrl+Enter للإضافة السريعة | Ctrl+S للحفظ المحلي</div>
+  <div class="hint no-print">💡 Ctrl+Enter للإضافة السريعة | Ctrl+S للحفظ المحلي</div>
 
-  <!-- Table -->
   <div class="table-wrap">
     <table id="vehiclesTable">
-      <thead><tr>
-        <th style="width:40px;">#</th>
-        <th style="width:90px;">الصورة</th>
-        <th style="width:70px;">البرج</th>
-        <th style="width:70px;">الدور</th>
-        <th style="width:120px;">رقم اللوحة</th>
-        <th style="width:90px;">المدينة</th>
-        <th style="width:100px;">التاريخ</th>
-        <th style="width:80px;">الوقت</th>
-        <th style="width:130px;">ملاحظات</th>
-        <th style="width:120px;">رجل الأمن</th>
-      </tr></thead>
-      <tbody></tbody>
+      <thead>
+        <tr>
+          <th style="width:44px; text-align:center;">#</th>
+          <th style="width:82px;">الصورة</th>
+          <th style="width:70px;">البرج</th>
+          <th style="width:70px;">الدور</th>
+          <th style="width:145px;">رقم اللوحة</th>
+          <th style="width:90px;">المدينة</th>
+          <th style="width:100px;">التاريخ</th>
+          <th style="width:80px;">الوقت</th>
+          <th style="width:130px;">ملاحظات</th>
+          <th style="width:130px;">رجل الأمن</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
     </table>
+  </div>
+
+  <div id="tableFooter" style="display:none; margin-top:8px; color:#64748b; font-size:12px; text-align:left;">
+    إجمالي: <b id="footerCount">0</b> سجل
   </div>
 
   <div class="btns no-print" style="margin-top:12px;">
@@ -204,135 +305,98 @@
   </div>
 </div></div>
 
-<!-- Setup / Script Modal -->
 <div class="modal" id="setupModal">
   <div class="modal-content" style="max-width:700px;">
     <button class="modal-close" id="closeSetup">×</button>
     <h2 style="margin-top:0;color:#1d4ed8;">⚙️ كود Google Apps Script المطلوب</h2>
-    <p style="color:#475569;font-size:13px;">انسخ هذا الكود بالكامل والصقه في Google Apps Script <b>بدلاً من الكود القديم</b>، ثم انشر:</p>
-
+    <p style="color:#475569;font-size:13px;">انسخ هذا الكود بالكامل والصقه في Apps Script <b>بدلاً من الكود القديم</b>، ثم انشر:</p>
     <div class="setup-step">
-      <h4><span class="badge">1</span> افتح Apps Script وامسح الكود القديم وضع هذا بدله:</h4>
+      <h4><span class="badge-num">1</span> امسح الكود القديم وضع هذا بدله:</h4>
       <button class="copy-btn" onclick="copyScript()">📋 نسخ الكود</button>
       <div class="script-box">
-        <pre id="scriptCode">// ===== كود Google Apps Script الكامل =====
-
-// الصق هذا في Apps Script بدلاً من الكود القديم
-
-var SHEET_NAME = ""; // اتركه فارغاً لاستخدام الشيت الأول
+        <pre id="scriptCode">var SHEET_NAME = "";
 
 function doGet(e) {
-  var params = e.parameter;
-  var callback = params.callback;
-  var action = params.action || "getAll";
-
-  if (action === "add") {
-    return handleAdd(params, callback);
-  }
-
-  if (action === "getAll") {
-    return handleGetAll(callback);
-  }
-
-  return respond({error: "unknown action"}, callback);
+var params = e.parameter;
+var callback = params.callback;
+var action = params.action || "getAll";
+if (action === "add")    return handleAdd(params, callback);
+if (action === "getAll") return handleGetAll(callback);
+return respond({error:"unknown action"}, callback);
 }
 
 function handleAdd(params, callback) {
-  var sheet = getSheet();
-
-  // إنشاء رؤوس الأعمدة تلقائياً إن لم تكن موجودة
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow([
-      "البرج", "الدور", "رقم اللوحة", "المدينة",
-      "التاريخ", "الوقت", "ملاحظات",
-      "رجل الأمن", "الرقم الوظيفي", "صورة", "وقت الإضافة"
-    ]);
-  }
-
-  sheet.appendRow([
-    params.tower    || "",
-    params.floor    || "",
-    params.plate    || "",
-    params.city     || "",
-    params.date     || "",
-    params.time     || "",
-    params.notes    || "",
-    params.empName  || "",
-    params.empId    || "",
-    params.hasImage || "لا",
-    new Date().toISOString()
-  ]);
-
-  return respond({success: true, message: "تم الحفظ"}, callback);
+var sheet = getSheet();
+if (sheet.getLastRow() === 0) {
+sheet.appendRow([
+"البرج","الدور","رقم اللوحة","المدينة",
+"التاريخ","الوقت","ملاحظات",
+"رجل الأمن","الرقم الوظيفي","صورة","وقت الإضافة"
+]);
+}
+sheet.appendRow([
+params.tower    || "",
+params.floor    || "",
+params.plate    || "",
+params.city     || "",
+params.date     || "",
+params.time     || "",
+params.notes    || "",
+params.empName  || "",
+params.empId    || "",
+params.hasImage || "لا",
+new Date().toISOString()
+]);
+return respond({success:true}, callback);
 }
 
 function handleGetAll(callback) {
-  var sheet = getSheet();
-  var data = sheet.getDataRange().getValues();
-
-  if (data.length <= 1) {
-    return respond([], callback);
-  }
-
-  var headers = data[0];
-  var rows = data.slice(1).map(function(row) {
-    var obj = {};
-    headers.forEach(function(h, i) {
-      obj[String(h)] = row[i];
-    });
-    return obj;
-  });
-
-  return respond(rows, callback);
+var sheet = getSheet();
+var data = sheet.getDataRange().getValues();
+if (data.length <= 1) return respond([], callback);
+var headers = data[0];
+var rows = data.slice(1).map(function(row) {
+var obj = {};
+headers.forEach(function(h,i){ obj[String(h)] = row[i]; });
+return obj;
+});
+return respond(rows, callback);
 }
 
 function getSheet() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  return SHEET_NAME ? ss.getSheetByName(SHEET_NAME) : ss.getActiveSheet();
+var ss = SpreadsheetApp.getActiveSpreadsheet();
+return SHEET_NAME ? ss.getSheetByName(SHEET_NAME) : ss.getActiveSheet();
 }
 
 function respond(data, callback) {
-  var json = JSON.stringify(data);
-  var output = callback ? callback + "(" + json + ");" : json;
-  return ContentService
-    .createTextOutput(output)
-    .setMimeType(
-      callback
-        ? ContentService.MimeType.JAVASCRIPT
-        : ContentService.MimeType.JSON
-    );
+var json = JSON.stringify(data);
+var out = callback ? callback+"("+json+");" : json;
+return ContentService.createTextOutput(out)
+.setMimeType(callback
+? ContentService.MimeType.JAVASCRIPT
+: ContentService.MimeType.JSON);
 }
 
-// دالة doPost للتوافق (اختياري)
 function doPost(e) {
-  var params = JSON.parse(e.postData.contents || "{}");
-  return handleAdd(params, null);
+var p = JSON.parse(e.postData.contents || "{}");
+return handleAdd(p, null);
 }</pre>
       </div>
     </div>
-
     <div class="setup-step">
-      <h4><span class="badge">2</span> انشر التحديث:</h4>
+      <h4><span class="badge-num">2</span> انشر التحديث:</h4>
       <p style="margin:4px 0;font-size:13px;">
-        اضغط <b>Deploy (نشر)</b> ←
-        <b>Manage deployments (إدارة النشر)</b> ←
-        ✏️ تعديل ←
-        <b>Version: New version</b> ←
-        تأكد <b>Who has access = Anyone</b> ←
-        اضغط <b>Deploy</b>
+        <b>Deploy</b> ← <b>Manage deployments</b> ← ✏️ تعديل ← <b>New version</b> ← تأكد <b>Who has access = Anyone</b> ← <b>Deploy</b>
       </p>
     </div>
-
     <div class="setup-step">
-      <h4><span class="badge">3</span> اختبر الاتصال:</h4>
+      <h4><span class="badge-num">3</span> اختبر الاتصال:</h4>
       <button class="primary" id="btnTestInModal" style="padding:8px 16px;">🧪 اختبار الاتصال</button>
       <div id="testResultModal" style="margin-top:10px;font-size:13px;"></div>
     </div>
-
   </div>
 </div>
 
-<!-- Camera Modal -->
 <div class="modal" id="cameraModal">
   <div class="modal-content">
     <button class="modal-close" id="closeCamera">×</button>
@@ -349,7 +413,6 @@ function doPost(e) {
   </div>
 </div>
 
-<!-- Image Modal -->
 <div class="modal" id="imageModal">
   <div class="modal-content" style="padding:10px;">
     <button class="modal-close" id="closeImage">×</button>
@@ -361,17 +424,9 @@ function doPost(e) {
 (function(){
 "use strict";
 
-// ====================================================
-// ⚙️ رابط Google Apps Script
-// ====================================================
 var GS_URL = "https://script.google.com/macros/s/AKfycbyl2TkK5RPpGZlcs3PBr4sdANCRhZ4782IFK412MM1q0PM9cHaQCArpGTejcjm2M2M0YQ/exec";
-// ====================================================
-
 var STORAGE_KEY = "parkingReport_v3";
-var GUARDS = {
-  "88840":"عبدالله الشمري","88841":"محمد العتيبي",
-  "88842":"فهد القحطاني","88843":"سعد الدوسري"
-};
+var GUARDS = {"88840":"عبدالله الشمري","88841":"محمد العتيبي","88842":"فهد القحطاني","88843":"سعد الدوسري"};
 
 var report = {guard:{empId:"",name:""},addedCount:0};
 var cloudData = [];
@@ -389,7 +444,7 @@ var els = {
   btnSync:$("btnSync"),btnShowSetup:$("btnShowSetup"),
   btnTestInModal:$("btnTestInModal"),closeSetup:$("closeSetup"),
   importFile:$("importFile"),
-  tbody:document.querySelector("#vehiclesTable tbody"),
+  tableBody:$("tableBody"),tableFooter:$("tableFooter"),footerCount:$("footerCount"),
   cameraModal:$("cameraModal"),cameraVideo:$("cameraVideo"),
   cameraCanvas:$("cameraCanvas"),closeCamera:$("closeCamera"),
   cancelCamera:$("cancelCamera"),captureBtn:$("captureBtn"),
@@ -397,349 +452,268 @@ var els = {
   statTotal:$("statTotal"),statToday:$("statToday"),
   statWithPhotos:$("statWithPhotos"),statApiCalls:$("statApiCalls"),
   syncBanner:$("syncBanner"),syncDot:$("syncDot"),syncMsg:$("syncMsg"),
-  loadingOverlay:$("loadingOverlay"),loadingMsg:$("loadingMsg"),
+  loadingOverlay:$("loadingOverlay"),
   setupModal:$("setupModal"),testResultModal:$("testResultModal")
 };
 
-// ── JSONP helper ──
-function jsonpCall(url, timeoutMs) {
-  timeoutMs = timeoutMs || 12000;
+function jsonpCall(url, ms) {
+  ms = ms || 12000;
   return new Promise(function(resolve, reject) {
     var cb = "gs_" + Date.now() + "_" + Math.floor(Math.random()*99999);
     var script = document.createElement("script");
-    var timer = setTimeout(function(){
-      cleanup(); reject(new Error("انتهت المهلة - تأكد من النشر على Anyone"));
-    }, timeoutMs);
+    var timer = setTimeout(function(){ cleanup(); reject(new Error("انتهت المهلة — تأكد من النشر على Anyone")); }, ms);
     window[cb] = function(data){ cleanup(); resolve(data); };
-    script.onerror = function(){ cleanup(); reject(new Error("تعذّر تحميل الـ Script - تأكد من Who has access = Anyone")); };
+    script.onerror = function(){ cleanup(); reject(new Error("تعذّر تحميل الـ Script — تأكد من Who has access = Anyone")); };
     script.src = url + "&callback=" + cb + "&_t=" + Date.now();
     document.head.appendChild(script);
-    function cleanup(){
-      clearTimeout(timer); delete window[cb];
-      if(script.parentNode) script.remove();
-    }
+    function cleanup(){ clearTimeout(timer); delete window[cb]; if(script.parentNode) script.remove(); }
   });
 }
 
-// ── حالة المزامنة ──
 function setSyncStatus(state, msg) {
-  var dotMap = {loading:"pulse", ok:"ok", error:"error"};
-  var bannerMap = {loading:"syncing", ok:"ok", error:"error"};
-  els.syncDot.className = "sync-dot " + (dotMap[state]||"");
-  els.syncBanner.className = "sync-banner no-print " + (bannerMap[state]||"");
-  els.syncMsg.textContent = msg;
+  var d={loading:"pulse",ok:"ok",error:"error"}; var b={loading:"syncing",ok:"ok",error:"error"};
+  els.syncDot.className="sync-dot "+(d[state]||"");
+  els.syncBanner.className="sync-banner no-print "+(b[state]||"");
+  els.syncMsg.textContent=msg;
 }
 
-// ── جلب البيانات من السحابة ──
 async function loadFromCloud(showLoader) {
   if(isSyncing) return;
-  isSyncing = true;
-  els.btnSync.disabled = true;
-  if(showLoader){ els.loadingOverlay.classList.add("active"); els.loadingMsg.textContent = "⏳ جارٍ تحميل البيانات من Google Sheets..."; }
+  isSyncing=true; els.btnSync.disabled=true;
+  if(showLoader){ els.loadingOverlay.classList.add("active"); }
   setSyncStatus("loading","⏳ جارٍ جلب البيانات...");
-
   try {
-    var url = GS_URL + "?action=getAll";
-    var data = await jsonpCall(url);
+    var data = await jsonpCall(GS_URL+"?action=getAll");
     if(!Array.isArray(data)) throw new Error("البيانات المستقبلة غير صحيحة");
     cloudData = data;
     renderTable(); updateStats();
-    setSyncStatus("ok","✅ تم التحديث — " + data.length + " سجل | " + new Date().toLocaleTimeString("ar-SA"));
-    setStatus("تم تحميل " + data.length + " سجل من Google Sheets");
+    setSyncStatus("ok","✅ تم التحديث — "+data.length+" سجل | "+new Date().toLocaleTimeString("ar-SA"));
+    setStatus("تم تحميل "+data.length+" سجل من Google Sheets");
   } catch(err) {
-    setSyncStatus("error","⚠️ فشل التحديث: " + err.message);
-    setStatus("تعذّر الاتصال - اضغط ⚙️ لمعرفة الحل");
-    cloudData = [];
-    renderTable(); updateStats();
+    setSyncStatus("error","⚠️ فشل التحديث: "+err.message);
+    setStatus("تعذّر الاتصال — اضغط ⚙️ لمعرفة الحل");
+    cloudData=[]; renderTable(); updateStats();
   } finally {
-    isSyncing = false;
-    els.btnSync.disabled = false;
+    isSyncing=false; els.btnSync.disabled=false;
     if(showLoader) els.loadingOverlay.classList.remove("active");
   }
 }
 
-// ── إضافة سجل للسحابة عبر JSONP ──
-async function addToCloud(vehicle) {
-  var params = [
+async function addToCloud(v) {
+  var p=[
     "action=add",
-    "tower="    + encodeURIComponent(vehicle.tower),
-    "floor="    + encodeURIComponent(vehicle.floor),
-    "plate="    + encodeURIComponent(vehicle.plate),
-    "city="     + encodeURIComponent(vehicle.city),
-    "date="     + encodeURIComponent(vehicle.date),
-    "time="     + encodeURIComponent(vehicle.time),
-    "notes="    + encodeURIComponent(vehicle.notes||""),
-    "empName="  + encodeURIComponent(report.guard.name),
-    "empId="    + encodeURIComponent(report.guard.empId),
-    "hasImage=" + encodeURIComponent(vehicle.img ? "نعم" : "لا")
+    "tower="+encodeURIComponent(v.tower),
+    "floor="+encodeURIComponent(v.floor),
+    "plate="+encodeURIComponent(v.plate),
+    "city="+encodeURIComponent(v.city),
+    "date="+encodeURIComponent(v.date),
+    "time="+encodeURIComponent(v.time),
+    "notes="+encodeURIComponent(v.notes||""),
+    "empName="+encodeURIComponent(report.guard.name),
+    "empId="+encodeURIComponent(report.guard.empId),
+    "hasImage="+encodeURIComponent(v.img?"نعم":"لا")
   ].join("&");
-
-  var url = GS_URL + "?" + params;
-  return await jsonpCall(url, 15000);
+  return await jsonpCall(GS_URL+"?"+p, 15000);
 }
 
-function setNow(){
-  var n=new Date();
-  els.reportDate.value=n.toISOString().split("T")[0];
-  els.reportTime.value=n.toTimeString().slice(0,5);
-}
-function setStatus(m){ els.status.textContent = m; }
+function setNow(){ var n=new Date(); els.reportDate.value=n.toISOString().split("T")[0]; els.reportTime.value=n.toTimeString().slice(0,5); }
+function setStatus(m){ els.status.textContent=m; }
 function clearForm(){ els.tower.value=""; els.floor.value=""; els.plate.value=""; els.city.value=""; els.notes.value=""; }
 
 function lookupGuard(){
-  var id = els.empId.value.trim();
+  var id=els.empId.value.trim();
   if(!id){ alert("أدخل الرقم الوظيفي"); return; }
-  var name = GUARDS[id];
-  if(name){
-    report.guard = {empId:id, name:name};
-    els.empName.value = name;
-    setStatus("✅ تم العثور على: " + name);
-    saveLocal();
-  } else {
-    alert("رقم وظيفي غير موجود");
-    els.empName.value = "";
-    setStatus("رقم وظيفي غير صحيح");
-  }
+  var name=GUARDS[id];
+  if(name){ report.guard={empId:id,name:name}; els.empName.value=name; setStatus("✅ "+name); saveLocal(); }
+  else { alert("رقم وظيفي غير موجود"); els.empName.value=""; }
 }
 
 function updateStats(){
-  var list = cloudData;
-  var today = new Date().toISOString().split("T")[0];
-  els.statTotal.textContent = list.length;
-  els.statToday.textContent = list.filter(function(v){
-    return String(v["التاريخ"]||v.date||"").slice(0,10) === today;
-  }).length;
-  els.statWithPhotos.textContent = list.filter(function(v){
-    return v["صورة"]==="نعم" || v.hasImage==="نعم" || v.img;
-  }).length;
-  els.statApiCalls.textContent = report.addedCount || 0;
+  var list=cloudData; var today=new Date().toISOString().split("T")[0];
+  els.statTotal.textContent=list.length;
+  els.statToday.textContent=list.filter(function(v){ return String(v["التاريخ"]||v.date||"").slice(0,10)===today; }).length;
+  els.statWithPhotos.textContent=list.filter(function(v){ return v["صورة"]==="نعم"||v.hasImage==="نعم"||v.img; }).length;
+  els.statApiCalls.textContent=report.addedCount||0;
 }
 
 async function addVehicle(){
-  var tower=els.tower.value.trim(), floor=els.floor.value.trim();
-  var plate=els.plate.value.trim().toUpperCase(), city=els.city.value.trim();
+  var tower=els.tower.value.trim(),floor=els.floor.value.trim();
+  var plate=els.plate.value.trim().toUpperCase(),city=els.city.value.trim();
   if(!tower||!floor||!plate||!city){ alert("املأ جميع الحقول المطلوبة"); return; }
   if(!report.guard.empId){ alert("أدخل الرقم الوظيفي أولاً"); return; }
-
-  var n = new Date();
-  var vehicle = {
-    tower:tower, floor:floor, plate:plate, city:city,
-    date:n.toISOString().split("T")[0],
-    time:n.toTimeString().slice(0,5),
-    notes:els.notes.value.trim(), img:null
-  };
-
-  // تعطيل زر الإضافة
-  els.btnAdd.disabled = true;
-  els.btnAdd.textContent = "⏳ جارٍ الحفظ...";
-  setSyncStatus("loading","⏳ جارٍ إضافة " + plate + " لـ Google Sheets...");
-
+  var n=new Date();
+  var v={tower:tower,floor:floor,plate:plate,city:city,date:n.toISOString().split("T")[0],time:n.toTimeString().slice(0,5),notes:els.notes.value.trim(),img:null};
+  els.btnAdd.disabled=true; els.btnAdd.textContent="⏳ جارٍ الحفظ...";
+  setSyncStatus("loading","⏳ جارٍ إضافة "+plate+" لـ Google Sheets...");
   try {
-    var result = await addToCloud(vehicle);
-    if(result && result.success){
-      report.addedCount = (report.addedCount||0) + 1;
-      saveLocal();
-      clearForm();
-      setSyncStatus("loading","🔄 تم الحفظ - جارٍ تحديث الجدول...");
-      setStatus("✅ تم حفظ " + plate + " في Google Sheets");
-      // تحديث الجدول بعد ثانية
+    var res=await addToCloud(v);
+    if(res&&res.success){
+      report.addedCount=(report.addedCount||0)+1; saveLocal(); clearForm();
+      setSyncStatus("loading","🔄 تم الحفظ — جارٍ تحديث الجدول...");
+      setStatus("✅ تم حفظ "+plate+" في Google Sheets");
       setTimeout(function(){ loadFromCloud(false); }, 1000);
-    } else {
-      throw new Error(result && result.message ? result.message : "لم يتم التأكيد من الخادم");
-    }
+    } else { throw new Error("لم يتم التأكيد من الخادم"); }
   } catch(err) {
-    setSyncStatus("error","❌ فشل الحفظ: " + err.message);
-    setStatus("❌ فشل الحفظ - اضغط ⚙️ لمعرفة الحل");
-    alert("❌ تعذّر الحفظ في Google Sheets\n\nالسبب: " + err.message + "\n\nاضغط ⚙️ كود Apps Script للتعليمات");
+    setSyncStatus("error","❌ فشل الحفظ: "+err.message);
+    setStatus("❌ فشل الحفظ — اضغط ⚙️ لمعرفة الحل");
+    alert("❌ تعذّر الحفظ\n\n"+err.message+"\n\nاضغط ⚙️ للتعليمات");
   } finally {
-    els.btnAdd.disabled = false;
-    els.btnAdd.textContent = "➕ إضافة وحفظ بالسحابة";
-    updateStats();
+    els.btnAdd.disabled=false; els.btnAdd.textContent="➕ إضافة وحفظ بالسحابة"; updateStats();
   }
 }
 
 function viewImage(src){ els.fullImage.src=src; els.imageModal.classList.add("active"); }
 
 function renderTable(){
-  els.tbody.innerHTML = "";
-  var rows = cloudData.map(function(v){
-    return {
-      tower:   v["البرج"]    || v.tower  || "",
-      floor:   v["الدور"]    || v.floor  || "",
-      plate:   v["رقم اللوحة"]|| v.plate  || "",
-      city:    v["المدينة"]  || v.city   || "",
-      date:    String(v["التاريخ"]  || v.date   || "").slice(0,10),
-      time:    String(v["الوقت"]   || v.time   || "").slice(0,5),
-      notes:   v["ملاحظات"] || v.notes  || "",
-      guard:   v["رجل الأمن"]|| v.empName|| "",
-      img:     v.img || null,
-      hasImg:  v["صورة"] || v.hasImage || ""
-    };
-  });
-
-  if(!rows.length){
-    els.tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:#94a3b8;">لا توجد بيانات — اضغط "🔄 تحديث" أو أضف سجلاً</td></tr>';
+  els.tableBody.innerHTML="";
+  if(!cloudData.length){
+    els.tableBody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">🚗</div><p><b>لا توجد بيانات بعد</b></p><p style="font-size:12px;">أضف سجلاً أو اضغط "🔄 تحديث" لجلب البيانات من Google Sheets</p></div></td></tr>';
+    els.tableFooter.style.display="none";
     return;
   }
 
+  var rows = cloudData.map(function(v){
+    return {
+      tower:  v["البرج"]       || v.tower   || "",
+      floor:  v["الدور"]       || v.floor   || "",
+      plate:  v["رقم اللوحة"] || v.plate   || "",
+      city:   v["المدينة"]    || v.city    || "",
+      date:   String(v["التاريخ"]  || v.date   || "").slice(0,10),
+      time:   String(v["الوقت"]   || v.time   || "").slice(0,5),
+      notes:  v["ملاحظات"]   || v.notes   || "",
+      guard:  v["رجل الأمن"] || v.empName || "",
+      img:    v.img || null,
+      hasImg: v["صورة"] || v.hasImage || ""
+    };
+  }).reverse();
+
   rows.forEach(function(v, i){
-    var tr = document.createElement("tr");
-    tr.style.cssText = "border-right:3px solid #22c55e;";
-    var imgCell = v.img
-      ? '<img class="imgPrev" src="'+v.img+'"/>'
-      : (v.hasImg==="نعم" ? '<span style="background:#d1fae5;padding:3px 7px;border-radius:6px;font-size:11px;">📷</span>' : "-");
+    var tr=document.createElement("tr");
+    var imgCell = v.img ? '<img class="imgPrev" src="'+v.img+'" alt="صورة"/>'
+      : (v.hasImg==="نعم" ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">📷 موجودة</span>'
+                          : '<span style="color:#cbd5e1;font-size:13px;">—</span>');
+    var notesCell = v.notes ? '<span class="notes-cell" title="'+v.notes+'">'+(v.notes.length>18?v.notes.slice(0,18)+"...":v.notes)+'</span>'
+                            : '<span style="color:#e2e8f0;font-size:13px;">—</span>';
 
     tr.innerHTML =
       '<td>'+(i+1)+'</td>'+
       '<td>'+imgCell+'</td>'+
-      '<td>'+v.tower+'</td>'+
-      '<td>'+v.floor+'</td>'+
-      '<td style="font-weight:700;letter-spacing:1px;">'+v.plate+'</td>'+
-      '<td>'+v.city+'</td>'+
-      '<td>'+v.date+'</td>'+
-      '<td>'+v.time+'</td>'+
-      '<td>'+(v.notes||"-")+'</td>'+
-      '<td style="font-size:11px;color:#475569;">'+(v.guard||"-")+'</td>';
-    els.tbody.appendChild(tr);
+      '<td><span class="tower-badge">'+v.tower+'</span></td>'+
+      '<td><span class="floor-badge">'+v.floor+'</span></td>'+
+      '<td><span class="plate-badge">🚗 '+v.plate+'</span></td>'+
+      '<td><span class="city-badge">'+v.city+'</span></td>'+
+      '<td class="date-cell">'+v.date+'</td>'+
+      '<td><span class="time-cell">'+v.time+'</span></td>'+
+      '<td>'+notesCell+'</td>'+
+      '<td>'+(v.guard ? '<span class="guard-badge">👤 '+v.guard+'</span>' : '<span style="color:#cbd5e1;">—</span>')+'</td>';
+
+    els.tableBody.appendChild(tr);
   });
 
-  els.tbody.querySelectorAll("img.imgPrev").forEach(function(img){
+  els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
     img.addEventListener("click", function(){ viewImage(img.src); });
   });
+
+  els.tableFooter.style.display="block";
+  els.footerCount.textContent=cloudData.length;
 }
 
-function saveLocal(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(report));
-}
+function saveLocal(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(report)); }
 function loadLocal(){
-  try{
-    var d = localStorage.getItem(STORAGE_KEY);
-    if(d){ report = JSON.parse(d); return true; }
-  }catch(e){}
+  try{ var d=localStorage.getItem(STORAGE_KEY); if(d){ report=JSON.parse(d); return true; } }catch(e){}
   return false;
 }
 
 function exportCSV(){
   if(!cloudData.length){ alert("لا توجد بيانات"); return; }
-  var csv = "البرج,الدور,رقم اللوحة,المدينة,التاريخ,الوقت,ملاحظات,رجل الأمن\n";
+  var csv="البرج,الدور,رقم اللوحة,المدينة,التاريخ,الوقت,ملاحظات,رجل الأمن\n";
   cloudData.forEach(function(v){
-    csv += [
-      v["البرج"]||v.tower||"",
-      v["الدور"]||v.floor||"",
-      v["رقم اللوحة"]||v.plate||"",
-      v["المدينة"]||v.city||"",
-      String(v["التاريخ"]||v.date||"").slice(0,10),
-      String(v["الوقت"]||v.time||"").slice(0,5),
-      '"'+(v["ملاحظات"]||v.notes||"")+'"',
-      v["رجل الأمن"]||v.empName||""
-    ].join(",") + "\n";
+    csv+=[v["البرج"]||"",v["الدور"]||"",v["رقم اللوحة"]||"",v["المدينة"]||"",
+          String(v["التاريخ"]||"").slice(0,10),String(v["الوقت"]||"").slice(0,5),
+          '"'+(v["ملاحظات"]||"")+'"',v["رجل الأمن"]||""].join(",")+"\n";
   });
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8;"}));
-  a.download = "parking_" + new Date().toISOString().split("T")[0] + ".csv";
-  a.click();
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"}));
+  a.download="parking_"+new Date().toISOString().split("T")[0]+".csv"; a.click();
 }
 function exportJSON(){
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(cloudData,null,2)],{type:"application/json"}));
-  a.download = "parking_" + new Date().toISOString().split("T")[0] + ".json";
-  a.click();
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(cloudData,null,2)],{type:"application/json"}));
+  a.download="parking_"+new Date().toISOString().split("T")[0]+".json"; a.click();
 }
 function importJSONFile(file){
   if(!file) return;
-  var r = new FileReader();
-  r.onload = function(e){
-    try{
-      var imp = JSON.parse(e.target.result);
+  var r=new FileReader();
+  r.onload=function(e){
+    try{ var imp=JSON.parse(e.target.result);
       if(confirm("استيراد؟")){
-        report = imp.guard ? imp : report;
-        if(imp.guard){ els.empId.value=imp.guard.empId||""; els.empName.value=imp.guard.name||""; }
-        saveLocal(); alert("تم الاستيراد محلياً. اضغط تحديث لرؤية بيانات السحابة.");
+        if(imp.guard){ report=imp; els.empId.value=imp.guard.empId||""; els.empName.value=imp.guard.name||""; }
+        saveLocal(); alert("تم. اضغط تحديث لرؤية بيانات السحابة.");
       }
     }catch(err){ alert("ملف JSON غير صالح"); }
   };
   r.readAsText(file);
 }
 
-// ── اختبار الاتصال ──
-async function testConnection(resultEl){
-  resultEl.innerHTML = "⏳ جارٍ الاختبار...";
-  try {
-    var data = await jsonpCall(GS_URL + "?action=getAll", 8000);
-    if(Array.isArray(data)){
-      resultEl.innerHTML = '<span style="color:#16a34a;font-weight:700;font-size:14px;">✅ نجح الاتصال! تم استقبال '+data.length+' سجل. اغلق هذه النافذة واضغط "🔄 تحديث".</span>';
-    } else {
-      resultEl.innerHTML = '<span style="color:#ca8a04;">⚠️ الاتصال نجح لكن البيانات غير صحيحة — تأكد من الكود أعلاه.</span>';
-    }
-  } catch(e) {
-    resultEl.innerHTML = '<span style="color:#dc2626;">❌ '+e.message+'<br><br>تأكد من اتباع الخطوتين أعلاه ثم أعد المحاولة.</span>';
-  }
+async function testConnection(el){
+  el.innerHTML="⏳ جارٍ الاختبار...";
+  try{
+    var data=await jsonpCall(GS_URL+"?action=getAll",8000);
+    if(Array.isArray(data)) el.innerHTML='<span style="color:#16a34a;font-weight:700;font-size:14px;">✅ نجح! '+data.length+' سجل. أغلق واضغط "🔄 تحديث".</span>';
+    else el.innerHTML='<span style="color:#ca8a04;">⚠️ اتصال نجح لكن البيانات غير صحيحة.</span>';
+  }catch(e){ el.innerHTML='<span style="color:#dc2626;">❌ '+e.message+'</span>'; }
 }
 
-// ── الكاميرا ──
 async function openCamera(){
-  try{
-    cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-    els.cameraVideo.srcObject = cameraStream;
-    els.cameraModal.classList.add("active");
-  }catch(e){ alert("لا يمكن الوصول للكاميرا"); }
+  try{ cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); els.cameraVideo.srcObject=cameraStream; els.cameraModal.classList.add("active"); }
+  catch(e){ alert("لا يمكن الوصول للكاميرا"); }
 }
 function closeCamera(){
   if(cameraStream){ cameraStream.getTracks().forEach(function(t){t.stop();}); cameraStream=null; }
   els.cameraModal.classList.remove("active");
 }
 
-// ── نسخ الكود ──
-window.copyScript = function(){
-  var code = document.getElementById("scriptCode").textContent;
-  navigator.clipboard.writeText(code).then(function(){
-    alert("✅ تم النسخ! الصقه في Apps Script.");
-  }).catch(function(){
-    alert("انسخ الكود يدوياً من المربع الأسود.");
-  });
+window.copyScript=function(){
+  var code=$("scriptCode").textContent;
+  navigator.clipboard.writeText(code).then(function(){ alert("✅ تم النسخ!"); }).catch(function(){ alert("انسخ الكود يدوياً من المربع الأسود."); });
 };
 
-// ── الأحداث ──
-els.btnLookup.addEventListener("click", lookupGuard);
-els.empId.addEventListener("keydown", function(e){ if(e.key==="Enter") lookupGuard(); });
-els.btnAdd.addEventListener("click", addVehicle);
-els.btnSave.addEventListener("click", function(){ saveLocal(); setStatus("✅ تم الحفظ محلياً"); });
-els.btnExportCSV.addEventListener("click", exportCSV);
-els.btnExportJSON.addEventListener("click", exportJSON);
-els.btnImportJSON.addEventListener("click", function(){ els.importFile.click(); });
-els.importFile.addEventListener("change", function(e){ importJSONFile(e.target.files&&e.target.files[0]); });
-els.btnPrint.addEventListener("click", function(){ window.print(); });
-els.btnClearLocal.addEventListener("click", function(){
-  if(confirm("مسح البيانات المحلية المحفوظة؟ (بيانات Google Sheets لن تُمسح).")){
-    localStorage.removeItem(STORAGE_KEY);
-    report = {guard:{empId:"",name:""},addedCount:0};
-    els.empId.value=""; els.empName.value="";
-    setStatus("تم المسح المحلي");
+els.btnLookup.addEventListener("click",lookupGuard);
+els.empId.addEventListener("keydown",function(e){if(e.key==="Enter")lookupGuard();});
+els.btnAdd.addEventListener("click",addVehicle);
+els.btnSave.addEventListener("click",function(){saveLocal();setStatus("✅ تم الحفظ محلياً");});
+els.btnExportCSV.addEventListener("click",exportCSV);
+els.btnExportJSON.addEventListener("click",exportJSON);
+els.btnImportJSON.addEventListener("click",function(){els.importFile.click();});
+els.importFile.addEventListener("change",function(e){importJSONFile(e.target.files&&e.target.files[0]);});
+els.btnPrint.addEventListener("click",function(){window.print();});
+els.btnClearLocal.addEventListener("click",function(){
+  if(confirm("مسح البيانات المحلية فقط؟")){
+    localStorage.removeItem(STORAGE_KEY); report={guard:{empId:"",name:""},addedCount:0};
+    els.empId.value=""; els.empName.value=""; setStatus("تم المسح المحلي");
   }
 });
-els.btnSync.addEventListener("click", function(){ loadFromCloud(false); });
-els.btnShowSetup.addEventListener("click", function(){ els.setupModal.classList.add("active"); els.testResultModal.innerHTML=""; });
-els.closeSetup.addEventListener("click", function(){ els.setupModal.classList.remove("active"); });
-els.btnTestInModal.addEventListener("click", function(){ testConnection(els.testResultModal); });
-els.btnCamera.addEventListener("click", openCamera);
-els.closeCamera.addEventListener("click", closeCamera);
-els.cancelCamera.addEventListener("click", closeCamera);
-els.closeImage.addEventListener("click", function(){ els.imageModal.classList.remove("active"); });
-els.imageModal.addEventListener("click", function(e){ if(e.target===els.imageModal) els.imageModal.classList.remove("active"); });
-els.setupModal.addEventListener("click", function(e){ if(e.target===els.setupModal) els.setupModal.classList.remove("active"); });
-
-document.addEventListener("keydown", function(e){
-  if(e.ctrlKey&&e.key==="Enter"){ e.preventDefault(); addVehicle(); }
-  if(e.ctrlKey&&e.key==="s"){ e.preventDefault(); saveLocal(); setStatus("✅ تم الحفظ محلياً"); }
-  if(e.key==="Escape"){ closeCamera(); els.imageModal.classList.remove("active"); els.setupModal.classList.remove("active"); }
+els.btnSync.addEventListener("click",function(){loadFromCloud(false);});
+els.btnShowSetup.addEventListener("click",function(){els.setupModal.classList.add("active");});
+els.closeSetup.addEventListener("click",function(){els.setupModal.classList.remove("active");});
+els.btnTestInModal.addEventListener("click",function(){testConnection(els.testResultModal);});
+els.btnCamera.addEventListener("click",openCamera);
+els.closeCamera.addEventListener("click",closeCamera);
+els.cancelCamera.addEventListener("click",closeCamera);
+els.closeImage.addEventListener("click",function(){els.imageModal.classList.remove("active");});
+els.imageModal.addEventListener("click",function(e){if(e.target===els.imageModal)els.imageModal.classList.remove("active");});
+els.setupModal.addEventListener("click",function(e){if(e.target===els.setupModal)els.setupModal.classList.remove("active");});
+document.addEventListener("keydown",function(e){
+  if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();addVehicle();}
+  if(e.ctrlKey&&e.key==="s"){e.preventDefault();saveLocal();setStatus("✅ تم الحفظ محلياً");}
+  if(e.key==="Escape"){closeCamera();els.imageModal.classList.remove("active");els.setupModal.classList.remove("active");}
 });
 
-// ── التهيئة ──
 setNow();
 loadLocal();
-if(report.guard&&report.guard.empId){ els.empId.value=report.guard.empId; els.empName.value=report.guard.name; }
+if(report.guard&&report.guard.empId){els.empId.value=report.guard.empId;els.empName.value=report.guard.name;}
 loadFromCloud(true);
-setInterval(function(){ loadFromCloud(false); }, 60000);
+setInterval(function(){loadFromCloud(false);},60000);
 
 })();
 </script>
