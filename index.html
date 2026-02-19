@@ -214,6 +214,7 @@
     <span style="background:#fee2e2;padding:3px 8px;border-radius:6px;">تحديث كل 60 ثانية</span>
   </div>
 
+  <!-- Sync Bar -->
   <div class="sync-banner no-print" id="syncBanner">
     <div class="sync-dot" id="syncDot"></div>
     <span id="syncMsg">يتم الاتصال بالسحابة...</span>
@@ -223,6 +224,7 @@
     </div>
   </div>
 
+  <!-- Stats -->
   <div class="stats no-print">
     <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">إجمالي المركبات</div></div>
     <div class="stat-card green"><div class="stat-value" id="statToday">0</div><div class="stat-label">اليوم</div></div>
@@ -230,6 +232,7 @@
     <div class="stat-card blue"><div class="stat-value" id="statApiCalls">0</div><div class="stat-label">تمت إضافتها</div></div>
   </div>
 
+  <!-- Guard -->
   <div class="row no-print">
     <div class="col small"><label>الرقم الوظيفي</label><input id="empId" inputmode="numeric" placeholder="88840" /></div>
     <div class="col wide"><label>اسم رجل الأمن</label><input id="empName" placeholder="يظهر تلقائياً" readonly /></div>
@@ -240,6 +243,7 @@
   <div class="meta"><span>الحالة: <b id="status">جارٍ التحميل...</b></span></div>
   <hr style="border:0;border-top:1px solid var(--g);margin:12px 0;" />
 
+  <!-- Vehicle Inputs -->
   <div class="row no-print">
     <div class="col small">
       <label>البرج</label>
@@ -271,6 +275,7 @@
   </div>
   <div class="hint no-print">💡 Ctrl+Enter للإضافة السريعة | Ctrl+S للحفظ المحلي</div>
 
+  <!-- ══ الجدول ══ -->
   <div class="table-wrap">
     <table id="vehiclesTable">
       <thead>
@@ -291,6 +296,7 @@
     </table>
   </div>
 
+  <!-- Table Footer Info -->
   <div id="tableFooter" style="display:none; margin-top:8px; color:#64748b; font-size:12px; text-align:left;">
     إجمالي: <b id="footerCount">0</b> سجل
   </div>
@@ -305,6 +311,7 @@
   </div>
 </div></div>
 
+<!-- Setup Modal -->
 <div class="modal" id="setupModal">
   <div class="modal-content" style="max-width:700px;">
     <button class="modal-close" id="closeSetup">×</button>
@@ -314,27 +321,37 @@
       <h4><span class="badge-num">1</span> امسح الكود القديم وضع هذا بدله:</h4>
       <button class="copy-btn" onclick="copyScript()">📋 نسخ الكود</button>
       <div class="script-box">
-        <pre id="scriptCode">var SHEET_NAME = "";
+        <pre id="scriptCode">var SHEET_NAME = "رصد السيارات"; // اسم الشيت
+
+// ══════════════════════════════════════════
+//   رصد السيارات — Google Apps Script
+//   نسخة منظّمة مع تنسيق احترافي
+// ══════════════════════════════════════════
 
 function doGet(e) {
-var params = e.parameter;
+var params   = e.parameter;
 var callback = params.callback;
-var action = params.action || "getAll";
+var action   = params.action || "getAll";
+
 if (action === "add")    return handleAdd(params, callback);
 if (action === "getAll") return handleGetAll(callback);
-return respond({error:"unknown action"}, callback);
+return respond({ error: "unknown action" }, callback);
 }
 
+// ── إضافة سجل جديد ──
 function handleAdd(params, callback) {
-var sheet = getSheet();
+var ss    = SpreadsheetApp.getActiveSpreadsheet();
+var sheet = getOrCreateSheet(ss);
+
+// إنشاء الرؤوس إن لم تكن موجودة
 if (sheet.getLastRow() === 0) {
-sheet.appendRow([
-"البرج","الدور","رقم اللوحة","المدينة",
-"التاريخ","الوقت","ملاحظات",
-"رجل الأمن","الرقم الوظيفي","صورة","وقت الإضافة"
-]);
+setupHeaders(sheet);
 }
-sheet.appendRow([
+
+var nextRow = sheet.getLastRow() + 1;
+
+// كتابة البيانات
+sheet.getRange(nextRow, 1, 1, 11).setValues([[
 params.tower    || "",
 params.floor    || "",
 params.plate    || "",
@@ -345,22 +362,132 @@ params.notes    || "",
 params.empName  || "",
 params.empId    || "",
 params.hasImage || "لا",
-new Date().toISOString()
-]);
-return respond({success:true}, callback);
+new Date().toLocaleString("ar-SA")
+]]);
+
+// تنسيق الصف الجديد
+formatDataRow(sheet, nextRow);
+
+return respond({ success: true }, callback);
 }
 
+// ── جلب جميع البيانات ──
 function handleGetAll(callback) {
 var sheet = getSheet();
+if (!sheet) return respond([], callback);
+
 var data = sheet.getDataRange().getValues();
 if (data.length <= 1) return respond([], callback);
+
 var headers = data[0];
 var rows = data.slice(1).map(function(row) {
 var obj = {};
-headers.forEach(function(h,i){ obj[String(h)] = row[i]; });
+headers.forEach(function(h, i) { obj[String(h)] = row[i]; });
 return obj;
 });
+
 return respond(rows, callback);
+}
+
+// ══ إنشاء / تنسيق الرؤوس ══
+function setupHeaders(sheet) {
+var headers = [
+"🏢 البرج", "🔢 الدور", "🚗 رقم اللوحة", "📍 المدينة",
+"📅 التاريخ", "⏰ الوقت", "📝 ملاحظات",
+"👤 رجل الأمن", "🪪 الرقم الوظيفي", "📷 صورة", "🕐 وقت الإضافة"
+];
+
+var headerRange = sheet.getRange(1, 1, 1, headers.length);
+headerRange.setValues([headers]);
+
+// تنسيق الرؤوس
+headerRange
+.setBackground("#1e3a8a")       // أزرق داكن
+.setFontColor("#ffffff")        // نص أبيض
+.setFontWeight("bold")
+.setFontSize(11)
+.setHorizontalAlignment("center")
+.setVerticalAlignment("middle");
+
+sheet.setRowHeight(1, 36);
+
+// عرض الأعمدة
+var widths = [70, 70, 130, 100, 100, 80, 160, 140, 110, 70, 160];
+widths.forEach(function(w, i) {
+sheet.setColumnWidth(i + 1, w);
+});
+
+// تجميد الصف الأول
+sheet.setFrozenRows(1);
+
+// اتجاه RTL
+sheet.setRightToLeft(true);
+}
+
+// ══ تنسيق صف البيانات ══
+function formatDataRow(sheet, rowIndex) {
+var range = sheet.getRange(rowIndex, 1, 1, 11);
+
+// تبادل الألوان: فردي / زوجي
+var bgColor = (rowIndex % 2 === 0) ? "#f0f4ff" : "#ffffff";
+range.setBackground(bgColor);
+range.setFontSize(10);
+range.setVerticalAlignment("middle");
+sheet.setRowHeight(rowIndex, 30);
+
+// رقم اللوحة — تمييز خاص
+var plateCell = sheet.getRange(rowIndex, 3);
+plateCell
+.setBackground("#1e3a8a")
+.setFontColor("#ffffff")
+.setFontWeight("bold")
+.setFontSize(11)
+.setHorizontalAlignment("center");
+
+// عمود البرج
+sheet.getRange(rowIndex, 1)
+.setBackground("#dbeafe")
+.setFontColor("#1d4ed8")
+.setFontWeight("bold")
+.setHorizontalAlignment("center");
+
+// عمود الدور
+sheet.getRange(rowIndex, 2)
+.setBackground("#fef9c3")
+.setFontColor("#854d0e")
+.setFontWeight("bold")
+.setHorizontalAlignment("center");
+
+// عمود المدينة
+sheet.getRange(rowIndex, 4)
+.setBackground("#dcfce7")
+.setFontColor("#166534")
+.setHorizontalAlignment("center");
+
+// التاريخ والوقت
+sheet.getRange(rowIndex, 5, 1, 2)
+.setHorizontalAlignment("center")
+.setFontColor("#475569");
+
+// صورة
+sheet.getRange(rowIndex, 10)
+.setHorizontalAlignment("center");
+
+// حدود خفيفة لكل الخلايا
+range.setBorder(
+true, true, true, true, true, true,
+"#e2e8f0",
+SpreadsheetApp.BorderStyle.SOLID
+);
+}
+
+// ══ دوال مساعدة ══
+function getOrCreateSheet(ss) {
+var sheet = ss.getSheetByName(SHEET_NAME);
+if (!sheet) {
+sheet = ss.insertSheet(SHEET_NAME);
+}
+return sheet;
 }
 
 function getSheet() {
@@ -370,25 +497,48 @@ return SHEET_NAME ? ss.getSheetByName(SHEET_NAME) : ss.getActiveSheet();
 
 function respond(data, callback) {
 var json = JSON.stringify(data);
-var out = callback ? callback+"("+json+");" : json;
+var out  = callback ? callback + "(" + json + ");" : json;
 return ContentService.createTextOutput(out)
-.setMimeType(callback
+.setMimeType(
+callback
 ? ContentService.MimeType.JAVASCRIPT
-: ContentService.MimeType.JSON);
+: ContentService.MimeType.JSON
+);
 }
 
 function doPost(e) {
 var p = JSON.parse(e.postData.contents || "{}");
 return handleAdd(p, null);
+}
+
+// ══ تنسيق جميع البيانات الموجودة (شغّلها مرة واحدة) ══
+function formatAllExistingRows() {
+var sheet = getSheet();
+if (!sheet) return;
+var lastRow = sheet.getLastRow();
+if (lastRow <= 1) return;
+for (var r = 2; r <= lastRow; r++) {
+formatDataRow(sheet, r);
+}
+SpreadsheetApp.flush();
+Logger.log("تم تنسيق " + (lastRow - 1) + " صف");
 }</pre>
       </div>
     </div>
+
+    <div class="setup-step" style="background:#f0fdf4;border-color:#bbf7d0;">
+      <h4 style="color:#16a34a;">💡 بيانات قديمة موجودة؟</h4>
+      <p style="margin:4px 0;font-size:13px;">شغّل الدالة <b>formatAllExistingRows</b> مرة واحدة من Apps Script لتنسيق كل البيانات السابقة:<br>
+      اضغط <b>Run</b> ← اختر <b>formatAllExistingRows</b> ← <b>Run</b></p>
+    </div>
+
     <div class="setup-step">
       <h4><span class="badge-num">2</span> انشر التحديث:</h4>
       <p style="margin:4px 0;font-size:13px;">
-        <b>Deploy</b> ← <b>Manage deployments</b> ← ✏️ تعديل ← <b>New version</b> ← تأكد <b>Who has access = Anyone</b> ← <b>Deploy</b>
+      <b>Deploy</b> ← <b>Manage deployments</b> ← ✏️ تعديل ← <b>New version</b> ← تأكد <b>Who has access = Anyone</b> ← <b>Deploy</b>
       </p>
     </div>
+
     <div class="setup-step">
       <h4><span class="badge-num">3</span> اختبر الاتصال:</h4>
       <button class="primary" id="btnTestInModal" style="padding:8px 16px;">🧪 اختبار الاتصال</button>
@@ -397,6 +547,7 @@ return handleAdd(p, null);
   </div>
 </div>
 
+<!-- Camera Modal -->
 <div class="modal" id="cameraModal">
   <div class="modal-content">
     <button class="modal-close" id="closeCamera">×</button>
@@ -413,6 +564,7 @@ return handleAdd(p, null);
   </div>
 </div>
 
+<!-- Image Modal -->
 <div class="modal" id="imageModal">
   <div class="modal-content" style="padding:10px;">
     <button class="modal-close" id="closeImage">×</button>
@@ -426,7 +578,10 @@ return handleAdd(p, null);
 
 var GS_URL = "https://script.google.com/macros/s/AKfycbyl2TkK5RPpGZlcs3PBr4sdANCRhZ4782IFK412MM1q0PM9cHaQCArpGTejcjm2M2M0YQ/exec";
 var STORAGE_KEY = "parkingReport_v3";
-var GUARDS = {"88840":"عبدالله الشمري","88841":"محمد العتيبي","88842":"فهد القحطاني","88843":"سعد الدوسري"};
+var GUARDS = {
+  "88840":"عبدالله الشمري","88841":"محمد العتيبي",
+  "88842":"فهد القحطاني","88843":"سعد الدوسري"
+};
 
 var report = {guard:{empId:"",name:""},addedCount:0};
 var cloudData = [];
@@ -452,10 +607,11 @@ var els = {
   statTotal:$("statTotal"),statToday:$("statToday"),
   statWithPhotos:$("statWithPhotos"),statApiCalls:$("statApiCalls"),
   syncBanner:$("syncBanner"),syncDot:$("syncDot"),syncMsg:$("syncMsg"),
-  loadingOverlay:$("loadingOverlay"),
+  loadingOverlay:$("loadingOverlay"),loadingMsg:$("loadingMsg"),
   setupModal:$("setupModal"),testResultModal:$("testResultModal")
 };
 
+/* ── JSONP ── */
 function jsonpCall(url, ms) {
   ms = ms || 12000;
   return new Promise(function(resolve, reject) {
@@ -470,6 +626,7 @@ function jsonpCall(url, ms) {
   });
 }
 
+/* ── Sync Status ── */
 function setSyncStatus(state, msg) {
   var d={loading:"pulse",ok:"ok",error:"error"}; var b={loading:"syncing",ok:"ok",error:"error"};
   els.syncDot.className="sync-dot "+(d[state]||"");
@@ -477,6 +634,7 @@ function setSyncStatus(state, msg) {
   els.syncMsg.textContent=msg;
 }
 
+/* ── Load from Cloud ── */
 async function loadFromCloud(showLoader) {
   if(isSyncing) return;
   isSyncing=true; els.btnSync.disabled=true;
@@ -499,6 +657,7 @@ async function loadFromCloud(showLoader) {
   }
 }
 
+/* ── Add to Cloud ── */
 async function addToCloud(v) {
   var p=[
     "action=add",
@@ -564,16 +723,27 @@ async function addVehicle(){
 
 function viewImage(src){ els.fullImage.src=src; els.imageModal.classList.add("active"); }
 
+/* ════════════════════════════════
+   ── RENDER TABLE ──
+════════════════════════════════ */
 function renderTable(){
   els.tableBody.innerHTML="";
+
   if(!cloudData.length){
-    els.tableBody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">🚗</div><p><b>لا توجد بيانات بعد</b></p><p style="font-size:12px;">أضف سجلاً أو اضغط "🔄 تحديث" لجلب البيانات من Google Sheets</p></div></td></tr>';
+    els.tableBody.innerHTML=
+      '<tr><td colspan="10"><div class="empty-state">'+
+        '<div class="icon">🚗</div>'+
+        '<p><b>لا توجد بيانات بعد</b></p>'+
+        '<p style="font-size:12px;">أضف سجلاً أو اضغط "🔄 تحديث" لجلب البيانات من Google Sheets</p>'+
+      '</div></td></tr>';
     els.tableFooter.style.display="none";
     return;
   }
 
-  var rows = cloudData.map(function(v){
+  /* ترتيب البيانات: الأحدث أولاً */
+  var rows = cloudData.map(function(v, idx){
     return {
+      idx: idx,
       tower:  v["البرج"]       || v.tower   || "",
       floor:  v["الدور"]       || v.floor   || "",
       plate:  v["رقم اللوحة"] || v.plate   || "",
@@ -585,15 +755,22 @@ function renderTable(){
       img:    v.img || null,
       hasImg: v["صورة"] || v.hasImage || ""
     };
-  }).reverse();
+  }).reverse(); /* الأحدث في الأعلى */
 
   rows.forEach(function(v, i){
     var tr=document.createElement("tr");
-    var imgCell = v.img ? '<img class="imgPrev" src="'+v.img+'" alt="صورة"/>'
-      : (v.hasImg==="نعم" ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">📷 موجودة</span>'
-                          : '<span style="color:#cbd5e1;font-size:13px;">—</span>');
-    var notesCell = v.notes ? '<span class="notes-cell" title="'+v.notes+'">'+(v.notes.length>18?v.notes.slice(0,18)+"...":v.notes)+'</span>'
-                            : '<span style="color:#e2e8f0;font-size:13px;">—</span>';
+
+    var imgCell = v.img
+      ? '<img class="imgPrev" src="'+v.img+'" alt="صورة"/>'
+      : (v.hasImg==="نعم"
+          ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">📷 موجودة</span>'
+          : '<span style="color:#cbd5e1;font-size:13px;">—</span>');
+
+    var notesCell = v.notes
+      ? '<span class="notes-cell" title="'+v.notes+'">'+
+          (v.notes.length>18 ? v.notes.slice(0,18)+"..." : v.notes)+
+        '</span>'
+      : '<span style="color:#e2e8f0;font-size:13px;">—</span>';
 
     tr.innerHTML =
       '<td>'+(i+1)+'</td>'+
@@ -610,10 +787,12 @@ function renderTable(){
     els.tableBody.appendChild(tr);
   });
 
+  /* ربط أحداث الصور */
   els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
     img.addEventListener("click", function(){ viewImage(img.src); });
   });
 
+  /* Footer */
   els.tableFooter.style.display="block";
   els.footerCount.textContent=cloudData.length;
 }
@@ -655,6 +834,7 @@ function importJSONFile(file){
   r.readAsText(file);
 }
 
+/* ── اختبار الاتصال ── */
 async function testConnection(el){
   el.innerHTML="⏳ جارٍ الاختبار...";
   try{
@@ -664,6 +844,7 @@ async function testConnection(el){
   }catch(e){ el.innerHTML='<span style="color:#dc2626;">❌ '+e.message+'</span>'; }
 }
 
+/* ── الكاميرا ── */
 async function openCamera(){
   try{ cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); els.cameraVideo.srcObject=cameraStream; els.cameraModal.classList.add("active"); }
   catch(e){ alert("لا يمكن الوصول للكاميرا"); }
@@ -678,6 +859,7 @@ window.copyScript=function(){
   navigator.clipboard.writeText(code).then(function(){ alert("✅ تم النسخ!"); }).catch(function(){ alert("انسخ الكود يدوياً من المربع الأسود."); });
 };
 
+/* ── الأحداث ── */
 els.btnLookup.addEventListener("click",lookupGuard);
 els.empId.addEventListener("keydown",function(e){if(e.key==="Enter")lookupGuard();});
 els.btnAdd.addEventListener("click",addVehicle);
@@ -709,6 +891,7 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Escape"){closeCamera();els.imageModal.classList.remove("active");els.setupModal.classList.remove("active");}
 });
 
+/* ── تهيئة ── */
 setNow();
 loadLocal();
 if(report.guard&&report.guard.empId){els.empId.value=report.guard.empId;els.empName.value=report.guard.name;}
