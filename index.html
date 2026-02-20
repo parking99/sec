@@ -368,48 +368,88 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
 ```
 
 var GUARDS_SHEET = “الموظفون”;
+var DRIVE_FOLDER = “صور مركبات الرصد”; // اسم المجلد في Drive
 
 function doGet(e) {
-var params = e.parameter;
-var cb     = params.callback;
-var action = params.action || “getAll”;
-if (action === “add”)      return handleAdd(params, cb);
+var p  = e.parameter;
+var cb = p.callback || “”;
+var action = p.action || “getAll”;
+if (action === “add”)      return handleAdd(p, cb);
 if (action === “getAll”)   return handleGetAll(cb);
-if (action === “getGuard”) return handleGetGuard(params, cb);
-return respond({error:“unknown”}, cb);
+if (action === “getGuard”) return handleGetGuard(p, cb);
+return respond({ error: “unknown_action” }, cb);
 }
 
-/* ── جلب بيانات موظف بالرقم الوظيفي ── */
-function handleGetGuard(p, cb) {
-var id = String(p.empId || “”).trim();
-if (!id) return respond({error:“no_id”}, cb);
-
-var ss    = SpreadsheetApp.getActiveSpreadsheet();
-var sheet = ss.getSheetByName(GUARDS_SHEET);
-if (!sheet) return respond({error:“no_sheet”, msg:“أنشئ ورقة باسم: “ + GUARDS_SHEET}, cb);
-
-var data = sheet.getDataRange().getValues();
-// السطر الأول رؤوس أعمدة — ابدأ من 1
-for (var i = 1; i < data.length; i++) {
-if (String(data[i][0]).trim() === id) {
-return respond({
-success : true,
-empId   : id,
-name    : String(data[i][1] || “”),
-dept    : String(data[i][2] || “”)
-}, cb);
+function doPost(e) {
+try {
+var body = JSON.parse(e.postData.contents || “{}”);
+if (body.action === “uploadImage”) return handleImageUpload(body);
+return handleAdd(body, “”);
+} catch(err) {
+return respond({ error: err.message }, “”);
 }
 }
-return respond({error:“not_found”}, cb);
+
+/* ─── رفع الصورة على Google Drive ─── */
+function handleImageUpload(p) {
+try {
+var plate   = String(p.plate || “unknown”).replace(/[^A-Za-z0-9]/g,””);
+var date    = String(p.date  || “”).replace(/[^0-9-]/g,””);
+var time    = String(p.time  || “”).replace(/[^0-9:]/g,””);
+var imgData = String(p.imgData || “”);
+
+```
+if (!imgData) return respond({ error: "no_image" }, "");
+
+// استخرج بيانات base64
+var base64 = imgData.indexOf(",") > -1 ? imgData.split(",")[1] : imgData;
+var blob   = Utilities.newBlob(Utilities.base64Decode(base64), "image/jpeg",
+               plate + "_" + date + "_" + time.replace(":","") + ".jpg");
+
+// أنشئ أو استخدم المجلد
+var folders = DriveApp.getFoldersByName(DRIVE_FOLDER);
+var folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder(DRIVE_FOLDER);
+
+// ارفع الصورة
+var file = folder.createFile(blob);
+file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+var driveUrl = "https://drive.google.com/uc?export=view&id=" + file.getId();
+
+// حدّث الشيت بالرابط
+updateImageUrl(plate, date, driveUrl);
+
+return respond({ success: true, driveUrl: driveUrl }, "");
+```
+
+} catch(err) {
+return respond({ error: err.message }, “”);
+}
 }
 
-/* ── إضافة سجل جديد ── */
+/* ─── تحديث رابط الصورة في الشيت ─── */
+function updateImageUrl(plate, date, url) {
+var sheet = getSheet();
+if (!sheet) return;
+var data  = sheet.getDataRange().getValues();
+for (var i = data.length - 1; i >= 1; i–) {
+var rowPlate = String(data[i][2]).trim().toUpperCase();
+var rowDate  = String(data[i][3]).trim();
+if (rowPlate === plate.toUpperCase()) {
+// العمود 12 = بيانات الصورة (index 11)
+sheet.getRange(i + 1, 12).setValue(url);
+return;
+}
+}
+}
+
+/* ─── إضافة سجل ─── */
 function handleAdd(p, cb) {
 var ss    = SpreadsheetApp.getActiveSpreadsheet();
-var sheet = getOrCreate(ss);
+var sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
 if (sheet.getLastRow() === 0) setupHeaders(sheet);
 var nextRow = sheet.getLastRow() + 1;
-sheet.getRange(nextRow,1,1,11).setValues([[
+sheet.getRange(nextRow, 1, 1, 12).setValues([[
 p.tower     || “”,
 p.floor     || “”,
 p.plate     || “”,
@@ -420,27 +460,28 @@ p.notes     || “”,
 p.empName   || “”,
 p.empId     || “”,
 p.hasImage  || “لا”,
-new Date().toLocaleString(“ar-SA”)
+new Date().toLocaleString(“ar-SA”),
+“”  // رابط الصورة - يُحدَّث لاحقاً
 ]]);
 formatRow(sheet, nextRow);
-return respond({success:true}, cb);
+SpreadsheetApp.flush();
+return respond({ success: true }, cb);
 }
 
-/* ── جلب كل السجلات ── */
+/* ─── جلب كل السجلات ─── */
 function handleGetAll(cb) {
 var sheet = getSheet();
 if (!sheet) return respond([], cb);
-var data = sheet.getDataRange().getValues();
+var data  = sheet.getDataRange().getValues();
 if (data.length <= 1) return respond([], cb);
 var headers = data[0];
-var tz = Session.getScriptTimeZone();
+var tz      = Session.getScriptTimeZone();
 var rows = data.slice(1).map(function(row) {
 var obj = {};
 headers.forEach(function(h, i) {
 var val = row[i];
 if (val instanceof Date) {
 if (val.getFullYear() <= 1900) {
-// وقت فقط
 var hh = val.getHours(), mm = val.getMinutes();
 val = (hh<10?“0”:””)+hh+”:”+(mm<10?“0”:””)+mm;
 } else {
@@ -454,53 +495,62 @@ return obj;
 return respond(rows, cb);
 }
 
+/* ─── جلب موظف ─── */
+function handleGetGuard(p, cb) {
+var id    = String(p.empId || “”).trim();
+if (!id)  return respond({ error: “no_id” }, cb);
+var ss    = SpreadsheetApp.getActiveSpreadsheet();
+var sheet = ss.getSheetByName(GUARDS_SHEET);
+if (!sheet) return respond({ error: “no_sheet”, msg: “أنشئ ورقة: “ + GUARDS_SHEET }, cb);
+var rows  = sheet.getDataRange().getValues();
+for (var i = 1; i < rows.length; i++) {
+if (String(rows[i][0]).trim() === id) {
+return respond({ success:true, empId:id, name:String(rows[i][1]||””), dept:String(rows[i][2]||””) }, cb);
+}
+}
+return respond({ error: “not_found” }, cb);
+}
+
+/* ─── رؤوس الأعمدة ─── */
 function setupHeaders(sheet) {
-var h = [“🏢 البرج”,“🔢 الدور”,“🚗 رقم اللوحة”,
-“📅 تاريخ الرصد”,“⏰ الوقت”,“🚦 حالة المركبة”,“📝 ملاحظات”,
-“👤 رجل الأمن”,“🪪 الرقم الوظيفي”,“📷 صورة”,“🕐 وقت الإضافة”];
-var r = sheet.getRange(1,1,1,h.length);
-r.setValues([h]).setBackground(”#1e3a8a”).setFontColor(”#ffffff”)
+var h = [“البرج”,“الدور”,“رقم اللوحة”,“تاريخ الرصد”,“الوقت”,
+“حالة المركبة”,“ملاحظات”,“رجل الأمن”,“الرقم الوظيفي”,
+“صورة”,“وقت الإضافة”,“رابط الصورة”];
+sheet.getRange(1,1,1,h.length).setValues([h])
+.setBackground(”#1e3a8a”).setFontColor(”#ffffff”)
 .setFontWeight(“bold”).setFontSize(11).setHorizontalAlignment(“center”);
 sheet.setRowHeight(1, 36);
-[70,70,130,110,75,120,110,160,140,70,155].forEach(function(w,i){
-sheet.setColumnWidth(i+1, w);
-});
 sheet.setFrozenRows(1);
 sheet.setRightToLeft(true);
 }
 
+/* ─── تنسيق الصف ─── */
 function formatRow(sheet, row) {
-var r = sheet.getRange(row,1,1,11);
-r.setBackground(row%2===0?”#f0f4ff”:”#ffffff”).setFontSize(10).setVerticalAlignment(“middle”);
+sheet.getRange(row,1,1,12)
+.setBackground(row%2===0?”#f0f4ff”:”#ffffff”)
+.setFontSize(10).setVerticalAlignment(“middle”);
 sheet.setRowHeight(row, 30);
-sheet.getRange(row,3).setBackground(”#1e3a8a”).setFontColor(”#ffffff”)
-.setFontWeight(“bold”).setHorizontalAlignment(“center”);
 var sv = sheet.getRange(row,6).getValue();
-if(sv===“مغبرة”) sheet.getRange(row,6).setBackground(”#fee2e2”).setFontColor(”#991b1b”).setFontWeight(“bold”).setHorizontalAlignment(“center”);
-else if(sv===“متوسطة الغبار”) sheet.getRange(row,6).setBackground(”#fef9c3”).setFontColor(”#854d0e”).setFontWeight(“bold”).setHorizontalAlignment(“center”);
-else if(sv===“حديثة”) sheet.getRange(row,6).setBackground(”#dcfce7”).setFontColor(”#166534”).setFontWeight(“bold”).setHorizontalAlignment(“center”);
-r.setBorder(true,true,true,true,true,true,”#e2e8f0”, SpreadsheetApp.BorderStyle.SOLID);
+if(sv===“مغبرة”)           sheet.getRange(row,6).setBackground(”#fee2e2”).setFontColor(”#991b1b”).setFontWeight(“bold”);
+else if(sv===“متوسطة الغبار”) sheet.getRange(row,6).setBackground(”#fef9c3”).setFontColor(”#854d0e”).setFontWeight(“bold”);
+else if(sv===“حديثة”)      sheet.getRange(row,6).setBackground(”#dcfce7”).setFontColor(”#166534”).setFontWeight(“bold”);
 }
 
-function getOrCreate(ss) {
-return ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
-}
-function getSheet() {
-return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-}
+function getSheet() { return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME); }
 function respond(data, cb) {
 var json = JSON.stringify(data);
-var out  = cb ? cb+”(”+json+”);” : json;
-return ContentService.createTextOutput(out).setMimeType(
-cb ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);
-}
-function doPost(e) {
-return handleAdd(JSON.parse(e.postData.contents||”{}”), null);
+var out  = (cb && cb !== “”) ? cb+”(”+json+”);” : json;
+var mime = (cb && cb !== “”) ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON;
+return ContentService.createTextOutput(out).setMimeType(mime);
 }</pre></div>
 </div>
 <div class="setup-step">
 <h4><span class="badge-num">2</span> انشر التحديث:</h4>
 <p style="font-size:13px;margin:4px 0;"><b>Deploy</b> ← <b>Manage deployments</b> ← ✏️ ← <b>New version</b> ← <b>Who has access = Anyone</b> ← <b>Deploy</b></p>
+</div>
+<div class="setup-step" style="background:#eff6ff;border-color:#bfdbfe;">
+<h4 style="color:#1d4ed8;">📁 ملاحظة Google Drive</h4>
+<p style="font-size:13px;margin:4px 0;">سيُنشئ الكود مجلداً تلقائياً اسمه <b>“صور مركبات الرصد”</b> في Google Drive الخاص بحساب الـ Apps Script.<br/>الصور تكون مشتركة تلقائياً — تظهر على كل الأجهزة ✅</p>
 </div>
 <div class="setup-step">
 <h4><span class="badge-num">3</span> اختبر الاتصال:</h4>
@@ -801,6 +851,7 @@ function checkPlateExists(plateVal){
 
 /* ════════ Add to Cloud ════════ */
 async function addToCloud(v, imgB64){
+  // ═══ خطوة 1: أضف السجل بدون صورة أولاً ═══
   var hasImg = imgB64 ? "نعم" : "لا";
   var params = [
     "action=add",
@@ -816,7 +867,35 @@ async function addToCloud(v, imgB64){
     "empId="+encodeURIComponent(report.guard.empId),
     "hasImage="+encodeURIComponent(hasImg)
   ].join("&");
-  return await jsonpCall(GS_URL+"?"+params, 15000);
+  var res = await jsonpCall(GS_URL+"?"+params, 15000);
+  if(!res || !res.success) return res;
+
+  // ═══ خطوة 2: ارفع الصورة على Drive إذا وجدت ═══
+  if(imgB64){
+    try{
+      setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
+      var resp = await fetch(GS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action:  "uploadImage",
+          plate:   v.plate,
+          date:    v.date,
+          time:    v.time,
+          imgData: imgB64
+        })
+      });
+      var imgRes = await resp.json();
+      if(imgRes && imgRes.driveUrl){
+        // احفظ الرابط محلياً للعرض الفوري
+        localImages["plate_"+v.plate] = imgRes.driveUrl;
+      }
+    }catch(e){
+      console.warn("Image upload failed:", e.message);
+      // السجل محفوظ، فقط الصورة لم ترفع
+    }
+  }
+  return res;
 }
 
 /* ════════ Helpers ════════ */
@@ -966,8 +1045,10 @@ function renderTable(){
 
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
-    // ابحث عن الصورة بأكثر من مفتاح
-    var localImg = localImages["plate_" + v.plate]
+    // ابحث عن الصورة: Drive URL من الشيت أولاً ثم المحفوظ محلياً
+    var driveUrl = String(getField(v,["بيانات الصورة","driveUrl"])||v.driveUrl||"").trim();
+    var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
+                 : localImages["plate_" + v.plate]
                 || localImages[v.plate + "_" + v.date + "_" + v.time.replace(":","")]
                 || localImages[v.plate + "_" + v.date]
                 || null;
