@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8"/>
@@ -929,6 +930,17 @@ function updateStats(){
   els.statApiCalls.textContent = report.addedCount||0;
 }
 
+function towerBadge(t){
+  t = String(t||"").trim().toUpperCase();
+  var styles = {
+    "A": "background:linear-gradient(135deg,#1e3a8a,#2563eb);box-shadow:0 2px 8px rgba(37,99,235,.4);",
+    "B": "background:linear-gradient(135deg,#166534,#16a34a);box-shadow:0 2px 8px rgba(22,163,74,.4);",
+    "C": "background:linear-gradient(135deg,#991b1b,#ef4444);box-shadow:0 2px 8px rgba(239,68,68,.4);"
+  };
+  var st = styles[t] || "background:#64748b;";
+  return '<span class="tower-badge" style="'+st+'">'+t+'</span>';
+}
+
 function renderTable(){
   els.tableBody.innerHTML="";
   if(!cloudData.length){
@@ -976,7 +988,7 @@ function renderTable(){
     tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
       '<td>'+imgCell+'</td>'+
-      '<td><span class="tower-badge tower-'+v.tower.trim().toUpperCase()+'">'+v.tower.trim()+'</span></td>'+
+      '<td>'+towerBadge(v.tower)+'</td>'+
       '<td><span class="floor-badge">'+v.floor+'</span></td>'+
       '<td><span class="plate-badge">🚗 '+v.plate+'</span></td>'+
       '<td><span class="date-badge">'+v.date+'</span></td>'+
