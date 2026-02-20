@@ -99,12 +99,12 @@ td{padding:10px 12px;font-size:13px;border-bottom:1px solid #e8edf3;vertical-ali
 td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-align:center;}
 
 .plate-badge{display:inline-block;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:5px 14px;border-radius:8px;font-weight:800;font-size:14px;letter-spacing:2px;font-family:'Courier New',monospace;box-shadow:0 2px 6px rgba(37,99,235,.35);white-space:nowrap;}
-.tower-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;color:#fff;}
+.tower-badge{display:inline-block;padding:5px 14px;border-radius:8px;font-weight:800;font-size:13px;color:#fff !important;letter-spacing:1px;min-width:34px;text-align:center;}
 ```
 
-.tower-A{background:linear-gradient(135deg,#1e3a8a,#2563eb);box-shadow:0 2px 6px rgba(37,99,235,.35);}
-.tower-B{background:linear-gradient(135deg,#166534,#16a34a);box-shadow:0 2px 6px rgba(22,163,74,.35);}
-.tower-C{background:linear-gradient(135deg,#991b1b,#ef4444);box-shadow:0 2px 6px rgba(239,68,68,.35);}
+.tower-A{background:linear-gradient(135deg,#1e3a8a,#2563eb) !important;color:#fff !important;box-shadow:0 2px 8px rgba(37,99,235,.4);}
+.tower-B{background:linear-gradient(135deg,#166534,#16a34a) !important;color:#fff !important;box-shadow:0 2px 8px rgba(22,163,74,.4);}
+.tower-C{background:linear-gradient(135deg,#991b1b,#ef4444) !important;color:#fff !important;box-shadow:0 2px 8px rgba(239,68,68,.4);}
 .floor-badge{display:inline-block;background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
 .guard-badge{display:inline-flex;align-items:center;gap:4px;background:#f5f3ff;color:#5b21b6;padding:3px 10px;border-radius:6px;font-weight:600;font-size:11px;}
 .date-badge{display:inline-block;background:#f1f5f9;color:#334155;padding:3px 8px;border-radius:6px;font-size:12px;}
@@ -940,7 +940,7 @@ function renderTable(){
     var rawDate=getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
     var rawTime=getField(v,["الوقت","⏰ الوقت"])||v.time||"";
     return {
-      tower:  String(getField(v,["البرج","🏢 البرج"])||v.tower||""),
+      tower:  String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
       floor:  String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
       plate:  String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
       date:   fixExcelDate(rawDate),
@@ -977,7 +977,7 @@ function renderTable(){
     tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
       '<td>'+imgCell+'</td>'+
-      '<td><span class="tower-badge tower-'+v.tower+'">'+v.tower+'</span></td>'+
+      '<td><span class="tower-badge tower-'+v.tower.trim().toUpperCase()+'">'+v.tower.trim()+'</span></td>'+
       '<td><span class="floor-badge">'+v.floor+'</span></td>'+
       '<td><span class="plate-badge">🚗 '+v.plate+'</span></td>'+
       '<td><span class="date-badge">'+v.date+'</span></td>'+
