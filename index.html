@@ -99,13 +99,18 @@ td{padding:10px 12px;font-size:13px;border-bottom:1px solid #e8edf3;vertical-ali
 td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-align:center;}
 
 .plate-badge{display:inline-block;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:5px 14px;border-radius:8px;font-weight:800;font-size:14px;letter-spacing:2px;font-family:'Courier New',monospace;box-shadow:0 2px 6px rgba(37,99,235,.35);white-space:nowrap;}
-.tower-badge{display:inline-block;background:#dbeafe;color:#1d4ed8;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
+.tower-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;color:#fff;}
+```
+
+.tower-A{background:linear-gradient(135deg,#1e3a8a,#2563eb);box-shadow:0 2px 6px rgba(37,99,235,.35);}
+.tower-B{background:linear-gradient(135deg,#166534,#16a34a);box-shadow:0 2px 6px rgba(22,163,74,.35);}
+.tower-C{background:linear-gradient(135deg,#991b1b,#ef4444);box-shadow:0 2px 6px rgba(239,68,68,.35);}
 .floor-badge{display:inline-block;background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
 .guard-badge{display:inline-flex;align-items:center;gap:4px;background:#f5f3ff;color:#5b21b6;padding:3px 10px;border-radius:6px;font-weight:600;font-size:11px;}
 .date-badge{display:inline-block;background:#f1f5f9;color:#334155;padding:3px 8px;border-radius:6px;font-size:12px;}
 .time-cell{font-weight:700;color:#0f172a;background:#f1f5f9;padding:3px 8px;border-radius:6px;font-size:12px;display:inline-block;}
-.imgPrev{width:68px;height:52px;object-fit:cover;border-radius:8px;border:2px solid #e2e8f0;cursor:pointer;transition:transform .2s;}
-.imgPrev:hover{transform:scale(1.1);}
+.imgPrev{width:80px;height:60px;object-fit:cover;border-radius:10px;border:2px solid #2563eb;cursor:pointer;transition:transform .2s, box-shadow .2s;box-shadow:0 2px 8px rgba(37,99,235,.2);}
+.imgPrev:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(37,99,235,.35);}
 .notes-cell{color:#64748b;font-size:12px;}
 .empty-state{text-align:center;padding:50px 20px;color:#94a3b8;}
 .empty-state .icon{font-size:48px;margin-bottom:10px;}
@@ -113,6 +118,7 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
 .status-badge-mid{display:inline-block;background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
 .status-badge-dust{display:inline-block;background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
 
+```
 /* ── Loading ── */
 .loading-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.88);z-index:8888;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
 .loading-overlay.active{display:flex;}
@@ -594,6 +600,7 @@ var els = {
 /* ════════ State ════════ */
 var report      = { guard:{empId:"",name:"",dept:""}, addedCount:0 };
 var cloudData   = [];
+var localImages = {}; // تخزين الصور محلياً: key = plate_date
 var cameraStream= null;
 var isSyncing   = false;
 var currentImgBase64 = null;
@@ -883,7 +890,14 @@ async function addVehicle(){
   try{
     var res=await addToCloud(v, currentImgBase64);
     if(res&&res.success){
-      report.addedCount=(report.addedCount||0)+1; saveLocal(); clearForm();
+      report.addedCount=(report.addedCount||0)+1; saveLocal();
+      // احفظ الصورة محلياً قبل مسح النموذج
+      if(currentImgBase64){
+        var imgKey = v.plate + "_" + v.date;
+        localImages[imgKey] = currentImgBase64;
+        try{ localStorage.setItem("img_"+imgKey, currentImgBase64); }catch(e){}
+      }
+      clearForm();
       setSyncStatus("loading","🔄 تم — جارٍ تحديث الجدول...");
       setStatus("✅ تم حفظ "+plate);
       setTimeout(function(){ loadFromCloud(false); },1200);
@@ -935,10 +949,12 @@ function renderTable(){
 
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
-    var imgCell = v.img
-      ? '<img class="imgPrev" src="'+v.img+'"/>'
+    // ابحث عن الصورة المحفوظة محلياً
+    var localImg = localImages[v.plate + "_" + v.date] || null;
+    var imgCell = localImg
+      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'"/>'
       : (v.hasImg==="نعم"
-        ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:11px;">📷 موجود</span>'
+        ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">📷 موجود</span>'
         : '<span style="color:#cbd5e1;">—</span>');
     var notesCell = v.notes
       ? '<span class="notes-cell" title="'+v.notes+'">'+(v.notes.length>20?v.notes.slice(0,20)+"…":v.notes)+'</span>'
@@ -952,7 +968,7 @@ function renderTable(){
     tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
       '<td>'+imgCell+'</td>'+
-      '<td><span class="tower-badge">'+v.tower+'</span></td>'+
+      '<td><span class="tower-badge tower-'+v.tower+'">'+v.tower+'</span></td>'+
       '<td><span class="floor-badge">'+v.floor+'</span></td>'+
       '<td><span class="plate-badge">🚗 '+v.plate+'</span></td>'+
       '<td><span class="date-badge">'+v.date+'</span></td>'+
@@ -1213,6 +1229,15 @@ document.addEventListener("keydown", function(e){
 /* ════════ Init ════════ */
 setNow();
 loadLocal();
+// استعادة الصور المحفوظة محلياً
+try{
+  for(var k in localStorage){
+    if(k.indexOf("img_")===0){
+      var imgKey2 = k.slice(4);
+      localImages[imgKey2] = localStorage.getItem(k);
+    }
+  }
+}catch(e){}
 if(report.guard&&report.guard.empId){
   els.empId.value  = report.guard.empId;
   els.empName.value= report.guard.name;
