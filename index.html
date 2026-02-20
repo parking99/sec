@@ -33,6 +33,7 @@
     .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;color:#475569;font-size:12px;}
     .topnote{background:#f1f5f9;border:1px dashed #cbd5e1;padding:10px;border-radius:12px;margin:10px 0;font-size:12px;color:#334155;}
 
+```
 /* ── Sync Banner ── */
 .sync-banner{display:flex;align-items:center;gap:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin:10px 0;font-size:13px;flex-wrap:wrap;}
 .sync-banner.syncing{background:#fefce8;border-color:#fde68a;}
@@ -45,16 +46,7 @@
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ── بطاقة البحث عن اللوحة ── */
-.plate-found-card{
-  display:none;
-  background:linear-gradient(135deg,#fef3c7,#fff7ed);
-  border:2px solid #f59e0b;
-  border-radius:14px;
-  padding:14px 16px;
-  margin:0 0 14px 0;
-  animation:slideIn .3s ease;
-  position:relative;
-}
+.plate-found-card{display:none;background:linear-gradient(135deg,#fef3c7,#fff7ed);border:2px solid #f59e0b;border-radius:14px;padding:14px 16px;margin:0 0 14px 0;animation:slideIn .3s ease;}
 .plate-found-card.show{display:block;}
 @keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .plate-found-title{font-size:14px;font-weight:700;color:#92400e;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
@@ -67,26 +59,21 @@
 .pf-count-badge{background:#ef4444;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;}
 
 /* ── رفع الصورة ── */
-.img-upload-area{
-  border:2px dashed #cbd5e1;
-  border-radius:12px;
-  padding:14px;
-  text-align:center;
-  cursor:pointer;
-  transition:all .2s;
-  background:#fafafa;
-  min-height:80px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  gap:6px;
-}
+.img-upload-area{border:2px dashed #cbd5e1;border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;min-height:80px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;}
 .img-upload-area:hover{border-color:#2563eb;background:#eff6ff;}
 .img-upload-area.has-img{border-color:#16a34a;background:#f0fdf4;padding:6px;}
 .img-upload-area img{max-width:100%;max-height:120px;border-radius:8px;object-fit:cover;}
 .img-upload-area .upload-hint{font-size:12px;color:#94a3b8;}
 .img-upload-area .upload-icon{font-size:24px;}
+
+/* ── بطاقة بيانات الموظف ── */
+.guard-info-card{display:none;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #16a34a;border-radius:12px;padding:12px 16px;margin:8px 0;animation:slideIn .3s ease;}
+.guard-info-card.show{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.guard-avatar{width:44px;height:44px;background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.guard-details{flex:1;}
+.guard-name{font-size:15px;font-weight:700;color:#166534;}
+.guard-id{font-size:12px;color:#16a34a;margin-top:2px;}
+.guard-dept{font-size:12px;color:#15803d;background:#bbf7d0;padding:2px 8px;border-radius:6px;display:inline-block;margin-top:4px;}
 
 /* ── Stats ── */
 .stats{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap;}
@@ -108,7 +95,6 @@ tbody tr{transition:background .15s;}
 tbody tr:nth-child(odd){background:#f8fafc;}
 tbody tr:nth-child(even){background:#fff;}
 tbody tr:hover{background:#eff6ff!important;}
-tbody tr:last-child td{border-bottom:none;}
 td{padding:10px 12px;font-size:13px;border-bottom:1px solid #e8edf3;vertical-align:middle;text-align:right;}
 td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-align:center;}
 
@@ -127,31 +113,30 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
 .status-badge-mid{display:inline-block;background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
 .status-badge-dust{display:inline-block;background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
 
-/* Script Box */
-.script-box{background:#0f172a;border-radius:12px;padding:16px;margin:10px 0;direction:ltr;}
-.script-box pre{color:#e2e8f0;font-family:monospace;font-size:11px;margin:0;white-space:pre-wrap;overflow:auto;max-height:360px;}
-.copy-btn{float:left;background:#2563eb;color:#fff;border:0;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;margin-bottom:6px;}
+/* ── Loading ── */
+.loading-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.88);z-index:8888;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+.loading-overlay.active{display:flex;}
+.spinner{width:52px;height:52px;border:5px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* Modal */
-.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:9999;align-items:center;justify-content:center;}
-.modal.active{display:flex;}
-.modal-content{background:#fff;border-radius:16px;padding:22px;max-width:95%;max-height:95%;overflow:auto;position:relative;}
-.modal-close{position:absolute;top:10px;left:10px;background:var(--r);color:#fff;border:0;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px;line-height:36px;text-align:center;}
-
-/* Camera */
-.camera-container{position:relative;display:inline-block;}
+/* ── Camera ── */
+.camera-container{position:relative;display:inline-block;width:100%;text-align:center;}
 #cameraVideo{width:100%;max-width:640px;border-radius:10px;background:#000;display:block;margin:0 auto;}
 #cameraCanvas{display:none;}
 .plate-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:4px solid #22c55e;background:rgba(34,197,94,.05);width:70%;height:25%;pointer-events:none;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.5);}
 .plate-guide::before{content:"📸 ضع اللوحة هنا";position:absolute;top:-40px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:8px 20px;border-radius:10px;font-size:15px;font-weight:700;}
 .camera-controls{margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
 
-/* Loading */
-.loading-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.88);z-index:8888;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
-.loading-overlay.active{display:flex;}
-.spinner{width:52px;height:52px;border:5px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* ── Modal ── */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:9999;align-items:center;justify-content:center;}
+.modal.active{display:flex;}
+.modal-content{background:#fff;border-radius:16px;padding:22px;max-width:95%;max-height:95%;overflow:auto;position:relative;}
+.modal-close{position:absolute;top:10px;left:10px;background:var(--r);color:#fff;border:0;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px;line-height:36px;text-align:center;}
 
+/* ── Apps Script Code Box ── */
+.script-box{background:#0f172a;border-radius:12px;padding:16px;margin:10px 0;direction:ltr;}
+.script-box pre{color:#e2e8f0;font-family:monospace;font-size:11px;margin:0;white-space:pre-wrap;overflow:auto;max-height:360px;}
+.copy-btn{float:left;background:#2563eb;color:#fff;border:0;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;margin-bottom:6px;}
 .setup-step{background:#f8fafc;border:1px solid var(--g);border-radius:10px;padding:12px;margin:10px 0;}
 .setup-step h4{margin:0 0 6px;color:#1d4ed8;font-size:14px;}
 .badge-num{display:inline-block;background:#2563eb;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:6px;}
@@ -165,6 +150,7 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
   thead tr{background:#1e3a8a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   tbody tr:nth-child(odd){background:#f8fafc!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
+```
 
   </style>
 </head>
@@ -183,19 +169,22 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
     <span style="background:#d1fae5;padding:3px 8px;border-radius:6px;">☁️ مزامنة سحابية</span>
     <span style="background:#dbeafe;padding:3px 8px;border-radius:6px;">🔍 بحث فوري عن اللوحة</span>
     <span style="background:#fef3c7;padding:3px 8px;border-radius:6px;">🤖 قراءة اللوحة بالكاميرا</span>
-    <span style="background:#fee2e2;padding:3px 8px;border-radius:6px;">تحديث كل 60 ثانية</span>
+    <span style="background:#dcfce7;padding:3px 8px;border-radius:6px;">👤 بيانات الموظف من Sheets</span>
   </div>
 
   <!-- Sync Bar -->
+
   <div class="sync-banner no-print" id="syncBanner">
     <div class="sync-dot" id="syncDot"></div>
     <span id="syncMsg">يتم الاتصال بالسحابة...</span>
     <div style="margin-right:auto;display:flex;gap:8px;flex-wrap:wrap;">
       <button class="primary" id="btnSync" style="padding:6px 14px;font-size:12px;">🔄 تحديث</button>
+      <button class="ghost" id="btnShowSetup" style="padding:6px 14px;font-size:12px;">⚙️ إعداد Apps Script</button>
     </div>
   </div>
 
   <!-- Stats -->
+
   <div class="stats no-print">
     <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">إجمالي المركبات</div></div>
     <div class="stat-card green"><div class="stat-value" id="statToday">0</div><div class="stat-label">اليوم</div></div>
@@ -204,17 +193,48 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
   </div>
 
   <!-- Guard Info -->
+
   <div class="row no-print">
-    <div class="col small"><label>الرقم الوظيفي</label><input id="empId" inputmode="numeric" placeholder="88840"/></div>
-    <div class="col wide"><label>اسم رجل الأمن</label><input id="empName" placeholder="يظهر تلقائياً" readonly/></div>
-    <div class="col small"><label>التاريخ</label><input id="reportDate" readonly/></div>
-    <div class="col small"><label>الوقت</label><input id="reportTime" readonly/></div>
-    <div class="col small"><button class="primary" id="btnLookup" style="width:100%">🔍 بحث</button></div>
+    <div class="col small">
+      <label>الرقم الوظيفي</label>
+      <input id="empId" inputmode="numeric" placeholder="88840"/>
+    </div>
+    <div class="col wide">
+      <label>اسم رجل الأمن</label>
+      <input id="empName" placeholder="يظهر تلقائياً من قاعدة البيانات" readonly/>
+    </div>
+    <div class="col small">
+      <label>التاريخ</label>
+      <input id="reportDate" readonly/>
+    </div>
+    <div class="col small">
+      <label>الوقت</label>
+      <input id="reportTime" readonly/>
+    </div>
+    <div class="col small">
+      <button class="primary" id="btnLookup" style="width:100%">🔍 بحث</button>
+    </div>
   </div>
+
+  <!-- بطاقة بيانات الموظف -->
+
+  <div class="guard-info-card no-print" id="guardInfoCard">
+    <div class="guard-avatar">👤</div>
+    <div class="guard-details">
+      <div class="guard-name" id="guardNameDisplay"></div>
+      <div class="guard-id" id="guardIdDisplay"></div>
+      <div class="guard-dept" id="guardDeptDisplay" style="display:none;"></div>
+    </div>
+    <div style="margin-right:auto;">
+      <span style="background:#dcfce7;color:#166534;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">✅ موظف موثّق</span>
+    </div>
+  </div>
+
   <div class="meta"><span>الحالة: <b id="status">جارٍ التحميل...</b></span></div>
   <hr style="border:0;border-top:1px solid var(--g);margin:14px 0;"/>
 
   <!-- Plate Already Found Alert -->
+
   <div class="plate-found-card" id="plateFoundCard">
     <div class="plate-found-title">
       ⚠️ هذه اللوحة مرصودة مسبقاً!
@@ -224,6 +244,7 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
   </div>
 
   <!-- Vehicle Inputs -->
+
   <div class="row no-print">
     <div class="col small">
       <label>البرج</label>
@@ -237,10 +258,9 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
       <label>رقم اللوحة</label>
       <div style="display:flex;gap:6px;align-items:center;">
         <input id="plate" placeholder="ABC1234" maxlength="12" style="text-transform:uppercase;font-weight:700;font-size:15px;letter-spacing:1px;flex:1;"/>
-        <button id="btnOcrCamera" title="قراءة اللوحة بالكاميرا أو رفع صورة" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border:0;border-radius:10px;width:44px;height:44px;cursor:pointer;font-size:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(37,99,235,.35);">📷</button>
+        <button id="btnOcrCamera" title="قراءة اللوحة بالكاميرا أو رفع صورة" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border:0;border-radius:10px;width:44px;height:44px;cursor:pointer;font-size:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">📷</button>
         <input type="file" id="ocrFileInput" accept="image/*" style="display:none;"/>
       </div>
-      <div style="font-size:10px;color:#94a3b8;margin-top:4px;">📷 اضغط لقراءة اللوحة تلقائياً</div>
     </div>
     <div class="col small">
       <label>تاريخ الرصد</label>
@@ -262,6 +282,7 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
   </div>
 
   <!-- Image Upload -->
+
   <div class="row no-print" style="margin-top:10px;">
     <div class="col wide">
       <label>📷 صورة المركبة <span style="color:#94a3b8;font-weight:400;">(اختياري)</span></label>
@@ -282,6 +303,7 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
   <div class="hint no-print">💡 Ctrl+Enter للإضافة السريعة | تحديث تلقائي كل 60 ثانية</div>
 
   <!-- Table -->
+
   <div class="table-wrap">
     <table id="vehiclesTable">
       <thead><tr>
@@ -311,47 +333,94 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
 </div></div>
 
 <!-- Setup Modal -->
-<div class="modal" id="setupModal" style="display:none!important;">
-  <div class="modal-content" style="max-width:720px;">
+
+<div class="modal" id="setupModal">
+  <div class="modal-content" style="max-width:760px;">
     <button class="modal-close" id="closeSetup">×</button>
-    <h2 style="margin-top:0;color:#1d4ed8;">⚙️ كود Google Apps Script</h2>
-    <p style="color:#475569;font-size:13px;">انسخ وضعه في Apps Script بدلاً من الكود القديم ثم انشر:</p>
-    <div class="setup-step">
-      <h4><span class="badge-num">1</span> الصق الكود:</h4>
-      <button class="copy-btn" onclick="copyScript()">📋 نسخ</button>
-      <div class="script-box"><pre id="scriptCode">var SHEET_NAME = "رصد السيارات";
+    <h2 style="margin-top:0;color:#1d4ed8;">⚙️ كود Google Apps Script المحدّث</h2>
+    <p style="color:#475569;font-size:13px;">انسخ الكود كاملاً والصقه في Apps Script ثم انشر من جديد:</p>
+
+```
+<div class="setup-step" style="background:#fef3c7;border-color:#fde68a;">
+  <h4 style="color:#92400e;">📋 ورقة الموظفين "الموظفون"</h4>
+  <p style="font-size:13px;margin:4px 0;">أنشئ ورقة جديدة باسم <b>الموظفون</b> بهذه الأعمدة:</p>
+  <table style="border-collapse:collapse;font-size:12px;margin-top:6px;">
+    <tr style="background:#1e3a8a;color:#fff;">
+      <th style="padding:6px 12px;border:1px solid #ccc;">A — الرقم الوظيفي</th>
+      <th style="padding:6px 12px;border:1px solid #ccc;">B — الاسم</th>
+      <th style="padding:6px 12px;border:1px solid #ccc;">C — القسم</th>
+    </tr>
+    <tr><td style="padding:6px 12px;border:1px solid #ccc;">88840</td><td style="padding:6px 12px;border:1px solid #ccc;">عبدالله الزهراني</td><td style="padding:6px 12px;border:1px solid #ccc;">الأمن</td></tr>
+    <tr><td style="padding:6px 12px;border:1px solid #ccc;">88841</td><td style="padding:6px 12px;border:1px solid #ccc;">محمد العتيبي</td><td style="padding:6px 12px;border:1px solid #ccc;">الأمن</td></tr>
+  </table>
+</div>
+
+<div class="setup-step">
+  <h4><span class="badge-num">1</span> الصق الكود الكامل:</h4>
+  <button class="copy-btn" onclick="copyScript()">📋 نسخ</button>
+  <div class="script-box"><pre id="scriptCode">var SHEET_NAME   = "رصد السيارات";
+```
+
+var GUARDS_SHEET = “الموظفون”;
 
 function doGet(e) {
 var params = e.parameter;
-var cb = params.callback;
-var action = params.action || "getAll";
-if (action === "add")    return handleAdd(params, cb);
-if (action === "getAll") return handleGetAll(cb);
-return respond({error:"unknown"}, cb);
+var cb     = params.callback;
+var action = params.action || “getAll”;
+if (action === “add”)      return handleAdd(params, cb);
+if (action === “getAll”)   return handleGetAll(cb);
+if (action === “getGuard”) return handleGetGuard(params, cb);
+return respond({error:“unknown”}, cb);
 }
 
+/* ── جلب بيانات موظف بالرقم الوظيفي ── */
+function handleGetGuard(p, cb) {
+var id = String(p.empId || “”).trim();
+if (!id) return respond({error:“no_id”}, cb);
+
+var ss    = SpreadsheetApp.getActiveSpreadsheet();
+var sheet = ss.getSheetByName(GUARDS_SHEET);
+if (!sheet) return respond({error:“no_sheet”, msg:“أنشئ ورقة باسم: “ + GUARDS_SHEET}, cb);
+
+var data = sheet.getDataRange().getValues();
+// السطر الأول رؤوس أعمدة — ابدأ من 1
+for (var i = 1; i < data.length; i++) {
+if (String(data[i][0]).trim() === id) {
+return respond({
+success : true,
+empId   : id,
+name    : String(data[i][1] || “”),
+dept    : String(data[i][2] || “”)
+}, cb);
+}
+}
+return respond({error:“not_found”}, cb);
+}
+
+/* ── إضافة سجل جديد ── */
 function handleAdd(p, cb) {
-var ss = SpreadsheetApp.getActiveSpreadsheet();
+var ss    = SpreadsheetApp.getActiveSpreadsheet();
 var sheet = getOrCreate(ss);
 if (sheet.getLastRow() === 0) setupHeaders(sheet);
 var nextRow = sheet.getLastRow() + 1;
 sheet.getRange(nextRow,1,1,11).setValues([[
-p.tower    || "",
-p.floor    || "",
-p.plate    || "",
-p.obsDate  || p.date || "",
-p.time     || "",
-p.carStatus || "",
-p.notes    || "",
-p.empName  || "",
-p.empId    || "",
-p.hasImage || "لا",
-new Date().toLocaleString("ar-SA")
+p.tower     || “”,
+p.floor     || “”,
+p.plate     || “”,
+p.obsDate   || p.date || “”,
+p.time      || “”,
+p.carStatus || “”,
+p.notes     || “”,
+p.empName   || “”,
+p.empId     || “”,
+p.hasImage  || “لا”,
+new Date().toLocaleString(“ar-SA”)
 ]]);
 formatRow(sheet, nextRow);
 return respond({success:true}, cb);
 }
 
+/* ── جلب كل السجلات ── */
 function handleGetAll(cb) {
 var sheet = getSheet();
 if (!sheet) return respond([], cb);
@@ -367,14 +436,12 @@ return respond(rows, cb);
 }
 
 function setupHeaders(sheet) {
-var h = ["🏢 البرج","🔢 الدور","🚗 رقم اللوحة",
-"📅 تاريخ الرصد","⏰ الوقت","🚦 حالة المركبة","📝 ملاحظات",
-"👤 رجل الأمن","🪪 الرقم الوظيفي","📷 صورة","🕐 وقت الإضافة"];
+var h = [“🏢 البرج”,“🔢 الدور”,“🚗 رقم اللوحة”,
+“📅 تاريخ الرصد”,“⏰ الوقت”,“🚦 حالة المركبة”,“📝 ملاحظات”,
+“👤 رجل الأمن”,“🪪 الرقم الوظيفي”,“📷 صورة”,“🕐 وقت الإضافة”];
 var r = sheet.getRange(1,1,1,h.length);
-r.setValues([h])
-.setBackground("#1e3a8a").setFontColor("#ffffff")
-.setFontWeight("bold").setFontSize(11)
-.setHorizontalAlignment("center");
+r.setValues([h]).setBackground(”#1e3a8a”).setFontColor(”#ffffff”)
+.setFontWeight(“bold”).setFontSize(11).setHorizontalAlignment(“center”);
 sheet.setRowHeight(1, 36);
 [70,70,130,110,75,120,110,160,140,70,155].forEach(function(w,i){
 sheet.setColumnWidth(i+1, w);
@@ -385,71 +452,54 @@ sheet.setRightToLeft(true);
 
 function formatRow(sheet, row) {
 var r = sheet.getRange(row,1,1,11);
-r.setBackground(row%2===0?"#f0f4ff":"#ffffff")
-.setFontSize(10).setVerticalAlignment("middle");
+r.setBackground(row%2===0?”#f0f4ff”:”#ffffff”).setFontSize(10).setVerticalAlignment(“middle”);
 sheet.setRowHeight(row, 30);
-sheet.getRange(row,3)
-.setBackground("#1e3a8a").setFontColor("#ffffff")
-.setFontWeight("bold").setHorizontalAlignment("center");
-sheet.getRange(row,1)
-.setBackground("#dbeafe").setFontColor("#1d4ed8")
-.setFontWeight("bold").setHorizontalAlignment("center");
-sheet.getRange(row,2)
-.setBackground("#fef9c3").setFontColor("#854d0e")
-.setFontWeight("bold").setHorizontalAlignment("center");
-sheet.getRange(row,4,1,2).setHorizontalAlignment("center");
+sheet.getRange(row,3).setBackground(”#1e3a8a”).setFontColor(”#ffffff”)
+.setFontWeight(“bold”).setHorizontalAlignment(“center”);
 var sv = sheet.getRange(row,6).getValue();
-if(sv==="مغبرة") sheet.getRange(row,6).setBackground("#fee2e2").setFontColor("#991b1b").setFontWeight("bold").setHorizontalAlignment("center");
-else if(sv==="متوسطة الغبار") sheet.getRange(row,6).setBackground("#fef9c3").setFontColor("#854d0e").setFontWeight("bold").setHorizontalAlignment("center");
-else if(sv==="حديثة") sheet.getRange(row,6).setBackground("#dcfce7").setFontColor("#166534").setFontWeight("bold").setHorizontalAlignment("center");
-r.setBorder(true,true,true,true,true,true,"#e2e8f0",
-SpreadsheetApp.BorderStyle.SOLID);
+if(sv===“مغبرة”) sheet.getRange(row,6).setBackground(”#fee2e2”).setFontColor(”#991b1b”).setFontWeight(“bold”).setHorizontalAlignment(“center”);
+else if(sv===“متوسطة الغبار”) sheet.getRange(row,6).setBackground(”#fef9c3”).setFontColor(”#854d0e”).setFontWeight(“bold”).setHorizontalAlignment(“center”);
+else if(sv===“حديثة”) sheet.getRange(row,6).setBackground(”#dcfce7”).setFontColor(”#166534”).setFontWeight(“bold”).setHorizontalAlignment(“center”);
+r.setBorder(true,true,true,true,true,true,”#e2e8f0”, SpreadsheetApp.BorderStyle.SOLID);
 }
 
 function getOrCreate(ss) {
 return ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
 }
 function getSheet() {
-var ss = SpreadsheetApp.getActiveSpreadsheet();
-return SHEET_NAME ? ss.getSheetByName(SHEET_NAME) : ss.getActiveSheet();
+return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
 }
 function respond(data, cb) {
 var json = JSON.stringify(data);
-var out = cb ? cb+"("+json+");" : json;
+var out  = cb ? cb+”(”+json+”);” : json;
 return ContentService.createTextOutput(out).setMimeType(
 cb ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);
 }
 function doPost(e) {
-return handleAdd(JSON.parse(e.postData.contents||"{}"), null);
-}
-function formatAllExistingRows() {
-var sheet = getSheet(); if(!sheet) return;
-for(var r=2;r<=sheet.getLastRow();r++) formatRow(sheet,r);
-SpreadsheetApp.flush();
+return handleAdd(JSON.parse(e.postData.contents||”{}”), null);
 }</pre></div>
 </div>
 <div class="setup-step">
 <h4><span class="badge-num">2</span> انشر التحديث:</h4>
-<p style="margin:4px 0;font-size:13px;"><b>Deploy</b> ← <b>Manage deployments</b> ← ✏️ ← <b>New version</b> ← <b>Who has access = Anyone</b> ← <b>Deploy</b></p>
-</div>
-<div class="setup-step" style="background:#f0fdf4;border-color:#bbf7d0;">
-<h4 style="color:#16a34a;">💡 بيانات قديمة؟</h4>
-<p style="margin:4px 0;font-size:13px;">شغّل <b>formatAllExistingRows</b> من Apps Script لتنسيق الصفوف القديمة.</p>
+<p style="font-size:13px;margin:4px 0;"><b>Deploy</b> ← <b>Manage deployments</b> ← ✏️ ← <b>New version</b> ← <b>Who has access = Anyone</b> ← <b>Deploy</b></p>
 </div>
 <div class="setup-step">
 <h4><span class="badge-num">3</span> اختبر الاتصال:</h4>
-<button class="primary" id="btnTestInModal" style="padding:8px 16px;">🧪 اختبار</button>
+<button class="primary" id="btnTestInModal" style="padding:8px 16px;">🧪 اختبار الاتصال</button>
+<button class="orange" id="btnTestGuard" style="padding:8px 16px;margin-right:8px;">👤 اختبار بحث الموظف</button>
 <div id="testResultModal" style="margin-top:10px;font-size:13px;"></div>
 </div>
+
   </div>
 </div>
 
 <!-- Camera Modal -->
+
 <div class="modal" id="cameraModal">
   <div class="modal-content" style="max-width:680px;">
     <button class="modal-close" id="closeCamera">×</button>
     <h2 style="text-align:center;margin-top:0;">📸 قراءة اللوحة بالكاميرا</h2>
-    <div class="camera-container" style="width:100%;text-align:center;">
+    <div class="camera-container">
       <video id="cameraVideo" autoplay playsinline style="width:100%;max-width:640px;border-radius:10px;background:#000;display:block;margin:0 auto;"></video>
       <div class="plate-guide"></div>
     </div>
@@ -464,7 +514,6 @@ SpreadsheetApp.flush();
         <span id="ocrPlateText" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:8px 20px;border-radius:10px;font-size:22px;font-weight:900;letter-spacing:3px;font-family:'Courier New',monospace;"></span>
         <div style="flex:1;min-width:120px;">
           <div style="font-size:11px;color:#166534;">الثقة: <b id="ocrConfidence"></b></div>
-          <div style="display:none;" id="ocrRegion"></div>
         </div>
         <button id="btnUseOcrPlate" class="success" style="padding:8px 16px;font-size:13px;">✔ استخدم هذه اللوحة</button>
       </div>
@@ -479,6 +528,7 @@ SpreadsheetApp.flush();
 </div>
 
 <!-- Image Modal -->
+
 <div class="modal" id="imageModal">
   <div class="modal-content" style="padding:10px;">
     <button class="modal-close" id="closeImage">×</button>
@@ -487,7 +537,676 @@ SpreadsheetApp.flush();
 </div>
 
 <script>
-(function(){var _0x='CihmdW5jdGlvbigpewoidXNlIHN0cmljdCI7Cgp2YXIgR1NfVVJMID0gImh0dHBzOi8vc2NyaXB0Lmdvb2dsZS5jb20vbWFjcm9zL3MvQUtmeWNielpTNFNHWXN3Wm5iSEIwQlJXMGNlWE1iOFNFQm9EZ1BnTjZLYWlhUHRqeS1LbWt5NmJsWjJScHRjMm5ycUFIZ01UWncvZXhlYyI7CnZhciBTVE9SQUdFX0tFWSA9ICJwYXJraW5nUmVwb3J0X3Y0IjsKdmFyIEdVQVJEUyA9IHsKICAiODg4NDAiOiLYudio2K/Yp9mE2YXZhyDYp9mE2LTZhdix2YoiLCI4ODg0MSI6ItmF2K3ZhdivINin2YTYudiq2YrYqNmKIiwKICAiODg4NDIiOiLZgdmH2K8g2KfZhNmC2K3Yt9in2YbZiiIsIjg4ODQzIjoi2LPYudivINin2YTYr9mI2LPYsdmKIgp9OwoKdmFyIHJlcG9ydCA9IHtndWFyZDp7ZW1wSWQ6IiIsbmFtZToiIn0sYWRkZWRDb3VudDowfTsKdmFyIGNsb3VkRGF0YSA9IFtdOwp2YXIgY2FtZXJhU3RyZWFtID0gbnVsbDsKdmFyIGlzU3luY2luZyA9IGZhbHNlOwp2YXIgY3VycmVudEltZ0Jhc2U2NCA9IG51bGw7CgpmdW5jdGlvbiAkKGlkKXtyZXR1cm4gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoaWQpO30KdmFyIGVscyA9IHsKICBlbXBJZDokKCJlbXBJZCIpLGVtcE5hbWU6JCgiZW1wTmFtZSIpLHJlcG9ydERhdGU6JCgicmVwb3J0RGF0ZSIpLHJlcG9ydFRpbWU6JCgicmVwb3J0VGltZSIpLAogIHN0YXR1czokKCJzdGF0dXMiKSxidG5Mb29rdXA6JCgiYnRuTG9va3VwIiksCiAgdG93ZXI6JCgidG93ZXIiKSxmbG9vcjokKCJmbG9vciIpLHBsYXRlOiQoInBsYXRlIiksCiAgb2JzRGF0ZTokKCJvYnNEYXRlIiksbm90ZXM6JCgibm90ZXMiKSwKICBidG5BZGQ6JCgiYnRuQWRkIiksYnRuQ2FtZXJhOiQoImJ0bkNhbWVyYSIpLGJ0blNhdmU6JCgiYnRuU2F2ZSIpLAogIGJ0bkV4cG9ydENTVjokKCJidG5FeHBvcnRDU1YiKSxidG5FeHBvcnRKU09OOiQoImJ0bkV4cG9ydEpTT04iKSwKICBidG5QcmludDokKCJidG5QcmludCIpLGJ0bkNsZWFyTG9jYWw6JCgiYnRuQ2xlYXJMb2NhbCIpLAogIGJ0blN5bmM6JCgiYnRuU3luYyIpLGJ0blNob3dTZXR1cDokKCJidG5TaG93U2V0dXAiKSwKICBidG5UZXN0SW5Nb2RhbDokKCJidG5UZXN0SW5Nb2RhbCIpLGNsb3NlU2V0dXA6JCgiY2xvc2VTZXR1cCIpLAogIHZlaGljbGVJbWc6JCgidmVoaWNsZUltZyIpLGltZ1VwbG9hZEFyZWE6JCgiaW1nVXBsb2FkQXJlYSIpLGJ0bkNsZWFySW1nOiQoImJ0bkNsZWFySW1nIiksCiAgdGFibGVCb2R5OiQoInRhYmxlQm9keSIpLHRhYmxlRm9vdGVyOiQoInRhYmxlRm9vdGVyIiksZm9vdGVyQ291bnQ6JCgiZm9vdGVyQ291bnQiKSwKICBjYW1lcmFNb2RhbDokKCJjYW1lcmFNb2RhbCIpLGNhbWVyYVZpZGVvOiQoImNhbWVyYVZpZGVvIiksCiAgY2FtZXJhQ2FudmFzOiQoImNhbWVyYUNhbnZhcyIpLGNsb3NlQ2FtZXJhOiQoImNsb3NlQ2FtZXJhIiksCiAgY2FuY2VsQ2FtZXJhOiQoImNhbmNlbENhbWVyYSIpLGNhcHR1cmVCdG46JCgiY2FwdHVyZUJ0biIpLAogIGltYWdlTW9kYWw6JCgiaW1hZ2VNb2RhbCIpLGZ1bGxJbWFnZTokKCJmdWxsSW1hZ2UiKSxjbG9zZUltYWdlOiQoImNsb3NlSW1hZ2UiKSwKICBzdGF0VG90YWw6JCgic3RhdFRvdGFsIiksc3RhdFRvZGF5OiQoInN0YXRUb2RheSIpLAogIHN0YXRXaXRoUGhvdG9zOiQoInN0YXRXaXRoUGhvdG9zIiksc3RhdEFwaUNhbGxzOiQoInN0YXRBcGlDYWxscyIpLAogIHN5bmNCYW5uZXI6JCgic3luY0Jhbm5lciIpLHN5bmNEb3Q6JCgic3luY0RvdCIpLHN5bmNNc2c6JCgic3luY01zZyIpLAogIGxvYWRpbmdPdmVybGF5OiQoImxvYWRpbmdPdmVybGF5IiksCiAgc2V0dXBNb2RhbDokKCJzZXR1cE1vZGFsIiksdGVzdFJlc3VsdE1vZGFsOiQoInRlc3RSZXN1bHRNb2RhbCIpLAogIHBsYXRlRm91bmRDYXJkOiQoInBsYXRlRm91bmRDYXJkIikscGZDb3VudDokKCJwZkNvdW50IikscGZJdGVtczokKCJwZkl0ZW1zIiksCiAgY2FyU3RhdHVzOiQoImNhclN0YXR1cyIpCn07CgovKiDilZDilZAgRklYOiBoZWxwZXIgdG8gZ2V0IGZpZWxkIHZhbHVlIGZyb20gcm93LCBpZ25vcmluZyBlbW9qaSBwcmVmaXhlcyDilZDilZAgKi8KZnVuY3Rpb24gZ2V0RmllbGQodiwga2V5cykgewogIC8vIFRyeSBleGFjdCBrZXkgbWF0Y2ggZmlyc3QKICBmb3IodmFyIGk9MDtpPGtleXMubGVuZ3RoO2krKyl7CiAgICBpZih2W2tleXNbaV1dICE9PSB1bmRlZmluZWQgJiYgdltrZXlzW2ldXSAhPT0gIiIpIHJldHVybiB2W2tleXNbaV1dOwogIH0KICAvLyBUcnkgc3RyaXBwaW5nIGVtb2ppL25vbi1hcmFiaWMgcHJlZml4IGZyb20gb2JqZWN0IGtleXMKICBmb3IodmFyIHZrIGluIHYpewogICAgdmFyIGNsZWFuID0gdmsucmVwbGFjZSgvXlteXHUwNjAwLVx1MDZGRl0rLywgIiIpLnRyaW0oKTsKICAgIGZvcih2YXIgaj0wO2o8a2V5cy5sZW5ndGg7aisrKXsKICAgICAgdmFyIGtleUNsZWFuID0ga2V5c1tqXS5yZXBsYWNlKC9eW15cdTA2MDAtXHUwNkZGXSsvLCAiIikudHJpbSgpOwogICAgICBpZihjbGVhbiA9PT0ga2V5Q2xlYW4gJiYgdlt2a10gIT09IHVuZGVmaW5lZCAmJiB2W3ZrXSAhPT0gIiIpIHJldHVybiB2W3ZrXTsKICAgIH0KICB9CiAgcmV0dXJuICIiOwp9CgovKiDilZDilZAgRklYOiBDb252ZXJ0IEV4Y2VsIHNlcmlhbCB0aW1lIG9yIGRhdGUgdG8gcmVhZGFibGUgc3RyaW5nIOKVkOKVkCAqLwpmdW5jdGlvbiBmaXhFeGNlbFRpbWUodmFsKSB7CiAgaWYoIXZhbCAmJiB2YWwgIT09IDApIHJldHVybiAiIjsKICB2YXIgcyA9IFN0cmluZyh2YWwpLnRyaW0oKTsKICAvLyBJZiBpdCBsb29rcyBsaWtlIEhIOk1NIGFscmVhZHkKICBpZigvXlxkezEsMn06XGR7Mn0vLnRlc3QocykpIHJldHVybiBzLnNsaWNlKDAsNSk7CiAgLy8gSWYgaXQncyBhbiBFeGNlbCBzZXJpYWwgbnVtYmVyIChkZWNpbWFsIGZyYWN0aW9uIG9mIGRheSwgZS5nLiAwLjUgPSAxMjowMCkKICB2YXIgbnVtID0gcGFyc2VGbG9hdChzKTsKICBpZighaXNOYU4obnVtKSAmJiBudW0gPj0gMCAmJiBudW0gPCAxKSB7CiAgICB2YXIgdG90YWxNaW4gPSBNYXRoLnJvdW5kKG51bSAqIDE0NDApOwogICAgdmFyIGggPSBNYXRoLmZsb29yKHRvdGFsTWluIC8gNjApOwogICAgdmFyIG0gPSB0b3RhbE1pbiAlIDYwOwogICAgcmV0dXJuIChoPDEwPyIwIjoiIikraCsiOiIrKG08MTA/IjAiOiIiKSttOwogIH0KICAvLyBFeGNlbCBkYXRlIHNlcmlhbCBmb3IgZGF0ZXMgKGRheXMgc2luY2UgMTkwMC0wMS0wMSkKICBpZighaXNOYU4obnVtKSAmJiBudW0gPiAxKSB7CiAgICAvLyBDb252ZXJ0IHRvIEpTIGRhdGUKICAgIHZhciBkID0gbmV3IERhdGUoRGF0ZS5VVEMoMTg5OSwxMSwzMCkgKyBudW0qODY0MDAwMDApOwogICAgcmV0dXJuIGQudG9JU09TdHJpbmcoKS5zbGljZSgwLDEwKTsKICB9CiAgcmV0dXJuIHMuc2xpY2UoMCw1KTsKfQoKLyog4pWQ4pWQIEZJWDogQ29udmVydCBFeGNlbCBkYXRlIHNlcmlhbCB0byBZWVlZLU1NLUREIOKVkOKVkCAqLwpmdW5jdGlvbiBmaXhFeGNlbERhdGUodmFsKSB7CiAgaWYoIXZhbCkgcmV0dXJuICIiOwogIHZhciBzID0gU3RyaW5nKHZhbCkudHJpbSgpOwogIC8vIEFscmVhZHkgbG9va3MgbGlrZSBhIGRhdGUKICBpZigvXlxkezR9LVxkezJ9LVxkezJ9Ly50ZXN0KHMpKSByZXR1cm4gcy5zbGljZSgwLDEwKTsKICBpZigvXlxkezEsMn1cL1xkezEsMn1cL1xkezR9Ly50ZXN0KHMpKSByZXR1cm4gczsKICB2YXIgbnVtID0gcGFyc2VGbG9hdChzKTsKICBpZighaXNOYU4obnVtKSAmJiBudW0gPiAxKSB7CiAgICB2YXIgZCA9IG5ldyBEYXRlKERhdGUuVVRDKDE4OTksMTEsMzApICsgbnVtKjg2NDAwMDAwKTsKICAgIHJldHVybiBkLnRvSVNPU3RyaW5nKCkuc2xpY2UoMCwxMCk7CiAgfQogIHJldHVybiBzLnNsaWNlKDAsMTApOwp9CgovKiDilZDilZAgSlNPTlAg4pWQ4pWQICovCmZ1bmN0aW9uIGpzb25wQ2FsbCh1cmwsIG1zKSB7CiAgbXMgPSBtc3x8MTIwMDA7CiAgcmV0dXJuIG5ldyBQcm9taXNlKGZ1bmN0aW9uKHJlc29sdmUscmVqZWN0KXsKICAgIHZhciBjYj0iZ3NfIitEYXRlLm5vdygpKyJfIitNYXRoLmZsb29yKE1hdGgucmFuZG9tKCkqOTk5OTkpOwogICAgdmFyIHNjcmlwdD1kb2N1bWVudC5jcmVhdGVFbGVtZW50KCJzY3JpcHQiKTsKICAgIHZhciB0aW1lcj1zZXRUaW1lb3V0KGZ1bmN0aW9uKCl7Y2xlYW51cCgpO3JlamVjdChuZXcgRXJyb3IoItin2YbYqtmH2Kog2KfZhNmF2YfZhNipIikpO30sbXMpOwogICAgd2luZG93W2NiXT1mdW5jdGlvbihkKXtjbGVhbnVwKCk7cmVzb2x2ZShkKTt9OwogICAgc2NyaXB0Lm9uZXJyb3I9ZnVuY3Rpb24oKXtjbGVhbnVwKCk7cmVqZWN0KG5ldyBFcnJvcigi2KrYudiw2ZHYsSDYp9mE2KfYqti12KfZhCDigJQg2KrYo9mD2K8g2YXZhiBXaG8gaGFzIGFjY2VzcyA9IEFueW9uZSIpKTt9OwogICAgc2NyaXB0LnNyYz11cmwrIiZjYWxsYmFjaz0iK2NiKyImX3Q9IitEYXRlLm5vdygpOwogICAgZG9jdW1lbnQuaGVhZC5hcHBlbmRDaGlsZChzY3JpcHQpOwogICAgZnVuY3Rpb24gY2xlYW51cCgpe2NsZWFyVGltZW91dCh0aW1lcik7ZGVsZXRlIHdpbmRvd1tjYl07aWYoc2NyaXB0LnBhcmVudE5vZGUpc2NyaXB0LnJlbW92ZSgpO30KICB9KTsKfQoKLyog4pWQ4pWQIFN5bmMgU3RhdHVzIOKVkOKVkCAqLwpmdW5jdGlvbiBzZXRTeW5jU3RhdHVzKHN0YXRlLG1zZyl7CiAgdmFyIGQ9e2xvYWRpbmc6InB1bHNlIixvazoib2siLGVycm9yOiJlcnJvciJ9OwogIHZhciBiPXtsb2FkaW5nOiJzeW5jaW5nIixvazoib2siLGVycm9yOiJlcnJvciJ9OwogIGVscy5zeW5jRG90LmNsYXNzTmFtZT0ic3luYy1kb3QgIisoZFtzdGF0ZV18fCIiKTsKICBlbHMuc3luY0Jhbm5lci5jbGFzc05hbWU9InN5bmMtYmFubmVyIG5vLXByaW50ICIrKGJbc3RhdGVdfHwiIik7CiAgZWxzLnN5bmNNc2cudGV4dENvbnRlbnQ9bXNnOwp9CgovKiDilZDilZAgTG9hZCBmcm9tIENsb3VkIOKVkOKVkCAqLwphc3luYyBmdW5jdGlvbiBsb2FkRnJvbUNsb3VkKHNob3dMb2FkZXIpewogIGlmKGlzU3luY2luZylyZXR1cm47CiAgaXNTeW5jaW5nPXRydWU7IGVscy5idG5TeW5jLmRpc2FibGVkPXRydWU7CiAgaWYoc2hvd0xvYWRlcikgZWxzLmxvYWRpbmdPdmVybGF5LmNsYXNzTGlzdC5hZGQoImFjdGl2ZSIpOwogIHNldFN5bmNTdGF0dXMoImxvYWRpbmciLCLij7Mg2KzYp9ix2Y0g2KzZhNioINin2YTYqNmK2KfZhtin2KouLi4iKTsKICB0cnl7CiAgICB2YXIgZGF0YT1hd2FpdCBqc29ucENhbGwoR1NfVVJMKyI/YWN0aW9uPWdldEFsbCIpOwogICAgaWYoIUFycmF5LmlzQXJyYXkoZGF0YSkpIHRocm93IG5ldyBFcnJvcigi2KjZitin2YbYp9iqINi62YrYsSDYtdit2YrYrdipIik7CiAgICBjbG91ZERhdGE9ZGF0YTsKICAgIHJlbmRlclRhYmxlKCk7IHVwZGF0ZVN0YXRzKCk7CiAgICBzZXRTeW5jU3RhdHVzKCJvayIsIuKchSAiK2RhdGEubGVuZ3RoKyIg2LPYrNmEIHwgIituZXcgRGF0ZSgpLnRvTG9jYWxlVGltZVN0cmluZygiYXItU0EiKSk7CiAgICBzZXRTdGF0dXMoItiq2YUg2KrYrdmF2YrZhCAiK2RhdGEubGVuZ3RoKyIg2LPYrNmEIik7CiAgICB2YXIgcD1lbHMucGxhdGUudmFsdWUudHJpbSgpLnRvVXBwZXJDYXNlKCk7CiAgICBpZihwKSBjaGVja1BsYXRlRXhpc3RzKHApOwogIH1jYXRjaChlcnIpewogICAgc2V0U3luY1N0YXR1cygiZXJyb3IiLCLimqDvuI8gIitlcnIubWVzc2FnZSk7CiAgICBzZXRTdGF0dXMoItiq2LnYsNmR2LEg2KfZhNin2KrYtdin2YQg4oCUINin2LbYuti3IOKame+4jyDZhNmE2YXYs9in2LnYr9ipIik7CiAgICBjbG91ZERhdGE9W107IHJlbmRlclRhYmxlKCk7IHVwZGF0ZVN0YXRzKCk7CiAgfWZpbmFsbHl7CiAgICBpc1N5bmNpbmc9ZmFsc2U7IGVscy5idG5TeW5jLmRpc2FibGVkPWZhbHNlOwogICAgaWYoc2hvd0xvYWRlcikgZWxzLmxvYWRpbmdPdmVybGF5LmNsYXNzTGlzdC5yZW1vdmUoImFjdGl2ZSIpOwogIH0KfQoKLyog4pWQ4pWQIEZJWDog2KfZhNio2K3YqyDYudmGINin2YTZhNmI2K3YqSDZgdmKINin2YTYqNmK2KfZhtin2Kog4oCUINmF2K3Ys9mR2YYg4pWQ4pWQICovCmZ1bmN0aW9uIGNoZWNrUGxhdGVFeGlzdHMocGxhdGVWYWwpewogIGlmKCFwbGF0ZVZhbCl7ZWxzLnBsYXRlRm91bmRDYXJkLmNsYXNzTGlzdC5yZW1vdmUoInNob3ciKTtyZXR1cm47fQogIHZhciB0YXJnZXQgPSBwbGF0ZVZhbC50cmltKCkudG9VcHBlckNhc2UoKS5yZXBsYWNlKC9ccy9nLCIiKTsKICB2YXIgbWF0Y2hlcz1jbG91ZERhdGEuZmlsdGVyKGZ1bmN0aW9uKHYpewogICAgLy8gVHJ5IGFsbCBwb3NzaWJsZSBjb2x1bW4gbmFtZSB2YXJpYW50cyAod2l0aC93aXRob3V0IGVtb2ppcykKICAgIHZhciBwID0gU3RyaW5nKAogICAgICBnZXRGaWVsZCh2LCBbItix2YLZhSDYp9mE2YTZiNit2KkiLCAi8J+alyDYsdmC2YUg2KfZhNmE2YjYrdipIl0pIHx8IHYucGxhdGUgfHwgIiIKICAgICkudHJpbSgpLnRvVXBwZXJDYXNlKCkucmVwbGFjZSgvXHMvZywiIik7CiAgICByZXR1cm4gcCA9PT0gdGFyZ2V0ICYmIHAgIT09ICIiOwogIH0pOwogIGlmKCFtYXRjaGVzLmxlbmd0aCl7CiAgICBlbHMucGxhdGVGb3VuZENhcmQuY2xhc3NMaXN0LnJlbW92ZSgic2hvdyIpOwogICAgcmV0dXJuOwogIH0KICBlbHMucGZDb3VudC50ZXh0Q29udGVudD1tYXRjaGVzLmxlbmd0aCsiINmF2LHYqSI7CiAgZWxzLnBmSXRlbXMuaW5uZXJIVE1MPSIiOwoKICBtYXRjaGVzLmZvckVhY2goZnVuY3Rpb24odixpZHgpewogICAgdmFyIHBsYXRlID0gU3RyaW5nKGdldEZpZWxkKHYsWyLYsdmC2YUg2KfZhNmE2YjYrdipIiwi8J+alyDYsdmC2YUg2KfZhNmE2YjYrdipIl0pfHx2LnBsYXRlfHwiIik7CiAgICB2YXIgdG93ZXIgPSBTdHJpbmcoZ2V0RmllbGQodixbItin2YTYqNix2KwiLCLwn4+iINin2YTYqNix2KwiXSl8fHYudG93ZXJ8fCIiKTsKICAgIHZhciBmbG9vciA9IFN0cmluZyhnZXRGaWVsZCh2LFsi2KfZhNiv2YjYsSIsIvCflKIg2KfZhNiv2YjYsSJdKXx8di5mbG9vcnx8IiIpOwogICAgdmFyIHJhd0RhdGUgPSBnZXRGaWVsZCh2LFsi2KrYp9ix2YrYriDYp9mE2LHYtdivIiwi8J+ThSDYqtin2LHZitiuINin2YTYsdi12K8iLCLYp9mE2KrYp9ix2YrYriJdKXx8di5vYnNEYXRlfHx2LmRhdGV8fCIiOwogICAgdmFyIHJhd1RpbWUgPSBnZXRGaWVsZCh2LFsi2KfZhNmI2YLYqiIsIuKPsCDYp9mE2YjZgtiqIl0pfHx2LnRpbWV8fCIiOwogICAgdmFyIGRhdGUgPSBmaXhFeGNlbERhdGUocmF3RGF0ZSk7CiAgICB2YXIgdGltZSA9IGZpeEV4Y2VsVGltZShyYXdUaW1lKTsKICAgIHZhciBndWFyZCA9IFN0cmluZyhnZXRGaWVsZCh2LFsi2LHYrNmEINin2YTYo9mF2YYiLCLwn5GkINix2KzZhCDYp9mE2KPZhdmGIl0pfHx2LmVtcE5hbWV8fCIiKTsKICAgIHZhciBub3RlcyA9IFN0cmluZyhnZXRGaWVsZCh2LFsi2YXZhNin2K3YuNin2KoiLCLwn5OdINmF2YTYp9it2LjYp9iqIl0pfHx2Lm5vdGVzfHwiIik7CgogICAgaWYoaWR4PT09MCl7CiAgICAgIGVscy5wZkl0ZW1zLmlubmVySFRNTCs9JzxkaXYgY2xhc3M9InBmLXBsYXRlIj48ZGl2IGNsYXNzPSJwZi1sYWJlbCI+2LHZgtmFINin2YTZhNmI2K3YqTwvZGl2PjxkaXYgY2xhc3M9InBmLXZhbCI+JytwbGF0ZSsnPC9kaXY+PC9kaXY+JzsKICAgIH0KICAgIHZhciBpdGVtSHRtbD0nPGRpdiBjbGFzcz0icGYtaXRlbSI+JzsKICAgIGl0ZW1IdG1sKz0nPGRpdiBjbGFzcz0icGYtbGFiZWwiPtix2LXYryAjJysoaWR4KzEpKyc8L2Rpdj4nOwogICAgaXRlbUh0bWwrPSc8ZGl2IGNsYXNzPSJwZi12YWwiPvCfk4UgJytkYXRlKycgJm5ic3A7IOKPsCAnK3RpbWUrJzwvZGl2Pic7CiAgICBpZih0b3dlcnx8Zmxvb3IpIGl0ZW1IdG1sKz0nPGRpdiBzdHlsZT0ibWFyZ2luLXRvcDo0cHg7Zm9udC1zaXplOjEycHg7Y29sb3I6IzQ3NTU2OTsiPvCfj6Ig2KjYsdisICcrdG93ZXIrJyDigJQg2K/ZiNixICcrZmxvb3IrJzwvZGl2Pic7CiAgICBpZihndWFyZCkgICAgICAgIGl0ZW1IdG1sKz0nPGRpdiBzdHlsZT0ibWFyZ2luLXRvcDozcHg7Zm9udC1zaXplOjEycHg7Y29sb3I6IzViMjFiNjsiPvCfkaQgJytndWFyZCsnPC9kaXY+JzsKICAgIGlmKG5vdGVzKSAgICAgICAgaXRlbUh0bWwrPSc8ZGl2IHN0eWxlPSJtYXJnaW4tdG9wOjNweDtmb250LXNpemU6MTJweDtjb2xvcjojNjQ3NDhiOyI+8J+TnSAnK25vdGVzKyc8L2Rpdj4nOwogICAgaXRlbUh0bWwrPSc8L2Rpdj4nOwogICAgZWxzLnBmSXRlbXMuaW5uZXJIVE1MKz1pdGVtSHRtbDsKICB9KTsKCiAgZWxzLnBsYXRlRm91bmRDYXJkLmNsYXNzTGlzdC5hZGQoInNob3ciKTsKICBpZihuYXZpZ2F0b3IudmlicmF0ZSkgbmF2aWdhdG9yLnZpYnJhdGUoWzIwMCwxMDAsMjAwXSk7CiAgc2V0VGltZW91dChmdW5jdGlvbigpe2Vscy5wbGF0ZUZvdW5kQ2FyZC5zY3JvbGxJbnRvVmlldyh7YmVoYXZpb3I6InNtb290aCIsYmxvY2s6Im5lYXJlc3QifSk7fSwxMDApOwp9CgovKiDilZDilZAgQWRkIHRvIENsb3VkIOKVkOKVkCAqLwphc3luYyBmdW5jdGlvbiBhZGRUb0Nsb3VkKHYsIGltZ0I2NCl7CiAgdmFyIGhhc0ltZyA9IGltZ0I2NCA/ICLZhti52YUiIDogItmE2KciOwogIHZhciBwYXJhbXM9WwogICAgImFjdGlvbj1hZGQiLAogICAgInRvd2VyPSIrZW5jb2RlVVJJQ29tcG9uZW50KHYudG93ZXIpLAogICAgImZsb29yPSIrZW5jb2RlVVJJQ29tcG9uZW50KHYuZmxvb3IpLAogICAgInBsYXRlPSIrZW5jb2RlVVJJQ29tcG9uZW50KHYucGxhdGUpLAogICAgIm9ic0RhdGU9IitlbmNvZGVVUklDb21wb25lbnQodi5vYnNEYXRlKSwKICAgICJkYXRlPSIrZW5jb2RlVVJJQ29tcG9uZW50KHYuZGF0ZSksCiAgICAidGltZT0iK2VuY29kZVVSSUNvbXBvbmVudCh2LnRpbWUpLAogICAgImNhclN0YXR1cz0iK2VuY29kZVVSSUNvbXBvbmVudCh2LmNhclN0YXR1c3x8IiIpLAogICAgIm5vdGVzPSIrZW5jb2RlVVJJQ29tcG9uZW50KHYubm90ZXN8fCIiKSwKICAgICJlbXBOYW1lPSIrZW5jb2RlVVJJQ29tcG9uZW50KHJlcG9ydC5ndWFyZC5uYW1lKSwKICAgICJlbXBJZD0iK2VuY29kZVVSSUNvbXBvbmVudChyZXBvcnQuZ3VhcmQuZW1wSWQpLAogICAgImhhc0ltYWdlPSIrZW5jb2RlVVJJQ29tcG9uZW50KGhhc0ltZykKICBdLmpvaW4oIiYiKTsKICByZXR1cm4gYXdhaXQganNvbnBDYWxsKEdTX1VSTCsiPyIrcGFyYW1zLCAxNTAwMCk7Cn0KCmZ1bmN0aW9uIHNldE5vdygpewogIHZhciBuPW5ldyBEYXRlKCk7CiAgZWxzLnJlcG9ydERhdGUudmFsdWU9bi50b0lTT1N0cmluZygpLnNwbGl0KCJUIilbMF07CiAgZWxzLnJlcG9ydFRpbWUudmFsdWU9bi50b1RpbWVTdHJpbmcoKS5zbGljZSgwLDUpOwogIGVscy5vYnNEYXRlLnZhbHVlPW4udG9JU09TdHJpbmcoKS5zcGxpdCgiVCIpWzBdOwp9CnNldEludGVydmFsKGZ1bmN0aW9uKCl7CiAgdmFyIG49bmV3IERhdGUoKTsKICBlbHMucmVwb3J0VGltZS52YWx1ZT1uLnRvVGltZVN0cmluZygpLnNsaWNlKDAsNSk7Cn0sMTAwMCk7CmZ1bmN0aW9uIHNldFN0YXR1cyhtKXtlbHMuc3RhdHVzLnRleHRDb250ZW50PW07fQpmdW5jdGlvbiBjbGVhckZvcm0oKXsKICBlbHMudG93ZXIudmFsdWU9IiI7IGVscy5mbG9vci52YWx1ZT0iIjsKICBlbHMucGxhdGUudmFsdWU9IiI7IGVscy5ub3Rlcy52YWx1ZT0iIjsKICBlbHMuY2FyU3RhdHVzLnZhbHVlPSIiOwogIGVscy5vYnNEYXRlLnZhbHVlPW5ldyBEYXRlKCkudG9JU09TdHJpbmcoKS5zcGxpdCgiVCIpWzBdOwogIGNsZWFySW1hZ2UoKTsKICBlbHMucGxhdGVGb3VuZENhcmQuY2xhc3NMaXN0LnJlbW92ZSgic2hvdyIpOwp9CgovKiDilZDilZAg2LHZgdi5INin2YTYtdmI2LHYqSDilZDilZAgKi8KZnVuY3Rpb24gc2V0SW1hZ2Uoc3JjKXsKICBjdXJyZW50SW1nQmFzZTY0PXNyYzsKICBlbHMuaW1nVXBsb2FkQXJlYS5jbGFzc0xpc3QuYWRkKCJoYXMtaW1nIik7CiAgZWxzLmltZ1VwbG9hZEFyZWEuaW5uZXJIVE1MPSc8aW1nIHNyYz0iJytzcmMrJyIgYWx0PSLYtdmI2LHYqSDYp9mE2YXYsdmD2KjYqSIvPic7CiAgZWxzLmJ0bkNsZWFySW1nLnN0eWxlLmRpc3BsYXk9ImJsb2NrIjsKfQpmdW5jdGlvbiBjbGVhckltYWdlKCl7CiAgY3VycmVudEltZ0Jhc2U2ND1udWxsOwogIGVscy5pbWdVcGxvYWRBcmVhLmNsYXNzTGlzdC5yZW1vdmUoImhhcy1pbWciKTsKICBlbHMuaW1nVXBsb2FkQXJlYS5pbm5lckhUTUw9JzxkaXYgY2xhc3M9InVwbG9hZC1pY29uIj7wn5O3PC9kaXY+PGRpdiBjbGFzcz0idXBsb2FkLWhpbnQiPtin2LbYuti3INmE2LHZgdi5INi12YjYsdipINij2Ygg2KfZhNiq2YLYp9i3INio2KfZhNmD2KfZhdmK2LHYpzwvZGl2Pic7CiAgZWxzLmJ0bkNsZWFySW1nLnN0eWxlLmRpc3BsYXk9Im5vbmUiOwp9CmVscy52ZWhpY2xlSW1nLmFkZEV2ZW50TGlzdGVuZXIoImNoYW5nZSIsZnVuY3Rpb24oZSl7CiAgdmFyIGZpbGU9ZS50YXJnZXQuZmlsZXMmJmUudGFyZ2V0LmZpbGVzWzBdOwogIGlmKCFmaWxlKSByZXR1cm47CiAgdmFyIHJlYWRlcj1uZXcgRmlsZVJlYWRlcigpOwogIHJlYWRlci5vbmxvYWQ9ZnVuY3Rpb24oZXYpewogICAgdmFyIGltZz1uZXcgSW1hZ2UoKTsKICAgIGltZy5vbmxvYWQ9ZnVuY3Rpb24oKXsKICAgICAgdmFyIGNhbnZhcz1kb2N1bWVudC5jcmVhdGVFbGVtZW50KCJjYW52YXMiKTsKICAgICAgdmFyIE1BWD04MDA7CiAgICAgIHZhciB3PWltZy53aWR0aCxoPWltZy5oZWlnaHQ7CiAgICAgIGlmKHc+TUFYKXtoPU1hdGgucm91bmQoaCpNQVgvdyk7dz1NQVg7fQogICAgICBpZihoPk1BWCl7dz1NYXRoLnJvdW5kKHcqTUFYL2gpO2g9TUFYO30KICAgICAgY2FudmFzLndpZHRoPXc7IGNhbnZhcy5oZWlnaHQ9aDsKICAgICAgY2FudmFzLmdldENvbnRleHQoIjJkIikuZHJhd0ltYWdlKGltZywwLDAsdyxoKTsKICAgICAgc2V0SW1hZ2UoY2FudmFzLnRvRGF0YVVSTCgiaW1hZ2UvanBlZyIsMC43NSkpOwogICAgfTsKICAgIGltZy5zcmM9ZXYudGFyZ2V0LnJlc3VsdDsKICB9OwogIHJlYWRlci5yZWFkQXNEYXRhVVJMKGZpbGUpOwogIGUudGFyZ2V0LnZhbHVlPSIiOwp9KTsKZWxzLmJ0bkNsZWFySW1nLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIixjbGVhckltYWdlKTsKCmZ1bmN0aW9uIGxvb2t1cEd1YXJkKCl7CiAgdmFyIGlkPWVscy5lbXBJZC52YWx1ZS50cmltKCk7CiAgaWYoIWlkKXthbGVydCgi2KPYr9iu2YQg2KfZhNix2YLZhSDYp9mE2YjYuNmK2YHZiiIpO3JldHVybjt9CiAgdmFyIG5hbWU9R1VBUkRTW2lkXTsKICBpZihuYW1lKXtyZXBvcnQuZ3VhcmQ9e2VtcElkOmlkLG5hbWU6bmFtZX07ZWxzLmVtcE5hbWUudmFsdWU9bmFtZTtzZXRTdGF0dXMoIuKchSAiK25hbWUpO3NhdmVMb2NhbCgpO30KICBlbHNle2FsZXJ0KCLYsdmC2YUg2YjYuNmK2YHZiiDYutmK2LEg2YXZiNis2YjYryIpO2Vscy5lbXBOYW1lLnZhbHVlPSIiO30KfQoKZnVuY3Rpb24gdXBkYXRlU3RhdHMoKXsKICB2YXIgbGlzdD1jbG91ZERhdGE7IHZhciB0b2RheT1uZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCkuc3BsaXQoIlQiKVswXTsKICBlbHMuc3RhdFRvdGFsLnRleHRDb250ZW50PWxpc3QubGVuZ3RoOwogIGVscy5zdGF0VG9kYXkudGV4dENvbnRlbnQ9bGlzdC5maWx0ZXIoZnVuY3Rpb24odil7CiAgICB2YXIgcmF3ID0gZ2V0RmllbGQodixbItiq2KfYsdmK2K4g2KfZhNix2LXYryIsIvCfk4Ug2KrYp9ix2YrYriDYp9mE2LHYtdivIiwi2KfZhNiq2KfYsdmK2K4iXSl8fHYub2JzRGF0ZXx8di5kYXRlfHwiIjsKICAgIHZhciBkID0gZml4RXhjZWxEYXRlKHJhdyk7CiAgICByZXR1cm4gZD09PXRvZGF5OwogIH0pLmxlbmd0aDsKICBlbHMuc3RhdFdpdGhQaG90b3MudGV4dENvbnRlbnQ9bGlzdC5maWx0ZXIoZnVuY3Rpb24odil7CiAgICByZXR1cm4gKGdldEZpZWxkKHYsWyLYtdmI2LHYqSIsIvCfk7cg2LXZiNix2KkiXSl8fHYuaGFzSW1hZ2V8fCIiKT09ItmG2LnZhSI7CiAgfSkubGVuZ3RoOwogIGVscy5zdGF0QXBpQ2FsbHMudGV4dENvbnRlbnQ9cmVwb3J0LmFkZGVkQ291bnR8fDA7Cn0KCmFzeW5jIGZ1bmN0aW9uIGFkZFZlaGljbGUoKXsKICB2YXIgdG93ZXI9ZWxzLnRvd2VyLnZhbHVlLnRyaW0oKSwgZmxvb3I9ZWxzLmZsb29yLnZhbHVlLnRyaW0oKTsKICB2YXIgcGxhdGU9ZWxzLnBsYXRlLnZhbHVlLnRyaW0oKS50b1VwcGVyQ2FzZSgpOwogIHZhciBvYnNEYXRlPWVscy5vYnNEYXRlLnZhbHVlOwogIHZhciBjYXJTdGF0dXM9ZWxzLmNhclN0YXR1cyA/IGVscy5jYXJTdGF0dXMudmFsdWUgOiAiIjsKICBpZighdG93ZXJ8fCFmbG9vcnx8IXBsYXRlKXthbGVydCgi2KPYr9iu2YQg2KfZhNio2LHYrCDZiNin2YTYr9mI2LEg2YjYsdmC2YUg2KfZhNmE2YjYrdipIik7cmV0dXJuO30KICBpZighcmVwb3J0Lmd1YXJkLmVtcElkKXthbGVydCgi2KPYr9iu2YQg2KfZhNix2YLZhSDYp9mE2YjYuNmK2YHZiiDYo9mI2YTYp9mLIik7cmV0dXJuO30KICB2YXIgbj1uZXcgRGF0ZSgpOwogIHZhciB2PXt0b3dlcjp0b3dlcixmbG9vcjpmbG9vcixwbGF0ZTpwbGF0ZSwKICAgICAgICAgb2JzRGF0ZTpvYnNEYXRlfHxuLnRvSVNPU3RyaW5nKCkuc3BsaXQoIlQiKVswXSwKICAgICAgICAgZGF0ZTpuLnRvSVNPU3RyaW5nKCkuc3BsaXQoIlQiKVswXSwKICAgICAgICAgdGltZTpuLnRvVGltZVN0cmluZygpLnNsaWNlKDAsNSksCiAgICAgICAgIGNhclN0YXR1czpjYXJTdGF0dXMsCiAgICAgICAgIG5vdGVzOmVscy5ub3Rlcy52YWx1ZS50cmltKCl9OwogIGVscy5idG5BZGQuZGlzYWJsZWQ9dHJ1ZTsgZWxzLmJ0bkFkZC50ZXh0Q29udGVudD0i4o+zINis2KfYsdmNINin2YTYrdmB2LguLi4iOwogIHNldFN5bmNTdGF0dXMoImxvYWRpbmciLCLij7Mg2KzYp9ix2Y0g2KXYttin2YHYqSAiK3BsYXRlKyIuLi4iKTsKICB0cnl7CiAgICB2YXIgcmVzPWF3YWl0IGFkZFRvQ2xvdWQodiwgY3VycmVudEltZ0Jhc2U2NCk7CiAgICBpZihyZXMmJnJlcy5zdWNjZXNzKXsKICAgICAgcmVwb3J0LmFkZGVkQ291bnQ9KHJlcG9ydC5hZGRlZENvdW50fHwwKSsxOyBzYXZlTG9jYWwoKTsgY2xlYXJGb3JtKCk7CiAgICAgIHNldFN5bmNTdGF0dXMoImxvYWRpbmciLCLwn5SEINiq2YUg4oCUINis2KfYsdmNINiq2K3Yr9mK2Ksg2KfZhNis2K/ZiNmELi4uIik7CiAgICAgIHNldFN0YXR1cygi4pyFINiq2YUg2K3Zgdi4ICIrcGxhdGUpOwogICAgICBzZXRUaW1lb3V0KGZ1bmN0aW9uKCl7bG9hZEZyb21DbG91ZChmYWxzZSk7fSwxMjAwKTsKICAgIH1lbHNle3Rocm93IG5ldyBFcnJvcigi2YTZhSDZitiq2YUg2KfZhNiq2KPZg9mK2K8g2YXZhiDYp9mE2K7Yp9iv2YUiKTt9CiAgfWNhdGNoKGVycil7CiAgICBzZXRTeW5jU3RhdHVzKCJlcnJvciIsIuKclyAiK2Vyci5tZXNzYWdlKTsKICAgIHNldFN0YXR1cygi4pyXINmB2LTZhCDYp9mE2K3Zgdi4IOKAlCDYp9i22LrYtyDimpnvuI8iKTsKICAgIGFsZXJ0KCLinJcg2KrYudiw2ZHYsSDYp9mE2K3Zgdi4XG4iK2Vyci5tZXNzYWdlKyJcblxu2KfYtti62Lcg4pqZ77iPINmE2YTZhdiz2KfYudiv2KkiKTsKICB9ZmluYWxseXsKICAgIGVscy5idG5BZGQuZGlzYWJsZWQ9ZmFsc2U7IGVscy5idG5BZGQudGV4dENvbnRlbnQ9IuKelSDYpdi22KfZgdipINmI2K3Zgdi4IjsgdXBkYXRlU3RhdHMoKTsKICB9Cn0KCmZ1bmN0aW9uIHZpZXdJbWFnZShzcmMpe2Vscy5mdWxsSW1hZ2Uuc3JjPXNyYztlbHMuaW1hZ2VNb2RhbC5jbGFzc0xpc3QuYWRkKCJhY3RpdmUiKTt9CgovKiDilZDilZAgRklYOiBSZW5kZXIgVGFibGUg4oCUIHdpdGggRXhjZWwgZGF0ZS90aW1lIGZpeCDilZDilZAgKi8KZnVuY3Rpb24gcmVuZGVyVGFibGUoKXsKICBlbHMudGFibGVCb2R5LmlubmVySFRNTD0iIjsKICBpZighY2xvdWREYXRhLmxlbmd0aCl7CiAgICBlbHMudGFibGVCb2R5LmlubmVySFRNTD0nPHRyPjx0ZCBjb2xzcGFuPSI5Ij48ZGl2IGNsYXNzPSJlbXB0eS1zdGF0ZSI+PGRpdiBjbGFzcz0iaWNvbiI+8J+alzwvZGl2PjxwPjxiPtmE2Kcg2KrZiNis2K8g2KjZitin2YbYp9iqINio2LnYrzwvYj48L3A+PHAgc3R5bGU9ImZvbnQtc2l6ZToxMnB4OyI+2KPYttmBINiz2KzZhNin2Ysg2KPZiCDYp9i22LrYtyAi8J+UhCDYqtit2K/ZitirIjwvcD48L2Rpdj48L3RkPjwvdHI+JzsKICAgIGVscy50YWJsZUZvb3Rlci5zdHlsZS5kaXNwbGF5PSJub25lIjsgcmV0dXJuOwogIH0KICB2YXIgcm93cz1jbG91ZERhdGEubWFwKGZ1bmN0aW9uKHYpewogICAgdmFyIHJhd0RhdGUgPSBnZXRGaWVsZCh2LFsi2KrYp9ix2YrYriDYp9mE2LHYtdivIiwi8J+ThSDYqtin2LHZitiuINin2YTYsdi12K8iLCLYp9mE2KrYp9ix2YrYriJdKXx8di5vYnNEYXRlfHx2LmRhdGV8fCIiOwogICAgdmFyIHJhd1RpbWUgPSBnZXRGaWVsZCh2LFsi2KfZhNmI2YLYqiIsIuKPsCDYp9mE2YjZgtiqIl0pfHx2LnRpbWV8fCIiOwogICAgcmV0dXJuIHsKICAgICAgdG93ZXI6ICBTdHJpbmcoZ2V0RmllbGQodixbItin2YTYqNix2KwiLCLwn4+iINin2YTYqNix2KwiXSl8fHYudG93ZXJ8fCIiKSwKICAgICAgZmxvb3I6ICBTdHJpbmcoZ2V0RmllbGQodixbItin2YTYr9mI2LEiLCLwn5SiINin2YTYr9mI2LEiXSl8fHYuZmxvb3J8fCIiKSwKICAgICAgcGxhdGU6ICBTdHJpbmcoZ2V0RmllbGQodixbItix2YLZhSDYp9mE2YTZiNit2KkiLCLwn5qXINix2YLZhSDYp9mE2YTZiNit2KkiXSl8fHYucGxhdGV8fCIiKSwKICAgICAgZGF0ZTogICBmaXhFeGNlbERhdGUocmF3RGF0ZSksCiAgICAgIHRpbWU6ICAgZml4RXhjZWxUaW1lKHJhd1RpbWUpLAogICAgICBjYXJTdGF0dXM6IFN0cmluZyhnZXRGaWVsZCh2LFsi2K3Yp9mE2Kkg2KfZhNmF2LHZg9io2KkiLCLwn5qmINit2KfZhNipINin2YTZhdix2YPYqNipIl0pfHx2LmNhclN0YXR1c3x8IiIpLAogICAgICBub3RlczogIFN0cmluZyhnZXRGaWVsZCh2LFsi2YXZhNin2K3YuNin2KoiLCLwn5OdINmF2YTYp9it2LjYp9iqIl0pfHx2Lm5vdGVzfHwiIiksCiAgICAgIGd1YXJkOiAgU3RyaW5nKGdldEZpZWxkKHYsWyLYsdis2YQg2KfZhNij2YXZhiIsIvCfkaQg2LHYrNmEINin2YTYo9mF2YYiXSl8fHYuZW1wTmFtZXx8IiIpLAogICAgICBpbWc6ICAgIHYuaW1nfHxudWxsLAogICAgICBoYXNJbWc6IFN0cmluZyhnZXRGaWVsZCh2LFsi2LXZiNix2KkiLCLwn5O3INi12YjYsdipIl0pfHx2Lmhhc0ltYWdlfHwiIikKICAgIH07CiAgfSkucmV2ZXJzZSgpOwoKICByb3dzLmZvckVhY2goZnVuY3Rpb24odixpKXsKICAgIHZhciB0cj1kb2N1bWVudC5jcmVhdGVFbGVtZW50KCJ0ciIpOwogICAgdmFyIGltZ0NlbGw9di5pbWcKICAgICAgPyc8aW1nIGNsYXNzPSJpbWdQcmV2IiBzcmM9Iicrdi5pbWcrJyIvPicKICAgICAgOih2Lmhhc0ltZz09PSLZhti52YUiCiAgICAgICAgPyc8c3BhbiBzdHlsZT0iYmFja2dyb3VuZDojZGNmY2U3O2NvbG9yOiMxNmEzNGE7cGFkZGluZzozcHggOHB4O2JvcmRlci1yYWRpdXM6NnB4O2ZvbnQtc2l6ZToxMXB4O2ZvbnQtd2VpZ2h0OjYwMDsiPvCfk7cg2YXZiNis2YjYrzwvc3Bhbj4nCiAgICAgICAgOic8c3BhbiBzdHlsZT0iY29sb3I6I2NiZDVlMTsiPuKAlDwvc3Bhbj4nKTsKICAgIHZhciBub3Rlc0NlbGw9di5ub3RlcwogICAgICA/JzxzcGFuIGNsYXNzPSJub3Rlcy1jZWxsIiB0aXRsZT0iJyt2Lm5vdGVzKyciPicrKHYubm90ZXMubGVuZ3RoPjIwP3Yubm90ZXMuc2xpY2UoMCwyMCkrIuKApiI6di5ub3RlcykrJzwvc3Bhbj4nCiAgICAgIDonPHNwYW4gc3R5bGU9ImNvbG9yOiNlMmU4ZjA7Ij7igJQ8L3NwYW4+JzsKICAgIHZhciBzdGF0dXNIdG1sPSc8c3BhbiBzdHlsZT0iY29sb3I6I2NiZDVlMTsiPuKAlDwvc3Bhbj4nOwogICAgaWYodi5jYXJTdGF0dXM9PT0i2K3Yr9mK2KvYqSIpIHN0YXR1c0h0bWw9JzxzcGFuIGNsYXNzPSJzdGF0dXMtYmFkZ2UtbmV3Ij7wn5+iICcrdi5jYXJTdGF0dXMrJzwvc3Bhbj4nOwogICAgZWxzZSBpZih2LmNhclN0YXR1cz09PSLZhdiq2YjYs9i32Kkg2KfZhNi62KjYp9ixIikgc3RhdHVzSHRtbD0nPHNwYW4gY2xhc3M9InN0YXR1cy1iYWRnZS1taWQiPvCfn6EgJyt2LmNhclN0YXR1cysnPC9zcGFuPic7CiAgICBlbHNlIGlmKHYuY2FyU3RhdHVzPT09ItmF2LrYqNix2KkiKSBzdGF0dXNIdG1sPSc8c3BhbiBjbGFzcz0ic3RhdHVzLWJhZGdlLWR1c3QiPvCflLQgJyt2LmNhclN0YXR1cysnPC9zcGFuPic7CiAgICBlbHNlIGlmKHYuY2FyU3RhdHVzKSBzdGF0dXNIdG1sPSc8c3BhbiBzdHlsZT0iZm9udC1zaXplOjEycHg7Ij4nK3YuY2FyU3RhdHVzKyc8L3NwYW4+JzsKICAgIHRyLmlubmVySFRNTD0KICAgICAgJzx0ZD4nKyhpKzEpKyc8L3RkPicrCiAgICAgICc8dGQ+JytpbWdDZWxsKyc8L3RkPicrCiAgICAgICc8dGQ+PHNwYW4gY2xhc3M9InRvd2VyLWJhZGdlIj4nK3YudG93ZXIrJzwvc3Bhbj48L3RkPicrCiAgICAgICc8dGQ+PHNwYW4gY2xhc3M9ImZsb29yLWJhZGdlIj4nK3YuZmxvb3IrJzwvc3Bhbj48L3RkPicrCiAgICAgICc8dGQ+PHNwYW4gY2xhc3M9InBsYXRlLWJhZGdlIj7wn5qXICcrdi5wbGF0ZSsnPC9zcGFuPjwvdGQ+JysKICAgICAgJzx0ZD48c3BhbiBjbGFzcz0iZGF0ZS1iYWRnZSI+Jyt2LmRhdGUrJzwvc3Bhbj48L3RkPicrCiAgICAgICc8dGQ+PHNwYW4gY2xhc3M9InRpbWUtY2VsbCI+Jyt2LnRpbWUrJzwvc3Bhbj48L3RkPicrCiAgICAgICc8dGQ+JytzdGF0dXNIdG1sKyc8L3RkPicrCiAgICAgICc8dGQ+Jytub3Rlc0NlbGwrJzwvdGQ+JysKICAgICAgJzx0ZD4nKyh2Lmd1YXJkPyc8c3BhbiBjbGFzcz0iZ3VhcmQtYmFkZ2UiPvCfkaQgJyt2Lmd1YXJkKyc8L3NwYW4+JzonPHNwYW4gc3R5bGU9ImNvbG9yOiNjYmQ1ZTE7Ij7igJQ8L3NwYW4+JykrJzwvdGQ+JzsKICAgIGVscy50YWJsZUJvZHkuYXBwZW5kQ2hpbGQodHIpOwogIH0pOwogIGVscy50YWJsZUJvZHkucXVlcnlTZWxlY3RvckFsbCgiaW1nLmltZ1ByZXYiKS5mb3JFYWNoKGZ1bmN0aW9uKGltZyl7CiAgICBpbWcuYWRkRXZlbnRMaXN0ZW5lcigiY2xpY2siLGZ1bmN0aW9uKCl7dmlld0ltYWdlKGltZy5zcmMpO30pOwogIH0pOwogIGVscy50YWJsZUZvb3Rlci5zdHlsZS5kaXNwbGF5PSJibG9jayI7CiAgZWxzLmZvb3RlckNvdW50LnRleHRDb250ZW50PWNsb3VkRGF0YS5sZW5ndGg7Cn0KCmZ1bmN0aW9uIHNhdmVMb2NhbCgpe2xvY2FsU3RvcmFnZS5zZXRJdGVtKFNUT1JBR0VfS0VZLEpTT04uc3RyaW5naWZ5KHJlcG9ydCkpO30KZnVuY3Rpb24gbG9hZExvY2FsKCl7dHJ5e3ZhciBkPWxvY2FsU3RvcmFnZS5nZXRJdGVtKFNUT1JBR0VfS0VZKTtpZihkKXtyZXBvcnQ9SlNPTi5wYXJzZShkKTtyZXR1cm4gdHJ1ZTt9fWNhdGNoKGUpe31yZXR1cm4gZmFsc2U7fQoKZnVuY3Rpb24gZXhwb3J0Q1NWKCl7CiAgaWYoIWNsb3VkRGF0YS5sZW5ndGgpe2FsZXJ0KCLZhNinINiq2YjYrNivINio2YrYp9mG2KfYqiIpO3JldHVybjt9CiAgdmFyIGNzdj0i2KfZhNio2LHYrCzYp9mE2K/ZiNixLNix2YLZhSDYp9mE2YTZiNit2Kks2KrYp9ix2YrYriDYp9mE2LHYtdivLNin2YTZiNmC2Kos2K3Yp9mE2Kkg2KfZhNmF2LHZg9io2Kks2YXZhNin2K3YuNin2Kos2LHYrNmEINin2YTYo9mF2YZcbiI7CiAgY2xvdWREYXRhLmZvckVhY2goZnVuY3Rpb24odil7CiAgICB2YXIgcmF3RGF0ZSA9IGdldEZpZWxkKHYsWyLYqtin2LHZitiuINin2YTYsdi12K8iLCLwn5OFINiq2KfYsdmK2K4g2KfZhNix2LXYryIsItin2YTYqtin2LHZitiuIl0pfHx2Lm9ic0RhdGV8fHYuZGF0ZXx8IiI7CiAgICB2YXIgcmF3VGltZSA9IGdldEZpZWxkKHYsWyLYp9mE2YjZgtiqIiwi4o+wINin2YTZiNmC2KoiXSl8fHYudGltZXx8IiI7CiAgICBjc3YrPVsKICAgICAgZ2V0RmllbGQodixbItin2YTYqNix2KwiLCLwn4+iINin2YTYqNix2KwiXSl8fHYudG93ZXJ8fCIiLAogICAgICBnZXRGaWVsZCh2LFsi2KfZhNiv2YjYsSIsIvCflKIg2KfZhNiv2YjYsSJdKXx8di5mbG9vcnx8IiIsCiAgICAgIGdldEZpZWxkKHYsWyLYsdmC2YUg2KfZhNmE2YjYrdipIiwi8J+alyDYsdmC2YUg2KfZhNmE2YjYrdipIl0pfHx2LnBsYXRlfHwiIiwKICAgICAgZml4RXhjZWxEYXRlKHJhd0RhdGUpLAogICAgICBmaXhFeGNlbFRpbWUocmF3VGltZSksCiAgICAgICciJysoZ2V0RmllbGQodixbItit2KfZhNipINin2YTZhdix2YPYqNipIiwi8J+apiDYrdin2YTYqSDYp9mE2YXYsdmD2KjYqSJdKXx8di5jYXJTdGF0dXN8fCIiKSsnIicsCiAgICAgICciJysoZ2V0RmllbGQodixbItmF2YTYp9it2LjYp9iqIiwi8J+TnSDZhdmE2KfYrdi42KfYqiJdKXx8di5ub3Rlc3x8IiIpKyciJywKICAgICAgZ2V0RmllbGQodixbItix2KzZhCDYp9mE2KPZhdmGIiwi8J+RpCDYsdis2YQg2KfZhNij2YXZhiJdKXx8di5lbXBOYW1lfHwiIgogICAgXS5qb2luKCIsIikrIlxuIjsKICB9KTsKICB2YXIgYT1kb2N1bWVudC5jcmVhdGVFbGVtZW50KCJhIik7CiAgYS5ocmVmPVVSTC5jcmVhdGVPYmplY3RVUkwobmV3IEJsb2IoWyJcdWZlZmYiK2Nzdl0se3R5cGU6InRleHQvY3N2O2NoYXJzZXQ9dXRmLTg7In0pKTsKICBhLmRvd25sb2FkPSJwYXJraW5nXyIrbmV3IERhdGUoKS50b0lTT1N0cmluZygpLnNwbGl0KCJUIilbMF0rIi5jc3YiOyBhLmNsaWNrKCk7Cn0KYXN5bmMgZnVuY3Rpb24gdGVzdENvbm5lY3Rpb24oZWwpewogIGVsLmlubmVySFRNTD0i4o+zINis2KfYsdmNINin2YTYp9iu2KrYqNin2LEuLi4iOwogIHRyeXsKICAgIHZhciBkYXRhPWF3YWl0IGpzb25wQ2FsbChHU19VUkwrIj9hY3Rpb249Z2V0QWxsIiw4MDAwKTsKICAgIGlmKEFycmF5LmlzQXJyYXkoZGF0YSkpIGVsLmlubmVySFRNTD0nPHNwYW4gc3R5bGU9ImNvbG9yOiMxNmEzNGE7Zm9udC13ZWlnaHQ6NzAwOyI+4pyFINmG2KzYrSEgJytkYXRhLmxlbmd0aCsnINiz2KzZhC4g2KPZg9mE2LEg2YjYp9i22LrYtyAi8J+UhCDYqtit2K/ZitirIi48L3NwYW4+JzsKICAgIGVsc2UgZWwuaW5uZXJIVE1MPSc8c3BhbiBzdHlsZT0iY29sb3I6I2NhOGEwNDsiPuKaoO+4jyDYqtij2YPYryDZhdmGINmD2YjYryBkb0dldC48L3NwYW4+JzsKICB9Y2F0Y2goZSl7ZWwuaW5uZXJIVE1MPSc8c3BhbiBzdHlsZT0iY29sb3I6I2RjMjYyNjsiPuKclyAnK2UubWVzc2FnZSsnPC9zcGFuPic7fQp9CgovKiDilZDilZAgUGxhdGVSZWNvZ25pemVyIEFQSSDilZDilZAgKi8KdmFyIFBMQVRFX0FQSV9VUkwgPSAiaHR0cHM6Ly9hcGkucGxhdGVyZWNvZ25pemVyLmNvbS92MS9wbGF0ZS1yZWFkZXIvIjsKdmFyIHBsYXRlQXBpS2V5ID0gYXRvYigiTmpKbVl6aG1aVFJoWTJRM1ptTmtPVE01T1daak9ERmlOMkk1WmpJeU9Ea3haREJoT0RFeU1BPT0iKTsKCmZ1bmN0aW9uIHNldE9jclN0YXR1cyh0eXBlLCBtc2cpewogIHZhciBlbCA9ICQoIm9jclN0YXR1cyIpOwogIGVsLnN0eWxlLmRpc3BsYXkgPSAiYmxvY2siOwogIHZhciBzdHlsZXMgPSB7CiAgICBsb2FkaW5nOiAiYmFja2dyb3VuZDojZmVmY2U4O2JvcmRlcjoycHggc29saWQgI2ZkZTY4YTtjb2xvcjojOTI0MDBlOyIsCiAgICBlcnJvcjogICAiYmFja2dyb3VuZDojZmVlMmUyO2JvcmRlcjoycHggc29saWQgI2ZjYTVhNTtjb2xvcjojOTkxYjFiOyIsCiAgICBpbmZvOiAgICAiYmFja2dyb3VuZDojZWZmNmZmO2JvcmRlcjoycHggc29saWQgI2JmZGJmZTtjb2xvcjojMWU0MGFmOyIKICB9OwogIGVsLnN0eWxlLmNzc1RleHQgPSAoc3R5bGVzW3R5cGVdfHxzdHlsZXMuaW5mbykgKyAicGFkZGluZzoxNHB4O2JvcmRlci1yYWRpdXM6MTJweDtmb250LXNpemU6MTRweDt0ZXh0LWFsaWduOmNlbnRlcjttYXJnaW4tdG9wOjEycHg7IjsKICBlbC5pbm5lckhUTUwgPSBtc2c7Cn0KCmFzeW5jIGZ1bmN0aW9uIHJlY29nbml6ZVBsYXRlKGltYWdlQmFzZTY0KXsKICBpZighcGxhdGVBcGlLZXkpewogICAgc2V0T2NyU3RhdHVzKCJlcnJvciIsIuKclyDYo9iv2K7ZhCDZhdmB2KrYp9itIFBsYXRlUmVjb2duaXplciBBUEkg2KPZiNmE2KfZiyDZgdmKINin2YTYo9i52YTZiSIpOwogICAgcmV0dXJuIG51bGw7CiAgfQogIHNldE9jclN0YXR1cygibG9hZGluZyIsIvCflIQg2KzYp9ix2Y0g2YLYsdin2KHYqSDYp9mE2YTZiNit2Kkg2KjYp9mE2LDZg9in2KEg2KfZhNin2LXYt9mG2KfYudmKLi4uIik7CiAgJCgib2NyUmVzdWx0Iikuc3R5bGUuZGlzcGxheSA9ICJub25lIjsKCiAgdHJ5ewogICAgdmFyIGJ5dGVTdHIgPSBhdG9iKGltYWdlQmFzZTY0LnNwbGl0KCIsIilbMV0pOwogICAgdmFyIGFyciA9IG5ldyBVaW50OEFycmF5KGJ5dGVTdHIubGVuZ3RoKTsKICAgIGZvcih2YXIgaT0wO2k8Ynl0ZVN0ci5sZW5ndGg7aSsrKSBhcnJbaV09Ynl0ZVN0ci5jaGFyQ29kZUF0KGkpOwogICAgdmFyIGJsb2IgPSBuZXcgQmxvYihbYXJyXSwge3R5cGU6ImltYWdlL2pwZWcifSk7CgogICAgdmFyIGZvcm1EYXRhID0gbmV3IEZvcm1EYXRhKCk7CiAgICBmb3JtRGF0YS5hcHBlbmQoInVwbG9hZCIsIGJsb2IsICJwbGF0ZS5qcGciKTsKICAgIGZvcm1EYXRhLmFwcGVuZCgicmVnaW9ucyIsICJzYSIpOwoKICAgIHZhciByZXNwID0gYXdhaXQgZmV0Y2goUExBVEVfQVBJX1VSTCwgewogICAgICBtZXRob2Q6ICJQT1NUIiwKICAgICAgaGVhZGVyczogeyAiQXV0aG9yaXphdGlvbiI6ICJUb2tlbiAiICsgcGxhdGVBcGlLZXkgfSwKICAgICAgYm9keTogZm9ybURhdGEKICAgIH0pOwoKICAgIGlmKHJlc3Auc3RhdHVzID09PSA0MDEpewogICAgICBzZXRPY3JTdGF0dXMoImVycm9yIiwi4pyXINmF2YHYqtin2K0gQVBJINi62YrYsSDYtdit2YrYrSIpOwogICAgICByZXR1cm4gbnVsbDsKICAgIH0KICAgIGlmKHJlc3Auc3RhdHVzID09PSA0MjkpewogICAgICBzZXRPY3JTdGF0dXMoImVycm9yIiwi4pqg77iPINiq2KzYp9mI2LLYqiDYp9mE2K3YryDYp9mE2YrZiNmF2Yog2YTZhNi32YTYqNin2Kog2KfZhNmF2KzYp9mG2YrYqSIpOwogICAgICByZXR1cm4gbnVsbDsKICAgIH0KICAgIGlmKCFyZXNwLm9rKXsKICAgICAgc2V0T2NyU3RhdHVzKCJlcnJvciIsIuKclyDYrti32KMg2YXZhiDYp9mE2K7Yp9iv2YU6ICIrcmVzcC5zdGF0dXMpOwogICAgICByZXR1cm4gbnVsbDsKICAgIH0KCiAgICB2YXIgZGF0YSA9IGF3YWl0IHJlc3AuanNvbigpOwoKICAgIGlmKCFkYXRhLnJlc3VsdHMgfHwgZGF0YS5yZXN1bHRzLmxlbmd0aCA9PT0gMCl7CiAgICAgIHNldE9jclN0YXR1cygiZXJyb3IiLCLimqDvuI8g2YTZhSDZitiq2YUg2KfZg9iq2LTYp9mBINmE2YjYrdipIOKAlCDYrNix2Kgg2KfZhNiq2YLYp9i3INij2YjYttitINij2Ygg2KfZgtiq2LHYp9ioINij2YPYq9ixIik7CiAgICAgIHJldHVybiBudWxsOwogICAgfQoKICAgIHZhciBiZXN0ID0gZGF0YS5yZXN1bHRzWzBdOwogICAgdmFyIHBsYXRlID0gYmVzdC5wbGF0ZS50b1VwcGVyQ2FzZSgpOwogICAgdmFyIGNvbmZpZGVuY2UgPSBNYXRoLnJvdW5kKChiZXN0LnNjb3JlfHwwKSoxMDApKyIlIjsKCiAgICAkKCJvY3JTdGF0dXMiKS5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOwogICAgJCgib2NyUGxhdGVUZXh0IikudGV4dENvbnRlbnQgPSBwbGF0ZTsKICAgICQoIm9jckNvbmZpZGVuY2UiKS50ZXh0Q29udGVudCA9IGNvbmZpZGVuY2U7CiAgICAkKCJvY3JSZXN1bHQiKS5zdHlsZS5kaXNwbGF5ID0gImJsb2NrIjsKCiAgICBpZihkYXRhLnJlc3VsdHMubGVuZ3RoID4gMSl7CiAgICAgIHZhciBhbHRIdG1sID0gItmG2KrYp9im2Kwg2KjYr9mK2YTYqTogIjsKICAgICAgZGF0YS5yZXN1bHRzLnNsaWNlKDEpLmZvckVhY2goZnVuY3Rpb24ocil7CiAgICAgICAgYWx0SHRtbCArPSAnPHNwYW4gc3R5bGU9ImJhY2tncm91bmQ6I2YxZjVmOTtwYWRkaW5nOjJweCA4cHg7Ym9yZGVyLXJhZGl1czo2cHg7bWFyZ2luOjAgM3B4O2ZvbnQtZmFtaWx5Om1vbm9zcGFjZTtmb250LXdlaWdodDo3MDA7Ij4nK3IucGxhdGUudG9VcHBlckNhc2UoKSsnPC9zcGFuPic7CiAgICAgIH0pOwogICAgICAkKCJvY3JBbHRlcm5hdGl2ZXMiKS5pbm5lckhUTUwgPSBhbHRIdG1sOwogICAgfSBlbHNlIHsKICAgICAgJCgib2NyQWx0ZXJuYXRpdmVzIikuaW5uZXJIVE1MID0gIiI7CiAgICB9CgogICAgcmV0dXJuIHBsYXRlOwoKICB9IGNhdGNoKGVycil7CiAgICBzZXRPY3JTdGF0dXMoImVycm9yIiwi4pyXINiq2LnYsNmR2LEg2KfZhNin2KrYtdin2YQg2KjZgCBQbGF0ZVJlY29nbml6ZXI6ICIrZXJyLm1lc3NhZ2UpOwogICAgcmV0dXJuIG51bGw7CiAgfQp9CgovKiDilZDilZAg2KfZhNmD2KfZhdmK2LHYpyDilZDilZAgKi8KYXN5bmMgZnVuY3Rpb24gb3Blbk9jckNhbWVyYSgpewogIHRyeXsKICAgIGNhbWVyYVN0cmVhbSA9IGF3YWl0IG5hdmlnYXRvci5tZWRpYURldmljZXMuZ2V0VXNlck1lZGlhKHsKICAgICAgdmlkZW86eyBmYWNpbmdNb2RlOiJlbnZpcm9ubWVudCIsIHdpZHRoOntpZGVhbDoxOTIwfSwgaGVpZ2h0OntpZGVhbDoxMDgwfSB9CiAgICB9KTsKICAgIGVscy5jYW1lcmFWaWRlby5zcmNPYmplY3QgPSBjYW1lcmFTdHJlYW07CiAgICBlbHMuY2FtZXJhVmlkZW8uc3R5bGUuZGlzcGxheSA9ICJibG9jayI7CiAgICAkKCJjYXB0dXJlZFByZXZpZXciKS5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOwogICAgJCgib2NyU3RhdHVzIikuc3R5bGUuZGlzcGxheSA9ICJub25lIjsKICAgICQoIm9jclJlc3VsdCIpLnN0eWxlLmRpc3BsYXkgPSAibm9uZSI7CiAgICAkKCJyZXRha2VCdG4iKS5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOwogICAgZWxzLmNhcHR1cmVCdG4uc3R5bGUuZGlzcGxheSA9ICJpbmxpbmUtYmxvY2siOwogICAgZWxzLmNhbWVyYU1vZGFsLmNsYXNzTGlzdC5hZGQoImFjdGl2ZSIpOwogIH0gY2F0Y2goZSl7IGFsZXJ0KCLZhNinINmK2YXZg9mGINin2YTZiNi12YjZhCDZhNmE2YPYp9mF2YrYsdinOiAiK2UubWVzc2FnZSk7IH0KfQoKZnVuY3Rpb24gY2xvc2VDYW1lcmEoKXsKICBpZihjYW1lcmFTdHJlYW0peyBjYW1lcmFTdHJlYW0uZ2V0VHJhY2tzKCkuZm9yRWFjaChmdW5jdGlvbih0KXt0LnN0b3AoKTt9KTsgY2FtZXJhU3RyZWFtPW51bGw7IH0KICBlbHMuY2FtZXJhTW9kYWwuY2xhc3NMaXN0LnJlbW92ZSgiYWN0aXZlIik7Cn0KCmVscy5jYXB0dXJlQnRuLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIiwgYXN5bmMgZnVuY3Rpb24oKXsKICB2YXIgdmlkZW8gPSBlbHMuY2FtZXJhVmlkZW87CiAgdmFyIGNhbnZhcyA9IGVscy5jYW1lcmFDYW52YXM7CiAgY2FudmFzLndpZHRoID0gdmlkZW8udmlkZW9XaWR0aDsKICBjYW52YXMuaGVpZ2h0ID0gdmlkZW8udmlkZW9IZWlnaHQ7CiAgY2FudmFzLmdldENvbnRleHQoIjJkIikuZHJhd0ltYWdlKHZpZGVvLCAwLCAwKTsKICB2YXIgZGF0YVVybCA9IGNhbnZhcy50b0RhdGFVUkwoImltYWdlL2pwZWciLCAwLjkpOwoKICBpZihjYW1lcmFTdHJlYW0peyBjYW1lcmFTdHJlYW0uZ2V0VHJhY2tzKCkuZm9yRWFjaChmdW5jdGlvbih0KXt0LnN0b3AoKTt9KTsgY2FtZXJhU3RyZWFtPW51bGw7IH0KICB2aWRlby5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOwogICQoImNhcHR1cmVkSW1nIikuc3JjID0gZGF0YVVybDsKICAkKCJjYXB0dXJlZFByZXZpZXciKS5zdHlsZS5kaXNwbGF5ID0gImJsb2NrIjsKICBlbHMuY2FwdHVyZUJ0bi5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOwogICQoInJldGFrZUJ0biIpLnN0eWxlLmRpc3BsYXkgPSAiaW5saW5lLWJsb2NrIjsKCiAgdmFyIHBsYXRlID0gYXdhaXQgcmVjb2duaXplUGxhdGUoZGF0YVVybCk7CgogIGlmKHBsYXRlKXsKICAgICQoImJ0blVzZU9jclBsYXRlIikub25jbGljayA9IGZ1bmN0aW9uKCl7CiAgICAgIGVscy5wbGF0ZS52YWx1ZSA9IHBsYXRlOwogICAgICBzZXRJbWFnZShkYXRhVXJsKTsKICAgICAgY2xvc2VDYW1lcmEoKTsKICAgICAgY2hlY2tQbGF0ZUV4aXN0cyhwbGF0ZSk7CiAgICB9OwogIH0KfSk7CgokKCJyZXRha2VCdG4iKS5hZGRFdmVudExpc3RlbmVyKCJjbGljayIsIGFzeW5jIGZ1bmN0aW9uKCl7CiAgJCgiY2FwdHVyZWRQcmV2aWV3Iikuc3R5bGUuZGlzcGxheSA9ICJub25lIjsKICAkKCJvY3JTdGF0dXMiKS5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOwogICQoIm9jclJlc3VsdCIpLnN0eWxlLmRpc3BsYXkgPSAibm9uZSI7CiAgJCgicmV0YWtlQnRuIikuc3R5bGUuZGlzcGxheSA9ICJub25lIjsKICBlbHMuY2FwdHVyZUJ0bi5zdHlsZS5kaXNwbGF5ID0gImlubGluZS1ibG9jayI7CiAgZWxzLmNhbWVyYVZpZGVvLnN0eWxlLmRpc3BsYXkgPSAiYmxvY2siOwogIHRyeXsKICAgIGNhbWVyYVN0cmVhbSA9IGF3YWl0IG5hdmlnYXRvci5tZWRpYURldmljZXMuZ2V0VXNlck1lZGlhKHsKICAgICAgdmlkZW86e2ZhY2luZ01vZGU6ImVudmlyb25tZW50Iix3aWR0aDp7aWRlYWw6MTkyMH0saGVpZ2h0OntpZGVhbDoxMDgwfX0KICAgIH0pOwogICAgZWxzLmNhbWVyYVZpZGVvLnNyY09iamVjdCA9IGNhbWVyYVN0cmVhbTsKICB9IGNhdGNoKGUpeyBhbGVydCgi2YTYpyDZitmF2YPZhiDYp9mE2YjYtdmI2YQg2YTZhNmD2KfZhdmK2LHYpyIpOyB9Cn0pOwoKLyog4pWQ4pWQINij2LLYsdin2LEgT0NSINio2LHZgdi5INin2YTZhNmI2K3YqSDilZDilZAgKi8KJCgiYnRuT2NyQ2FtZXJhIikuYWRkRXZlbnRMaXN0ZW5lcigiY2xpY2siLCBmdW5jdGlvbigpewogIHZhciBjaG9pY2UgPSBjb25maXJtKCLYp9iu2KrYsSDYt9ix2YrZgtipINmC2LHYp9ih2Kkg2KfZhNmE2YjYrdipOlxuXG7ZhdmI2KfZgdmCID0g2YPYp9mF2YrYsdinXG7YpdmE2LrYp9ihID0g2LHZgdi5INi12YjYsdipIik7CiAgaWYoY2hvaWNlKXsgb3Blbk9jckNhbWVyYSgpOyB9IGVsc2UgeyAkKCJvY3JGaWxlSW5wdXQiKS5jbGljaygpOyB9Cn0pOwoKJCgib2NyRmlsZUlucHV0IikuYWRkRXZlbnRMaXN0ZW5lcigiY2hhbmdlIiwgYXN5bmMgZnVuY3Rpb24oZSl7CiAgdmFyIGZpbGUgPSBlLnRhcmdldC5maWxlcyAmJiBlLnRhcmdldC5maWxlc1swXTsKICBpZighZmlsZSkgcmV0dXJuOwogIGUudGFyZ2V0LnZhbHVlID0gIiI7CiAgdmFyIHJlYWRlciA9IG5ldyBGaWxlUmVhZGVyKCk7CiAgcmVhZGVyLm9ubG9hZCA9IGFzeW5jIGZ1bmN0aW9uKGV2KXsKICAgIHZhciByYXcgPSBldi50YXJnZXQucmVzdWx0OwogICAgdmFyIGltZyA9IG5ldyBJbWFnZSgpOwogICAgaW1nLm9ubG9hZCA9IGFzeW5jIGZ1bmN0aW9uKCl7CiAgICAgIHZhciBjYW52YXMgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCJjYW52YXMiKTsKICAgICAgdmFyIE1BWCA9IDEyMDA7CiAgICAgIHZhciB3PWltZy53aWR0aCwgaD1pbWcuaGVpZ2h0OwogICAgICBpZih3Pk1BWCl7aD1NYXRoLnJvdW5kKGgqTUFYL3cpO3c9TUFYO30KICAgICAgY2FudmFzLndpZHRoPXc7IGNhbnZhcy5oZWlnaHQ9aDsKICAgICAgY2FudmFzLmdldENvbnRleHQoIjJkIikuZHJhd0ltYWdlKGltZywwLDAsdyxoKTsKICAgICAgdmFyIGNvbXByZXNzZWQgPSBjYW52YXMudG9EYXRhVVJMKCJpbWFnZS9qcGVnIiwwLjg1KTsKCiAgICAgICQoImNhcHR1cmVkUHJldmlldyIpLnN0eWxlLmRpc3BsYXkgPSAiYmxvY2siOwogICAgICAkKCJjYXB0dXJlZEltZyIpLnNyYyA9IGNvbXByZXNzZWQ7CiAgICAgIGVscy5jYW1lcmFWaWRlby5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOwogICAgICBlbHMuY2FwdHVyZUJ0bi5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOwogICAgICAkKCJyZXRha2VCdG4iKS5zdHlsZS5kaXNwbGF5ID0gImlubGluZS1ibG9jayI7CiAgICAgICQoIm9jclN0YXR1cyIpLnN0eWxlLmRpc3BsYXkgPSAibm9uZSI7CiAgICAgICQoIm9jclJlc3VsdCIpLnN0eWxlLmRpc3BsYXkgPSAibm9uZSI7CiAgICAgIGVscy5jYW1lcmFNb2RhbC5jbGFzc0xpc3QuYWRkKCJhY3RpdmUiKTsKCiAgICAgIHZhciBwbGF0ZSA9IGF3YWl0IHJlY29nbml6ZVBsYXRlKGNvbXByZXNzZWQpOwogICAgICBpZihwbGF0ZSl7CiAgICAgICAgJCgiYnRuVXNlT2NyUGxhdGUiKS5vbmNsaWNrID0gZnVuY3Rpb24oKXsKICAgICAgICAgIGVscy5wbGF0ZS52YWx1ZSA9IHBsYXRlOwogICAgICAgICAgc2V0SW1hZ2UoY29tcHJlc3NlZCk7CiAgICAgICAgICBjbG9zZUNhbWVyYSgpOwogICAgICAgICAgY2hlY2tQbGF0ZUV4aXN0cyhwbGF0ZSk7CiAgICAgICAgfTsKICAgICAgfQogICAgfTsKICAgIGltZy5zcmMgPSByYXc7CiAgfTsKICByZWFkZXIucmVhZEFzRGF0YVVSTChmaWxlKTsKfSk7Cgp3aW5kb3cuY29weVNjcmlwdD1mdW5jdGlvbigpewogIHZhciBjb2RlPSQoInNjcmlwdENvZGUiKS50ZXh0Q29udGVudDsKICBuYXZpZ2F0b3IuY2xpcGJvYXJkLndyaXRlVGV4dChjb2RlKS50aGVuKGZ1bmN0aW9uKCl7YWxlcnQoIuKchSDYqtmFINin2YTZhtiz2K4hIik7fSkuY2F0Y2goZnVuY3Rpb24oKXthbGVydCgi2KfZhtiz2K4g2KfZhNmD2YjYryDZitiv2YjZitin2YsuIik7fSk7Cn07CgovKiDilZDilZAg2KfZhNij2K3Yr9in2Ksg4pWQ4pWQICovCmVscy5idG5Mb29rdXAuYWRkRXZlbnRMaXN0ZW5lcigiY2xpY2siLGxvb2t1cEd1YXJkKTsKZWxzLmVtcElkLmFkZEV2ZW50TGlzdGVuZXIoImtleWRvd24iLGZ1bmN0aW9uKGUpe2lmKGUua2V5PT09IkVudGVyIilsb29rdXBHdWFyZCgpO30pOwplbHMuYnRuQWRkLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIixhZGRWZWhpY2xlKTsKZWxzLmJ0bkV4cG9ydENTVi5hZGRFdmVudExpc3RlbmVyKCJjbGljayIsZXhwb3J0Q1NWKTsKZWxzLmJ0blByaW50LmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIixmdW5jdGlvbigpe3dpbmRvdy5wcmludCgpO30pOwplbHMuYnRuQ2xlYXJMb2NhbC5hZGRFdmVudExpc3RlbmVyKCJjbGljayIsZnVuY3Rpb24oKXsKICBpZihjb25maXJtKCLZhdiz2K0g2KfZhNio2YrYp9mG2KfYqiDYp9mE2YXYrdmE2YrYqSDZgdmC2LfYnyIpKXsKICAgIGxvY2FsU3RvcmFnZS5yZW1vdmVJdGVtKFNUT1JBR0VfS0VZKTtyZXBvcnQ9e2d1YXJkOntlbXBJZDoiIixuYW1lOiIifSxhZGRlZENvdW50OjB9OwogICAgZWxzLmVtcElkLnZhbHVlPSIiO2Vscy5lbXBOYW1lLnZhbHVlPSIiO3NldFN0YXR1cygi2KrZhSDYp9mE2YXYs9itINin2YTZhdit2YTZiiIpOwogIH0KfSk7CmVscy5idG5TeW5jLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIixmdW5jdGlvbigpe2xvYWRGcm9tQ2xvdWQoZmFsc2UpO30pOwoKZWxzLmJ0blRlc3RJbk1vZGFsLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIixmdW5jdGlvbigpe3Rlc3RDb25uZWN0aW9uKGVscy50ZXN0UmVzdWx0TW9kYWwpO30pOwoKZWxzLmNsb3NlQ2FtZXJhLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIixjbG9zZUNhbWVyYSk7CmVscy5jYW5jZWxDYW1lcmEuYWRkRXZlbnRMaXN0ZW5lcigiY2xpY2siLGNsb3NlQ2FtZXJhKTsKZWxzLmNsb3NlSW1hZ2UuYWRkRXZlbnRMaXN0ZW5lcigiY2xpY2siLGZ1bmN0aW9uKCl7ZWxzLmltYWdlTW9kYWwuY2xhc3NMaXN0LnJlbW92ZSgiYWN0aXZlIik7fSk7CmVscy5pbWFnZU1vZGFsLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIixmdW5jdGlvbihlKXtpZihlLnRhcmdldD09PWVscy5pbWFnZU1vZGFsKWVscy5pbWFnZU1vZGFsLmNsYXNzTGlzdC5yZW1vdmUoImFjdGl2ZSIpO30pOwoKLy8g2KjYrdirINmB2YjYsdmKINi52YbYryDZg9iq2KfYqNipINin2YTZhNmI2K3YqQplbHMucGxhdGUuYWRkRXZlbnRMaXN0ZW5lcigiaW5wdXQiLGZ1bmN0aW9uKCl7CiAgdmFyIHZhbD1lbHMucGxhdGUudmFsdWUudHJpbSgpLnRvVXBwZXJDYXNlKCk7CiAgY2hlY2tQbGF0ZUV4aXN0cyh2YWwpOwp9KTsKCmRvY3VtZW50LmFkZEV2ZW50TGlzdGVuZXIoImtleWRvd24iLGZ1bmN0aW9uKGUpewogIGlmKGUuY3RybEtleSYmZS5rZXk9PT0iRW50ZXIiKXtlLnByZXZlbnREZWZhdWx0KCk7YWRkVmVoaWNsZSgpO30KICBpZihlLmtleT09PSJFc2NhcGUiKXtjbG9zZUNhbWVyYSgpO2Vscy5pbWFnZU1vZGFsLmNsYXNzTGlzdC5yZW1vdmUoImFjdGl2ZSIpO2Vscy5zZXR1cE1vZGFsLmNsYXNzTGlzdC5yZW1vdmUoImFjdGl2ZSIpO30KfSk7CgovKiDilZDilZAg2KrZh9mK2KbYqSDilZDilZAgKi8Kc2V0Tm93KCk7CmxvYWRMb2NhbCgpOwppZihyZXBvcnQuZ3VhcmQmJnJlcG9ydC5ndWFyZC5lbXBJZCl7ZWxzLmVtcElkLnZhbHVlPXJlcG9ydC5ndWFyZC5lbXBJZDtlbHMuZW1wTmFtZS52YWx1ZT1yZXBvcnQuZ3VhcmQubmFtZTt9CndpbmRvdy5hZGRFdmVudExpc3RlbmVyKCJsb2FkIiwgZnVuY3Rpb24oKXsgbG9hZEZyb21DbG91ZCh0cnVlKTsgfSk7CnNldEludGVydmFsKGZ1bmN0aW9uKCl7bG9hZEZyb21DbG91ZChmYWxzZSk7fSw2MDAwMCk7Cgp9KSgpOwo=';eval(decodeURIComponent(escape(atob(_0x))));
+(function(){
+"use strict";
+
+/* ════════════════════════════════════════════════
+   ⚙️ الإعدادات — غيّر رابط GS_URL فقط
+   ════════════════════════════════════════════════ */
+var GS_URL      = "https://script.google.com/macros/s/AKfycbzZS4SGYswZnbHB0BRW0ceXMb8SEBoDgPgN6KaiaPtjy-Kmky6blZ2RptcnrqAHgMTZw/exec";
+var STORAGE_KEY = "parkingReport_v4";
+
+/* ════════ DOM ════════ */
+function $(id){ return document.getElementById(id); }
+var els = {
+  empId:$("empId"), empName:$("empName"),
+  reportDate:$("reportDate"), reportTime:$("reportTime"),
+  status:$("status"), btnLookup:$("btnLookup"),
+  tower:$("tower"), floor:$("floor"), plate:$("plate"),
+  obsDate:$("obsDate"), notes:$("notes"), carStatus:$("carStatus"),
+  btnAdd:$("btnAdd"), btnCamera:$("btnCamera"),
+  btnExportCSV:$("btnExportCSV"), btnPrint:$("btnPrint"),
+  btnClearLocal:$("btnClearLocal"), btnSync:$("btnSync"),
+  btnShowSetup:$("btnShowSetup"),
+  btnTestInModal:$("btnTestInModal"), btnTestGuard:$("btnTestGuard"),
+  closeSetup:$("closeSetup"),
+  vehicleImg:$("vehicleImg"), imgUploadArea:$("imgUploadArea"), btnClearImg:$("btnClearImg"),
+  tableBody:$("tableBody"), tableFooter:$("tableFooter"), footerCount:$("footerCount"),
+  cameraModal:$("cameraModal"), cameraVideo:$("cameraVideo"),
+  cameraCanvas:$("cameraCanvas"), closeCamera:$("closeCamera"),
+  cancelCamera:$("cancelCamera"), captureBtn:$("captureBtn"),
+  imageModal:$("imageModal"), fullImage:$("fullImage"), closeImage:$("closeImage"),
+  statTotal:$("statTotal"), statToday:$("statToday"),
+  statWithPhotos:$("statWithPhotos"), statApiCalls:$("statApiCalls"),
+  syncBanner:$("syncBanner"), syncDot:$("syncDot"), syncMsg:$("syncMsg"),
+  loadingOverlay:$("loadingOverlay"),
+  setupModal:$("setupModal"), testResultModal:$("testResultModal"),
+  plateFoundCard:$("plateFoundCard"), pfCount:$("pfCount"), pfItems:$("pfItems"),
+  guardInfoCard:$("guardInfoCard"),
+  guardNameDisplay:$("guardNameDisplay"),
+  guardIdDisplay:$("guardIdDisplay"),
+  guardDeptDisplay:$("guardDeptDisplay")
+};
+
+/* ════════ State ════════ */
+var report      = { guard:{empId:"",name:"",dept:""}, addedCount:0 };
+var cloudData   = [];
+var cameraStream= null;
+var isSyncing   = false;
+var currentImgBase64 = null;
+
+/* ════════════════════════════════════════════════
+   👤 بحث الموظف من Google Sheets  ← التغيير الجوهري
+   ════════════════════════════════════════════════ */
+async function lookupGuard(){
+  var id = els.empId.value.trim();
+  if(!id){ alert("أدخل الرقم الوظيفي"); return; }
+
+  els.btnLookup.disabled   = true;
+  els.btnLookup.textContent = "⏳ بحث...";
+  setStatus("⏳ جارٍ البحث في قاعدة البيانات...");
+  els.guardInfoCard.classList.remove("show");
+
+  try {
+    var data = await jsonpCall(GS_URL + "?action=getGuard&empId=" + encodeURIComponent(id), 10000);
+
+    if(data && data.success){
+      /* ✅ تم العثور على الموظف */
+      report.guard = { empId:id, name:data.name, dept:data.dept||"" };
+      els.empName.value = data.name;
+      setStatus("✅ " + data.name);
+      saveLocal();
+
+      /* عرض بطاقة الموظف */
+      els.guardNameDisplay.textContent = data.name;
+      els.guardIdDisplay.textContent   = "الرقم الوظيفي: " + id;
+      if(data.dept){
+        els.guardDeptDisplay.textContent = data.dept;
+        els.guardDeptDisplay.style.display = "inline-block";
+      } else {
+        els.guardDeptDisplay.style.display = "none";
+      }
+      els.guardInfoCard.classList.add("show");
+
+    } else if(data && data.error === "no_sheet"){
+      alert("⚠️ " + (data.msg || "ورقة الموظفين غير موجودة\nأنشئ ورقة باسم: الموظفون"));
+      els.empName.value = "";
+    } else {
+      alert("❌ الرقم الوظيفي غير موجود في قاعدة البيانات");
+      els.empName.value = "";
+      els.guardInfoCard.classList.remove("show");
+    }
+  } catch(err){
+    /* في حالة فشل الاتصال — إشعار واضح */
+    setStatus("❌ تعذّر الاتصال بقاعدة البيانات");
+    alert("❌ فشل الاتصال بـ Google Sheets\n" + err.message +
+          "\n\nتأكد من:\n• رابط GS_URL صحيح\n• Who has access = Anyone");
+    els.empName.value = "";
+  } finally {
+    els.btnLookup.disabled    = false;
+    els.btnLookup.textContent = "🔍 بحث";
+  }
+}
+
+/* ════════════════════════════════════════════════
+   🔧 مساعدات
+   ════════════════════════════════════════════════ */
+function getField(v, keys){
+  for(var i=0;i<keys.length;i++){
+    if(v[keys[i]] !== undefined && v[keys[i]] !== "") return v[keys[i]];
+  }
+  for(var vk in v){
+    var clean = vk.replace(/^[^\u0600-\u06FF]+/,"").trim();
+    for(var j=0;j<keys.length;j++){
+      var kc = keys[j].replace(/^[^\u0600-\u06FF]+/,"").trim();
+      if(clean === kc && v[vk] !== undefined && v[vk] !== "") return v[vk];
+    }
+  }
+  return "";
+}
+
+function fixExcelTime(val){
+  if(!val && val!==0) return "";
+  var s = String(val).trim();
+  if(/^\d{1,2}:\d{2}/.test(s)) return s.slice(0,5);
+  var num = parseFloat(s);
+  if(!isNaN(num) && num>=0 && num<1){
+    var tot=Math.round(num*1440), h=Math.floor(tot/60), m=tot%60;
+    return (h<10?"0":"")+h+":"+(m<10?"0":"")+m;
+  }
+  if(!isNaN(num) && num>1){
+    var d=new Date(Date.UTC(1899,11,30)+num*86400000);
+    return d.toISOString().slice(0,10);
+  }
+  return s.slice(0,5);
+}
+
+function fixExcelDate(val){
+  if(!val) return "";
+  var s=String(val).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) return s;
+  var num=parseFloat(s);
+  if(!isNaN(num) && num>1){
+    var d=new Date(Date.UTC(1899,11,30)+num*86400000);
+    return d.toISOString().slice(0,10);
+  }
+  return s.slice(0,10);
+}
+
+/* ════════ JSONP ════════ */
+function jsonpCall(url, ms){
+  ms = ms||12000;
+  return new Promise(function(resolve,reject){
+    var cb  = "gs_"+Date.now()+"_"+Math.floor(Math.random()*99999);
+    var scr = document.createElement("script");
+    var tim = setTimeout(function(){ cleanup(); reject(new Error("انتهت مهلة الاتصال")); }, ms);
+    window[cb] = function(d){ cleanup(); resolve(d); };
+    scr.onerror= function(){ cleanup(); reject(new Error("تأكد من Who has access = Anyone")); };
+    scr.src = url + "&callback="+cb+"&_t="+Date.now();
+    document.head.appendChild(scr);
+    function cleanup(){ clearTimeout(tim); delete window[cb]; if(scr.parentNode) scr.remove(); }
+  });
+}
+
+/* ════════ Sync Status ════════ */
+function setSyncStatus(state, msg){
+  var dotClass = {loading:"pulse", ok:"ok", error:"error"};
+  var banClass = {loading:"syncing", ok:"ok", error:"error"};
+  els.syncDot.className    = "sync-dot "+(dotClass[state]||"");
+  els.syncBanner.className = "sync-banner no-print "+(banClass[state]||"");
+  els.syncMsg.textContent  = msg;
+}
+
+/* ════════ Load from Cloud ════════ */
+async function loadFromCloud(showLoader){
+  if(isSyncing) return;
+  isSyncing = true; els.btnSync.disabled = true;
+  if(showLoader) els.loadingOverlay.classList.add("active");
+  setSyncStatus("loading","⏳ جارٍ جلب البيانات من السحابة...");
+  try{
+    var data = await jsonpCall(GS_URL+"?action=getAll");
+    if(!Array.isArray(data)) throw new Error("بيانات غير صحيحة");
+    cloudData = data;
+    renderTable(); updateStats();
+    setSyncStatus("ok","✅ "+data.length+" سجل | "+new Date().toLocaleTimeString("ar-SA"));
+    setStatus("تم تحميل "+data.length+" سجل");
+    var p = els.plate.value.trim().toUpperCase();
+    if(p) checkPlateExists(p);
+  }catch(err){
+    setSyncStatus("error","⚠️ "+err.message);
+    setStatus("❌ تعذّر الاتصال — تحقق من الرابط أو الإعداد");
+    cloudData=[]; renderTable(); updateStats();
+  }finally{
+    isSyncing=false; els.btnSync.disabled=false;
+    if(showLoader) els.loadingOverlay.classList.remove("active");
+  }
+}
+
+/* ════════ Check plate ════════ */
+function checkPlateExists(plateVal){
+  if(!plateVal){ els.plateFoundCard.classList.remove("show"); return; }
+  var target = plateVal.trim().toUpperCase().replace(/\s/g,"");
+  var matches = cloudData.filter(function(v){
+    var p = String(
+      getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""
+    ).trim().toUpperCase().replace(/\s/g,"");
+    return p===target && p!=="";
+  });
+  if(!matches.length){ els.plateFoundCard.classList.remove("show"); return; }
+  els.pfCount.textContent = matches.length+" مرة";
+  els.pfItems.innerHTML   = "";
+  matches.forEach(function(v,idx){
+    var plate = String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"");
+    var tower = String(getField(v,["البرج","🏢 البرج"])||v.tower||"");
+    var floor = String(getField(v,["الدور","🔢 الدور"])||v.floor||"");
+    var date  = fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"");
+    var time  = fixExcelTime(getField(v,["الوقت","⏰ الوقت"])||v.time||"");
+    var guard = String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||"");
+    if(idx===0){
+      els.pfItems.innerHTML += '<div class="pf-plate"><div class="pf-label">رقم اللوحة</div><div class="pf-val">'+plate+'</div></div>';
+    }
+    var h='<div class="pf-item">';
+    h+='<div class="pf-label">رصد #'+(idx+1)+'</div>';
+    h+='<div class="pf-val">📅 '+date+' &nbsp; ⏰ '+time+'</div>';
+    if(tower||floor) h+='<div style="margin-top:4px;font-size:12px;color:#475569;">🏢 برج '+tower+' — دور '+floor+'</div>';
+    if(guard)        h+='<div style="margin-top:3px;font-size:12px;color:#5b21b6;">👤 '+guard+'</div>';
+    h+='</div>';
+    els.pfItems.innerHTML += h;
+  });
+  els.plateFoundCard.classList.add("show");
+  if(navigator.vibrate) navigator.vibrate([200,100,200]);
+  setTimeout(function(){ els.plateFoundCard.scrollIntoView({behavior:"smooth",block:"nearest"}); },100);
+}
+
+/* ════════ Add to Cloud ════════ */
+async function addToCloud(v, imgB64){
+  var hasImg = imgB64 ? "نعم" : "لا";
+  var params = [
+    "action=add",
+    "tower="+encodeURIComponent(v.tower),
+    "floor="+encodeURIComponent(v.floor),
+    "plate="+encodeURIComponent(v.plate),
+    "obsDate="+encodeURIComponent(v.obsDate),
+    "date="+encodeURIComponent(v.date),
+    "time="+encodeURIComponent(v.time),
+    "carStatus="+encodeURIComponent(v.carStatus||""),
+    "notes="+encodeURIComponent(v.notes||""),
+    "empName="+encodeURIComponent(report.guard.name),
+    "empId="+encodeURIComponent(report.guard.empId),
+    "hasImage="+encodeURIComponent(hasImg)
+  ].join("&");
+  return await jsonpCall(GS_URL+"?"+params, 15000);
+}
+
+/* ════════ Helpers ════════ */
+function setNow(){
+  var n = new Date();
+  els.reportDate.value = n.toISOString().split("T")[0];
+  els.reportTime.value = n.toTimeString().slice(0,5);
+  els.obsDate.value    = n.toISOString().split("T")[0];
+}
+setInterval(function(){ els.reportTime.value = new Date().toTimeString().slice(0,5); },1000);
+function setStatus(m){ els.status.textContent = m; }
+function clearForm(){
+  els.tower.value=""; els.floor.value=""; els.plate.value="";
+  els.notes.value=""; els.carStatus.value="";
+  els.obsDate.value = new Date().toISOString().split("T")[0];
+  clearImage();
+  els.plateFoundCard.classList.remove("show");
+}
+
+/* ════════ Image ════════ */
+function setImage(src){
+  currentImgBase64 = src;
+  els.imgUploadArea.classList.add("has-img");
+  els.imgUploadArea.innerHTML = '<img src="'+src+'" alt="صورة المركبة"/>';
+  els.btnClearImg.style.display = "block";
+}
+function clearImage(){
+  currentImgBase64 = null;
+  els.imgUploadArea.classList.remove("has-img");
+  els.imgUploadArea.innerHTML = '<div class="upload-icon">📷</div><div class="upload-hint">اضغط لرفع صورة أو التقاط بالكاميرا</div>';
+  els.btnClearImg.style.display = "none";
+}
+els.vehicleImg.addEventListener("change", function(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var img = new Image();
+    img.onload = function(){
+      var canvas = document.createElement("canvas");
+      var MAX=800, w=img.width, h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      canvas.width=w; canvas.height=h;
+      canvas.getContext("2d").drawImage(img,0,0,w,h);
+      setImage(canvas.toDataURL("image/jpeg",0.75));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value="";
+});
+els.btnClearImg.addEventListener("click", clearImage);
+
+/* ════════ Add Vehicle ════════ */
+async function addVehicle(){
+  var tower=els.tower.value.trim(), floor=els.floor.value.trim();
+  var plate=els.plate.value.trim().toUpperCase();
+  var obsDate=els.obsDate.value;
+  var carStatus=els.carStatus.value;
+  if(!tower||!floor||!plate){ alert("أدخل البرج والدور ورقم اللوحة"); return; }
+  if(!report.guard.empId){ alert("أدخل الرقم الوظيفي أولاً"); return; }
+  var n=new Date();
+  var v={tower,floor,plate,
+         obsDate:obsDate||n.toISOString().split("T")[0],
+         date:n.toISOString().split("T")[0],
+         time:n.toTimeString().slice(0,5),
+         carStatus, notes:els.notes.value.trim()};
+  els.btnAdd.disabled=true; els.btnAdd.textContent="⏳ جارٍ الحفظ...";
+  setSyncStatus("loading","⏳ جارٍ إضافة "+plate+"...");
+  try{
+    var res=await addToCloud(v, currentImgBase64);
+    if(res&&res.success){
+      report.addedCount=(report.addedCount||0)+1; saveLocal(); clearForm();
+      setSyncStatus("loading","🔄 تم — جارٍ تحديث الجدول...");
+      setStatus("✅ تم حفظ "+plate);
+      setTimeout(function(){ loadFromCloud(false); },1200);
+    } else { throw new Error("لم يتأكد الحفظ من الخادم"); }
+  }catch(err){
+    setSyncStatus("error","❌ "+err.message);
+    setStatus("❌ فشل الحفظ — اضغط ⚠️ للمساعدة");
+    alert("❌ تعذّر الحفظ\n"+err.message+"\n\nاضغط ⚙️ إعداد Apps Script للمساعدة");
+  }finally{
+    els.btnAdd.disabled=false; els.btnAdd.textContent="➕ إضافة وحفظ"; updateStats();
+  }
+}
+
+/* ════════ Stats & Table ════════ */
+function updateStats(){
+  var list=cloudData, today=new Date().toISOString().split("T")[0];
+  els.statTotal.textContent = list.length;
+  els.statToday.textContent = list.filter(function(v){
+    return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===today;
+  }).length;
+  els.statWithPhotos.textContent = list.filter(function(v){
+    return (getField(v,["صورة","📷 صورة"])||v.hasImage||"")==="نعم";
+  }).length;
+  els.statApiCalls.textContent = report.addedCount||0;
+}
+
+function renderTable(){
+  els.tableBody.innerHTML="";
+  if(!cloudData.length){
+    els.tableBody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">🚗</div><p><b>لا توجد بيانات بعد</b></p><p style="font-size:12px;">أضف سجلاً أو اضغط "🔄 تحديث"</p></div></td></tr>';
+    els.tableFooter.style.display="none"; return;
+  }
+  var rows = cloudData.map(function(v){
+    var rawDate=getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
+    var rawTime=getField(v,["الوقت","⏰ الوقت"])||v.time||"";
+    return {
+      tower:  String(getField(v,["البرج","🏢 البرج"])||v.tower||""),
+      floor:  String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
+      plate:  String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
+      date:   fixExcelDate(rawDate),
+      time:   fixExcelTime(rawTime),
+      carStatus:String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||""),
+      notes:  String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||""),
+      guard:  String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""),
+      img:    v.img||null,
+      hasImg: String(getField(v,["صورة","📷 صورة"])||v.hasImage||"")
+    };
+  }).reverse();
+
+  rows.forEach(function(v,i){
+    var tr=document.createElement("tr");
+    var imgCell = v.img
+      ? '<img class="imgPrev" src="'+v.img+'"/>'
+      : (v.hasImg==="نعم"
+        ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:11px;">📷 موجود</span>'
+        : '<span style="color:#cbd5e1;">—</span>');
+    var notesCell = v.notes
+      ? '<span class="notes-cell" title="'+v.notes+'">'+(v.notes.length>20?v.notes.slice(0,20)+"…":v.notes)+'</span>'
+      : '<span style="color:#e2e8f0;">—</span>';
+    var statusHtml='<span style="color:#cbd5e1;">—</span>';
+    if(v.carStatus==="حديثة")           statusHtml='<span class="status-badge-new">🟢 '+v.carStatus+'</span>';
+    else if(v.carStatus==="متوسطة الغبار") statusHtml='<span class="status-badge-mid">🟡 '+v.carStatus+'</span>';
+    else if(v.carStatus==="مغبرة")       statusHtml='<span class="status-badge-dust">🔴 '+v.carStatus+'</span>';
+    else if(v.carStatus)                 statusHtml='<span style="font-size:12px;">'+v.carStatus+'</span>';
+
+    tr.innerHTML=
+      '<td>'+(i+1)+'</td>'+
+      '<td>'+imgCell+'</td>'+
+      '<td><span class="tower-badge">'+v.tower+'</span></td>'+
+      '<td><span class="floor-badge">'+v.floor+'</span></td>'+
+      '<td><span class="plate-badge">🚗 '+v.plate+'</span></td>'+
+      '<td><span class="date-badge">'+v.date+'</span></td>'+
+      '<td><span class="time-cell">'+v.time+'</span></td>'+
+      '<td>'+statusHtml+'</td>'+
+      '<td>'+notesCell+'</td>'+
+      '<td>'+(v.guard?'<span class="guard-badge">👤 '+v.guard+'</span>':'<span style="color:#cbd5e1;">—</span>')+'</td>';
+    els.tableBody.appendChild(tr);
+  });
+  els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
+    img.addEventListener("click",function(){ viewImage(img.src); });
+  });
+  els.tableFooter.style.display="block";
+  els.footerCount.textContent = cloudData.length;
+}
+
+function viewImage(src){ els.fullImage.src=src; els.imageModal.classList.add("active"); }
+
+/* ════════ Local Storage ════════ */
+function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(report)); }
+function loadLocal(){
+  try{
+    var d=localStorage.getItem(STORAGE_KEY);
+    if(d){ report=JSON.parse(d); return true; }
+  }catch(e){}
+  return false;
+}
+
+/* ════════ Export ════════ */
+function exportCSV(){
+  if(!cloudData.length){ alert("لا توجد بيانات"); return; }
+  var csv="البرج,الدور,رقم اللوحة,تاريخ الرصد,الوقت,حالة المركبة,ملاحظات,رجل الأمن\n";
+  cloudData.forEach(function(v){
+    var rawDate=getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
+    var rawTime=getField(v,["الوقت","⏰ الوقت"])||v.time||"";
+    csv+=[
+      getField(v,["البرج","🏢 البرج"])||v.tower||"",
+      getField(v,["الدور","🔢 الدور"])||v.floor||"",
+      getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"",
+      fixExcelDate(rawDate), fixExcelTime(rawTime),
+      '"'+(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"")+'"',
+      '"'+(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||"")+'"',
+      getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""
+    ].join(",")+"\n";
+  });
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"}));
+  a.download="parking_"+new Date().toISOString().split("T")[0]+".csv";
+  a.click();
+}
+
+async function testConnection(el){
+  el.innerHTML="⏳ جارٍ الاختبار...";
+  try{
+    var data=await jsonpCall(GS_URL+"?action=getAll",8000);
+    el.innerHTML=Array.isArray(data)
+      ? '<span style="color:#16a34a;font-weight:700;">✅ نجح! '+data.length+' سجل. اضغط 🔄 تحديث</span>'
+      : '<span style="color:#ca8a04;">⚠️ تأكد من doGet.</span>';
+  }catch(e){ el.innerHTML='<span style="color:#dc2626;">❌ '+e.message+'</span>'; }
+}
+
+async function testGuardLookup(el){
+  var id = els.empId.value.trim() || "88840";
+  el.innerHTML = "⏳ اختبار البحث عن: "+id+"...";
+  try{
+    var data = await jsonpCall(GS_URL+"?action=getGuard&empId="+encodeURIComponent(id),8000);
+    if(data && data.success){
+      el.innerHTML='<span style="color:#16a34a;font-weight:700;">✅ موظف وُجد: '+data.name+(data.dept?" — "+data.dept:"")+'</span>';
+    } else if(data && data.error==="no_sheet"){
+      el.innerHTML='<span style="color:#dc2626;">❌ ورقة الموظفون غير موجودة — أنشئها أولاً</span>';
+    } else {
+      el.innerHTML='<span style="color:#ca8a04;">⚠️ الرقم '+id+' غير موجود في الورقة</span>';
+    }
+  }catch(e){
+    el.innerHTML='<span style="color:#dc2626;">❌ '+e.message+'</span>';
+  }
+}
+
+/* ════════════════════════════════════════════════
+   📷 OCR Camera
+   ════════════════════════════════════════════════ */
+var PLATE_API_URL = "https://api.platerecognizer.com/v1/plate-reader/";
+var plateApiKey   = atob("NjJmYzhmZTRhY2Q3ZmNkOTM5OWZjODFiN2I5ZjIyODkxZDBhODEyMA==");
+
+function setOcrStatus(type, msg){
+  var el = $("ocrStatus");
+  el.style.display = "block";
+  var styles = {
+    loading:"background:#fefce8;border:2px solid #fde68a;color:#92400e;",
+    error:  "background:#fee2e2;border:2px solid #fca5a5;color:#991b1b;",
+    info:   "background:#eff6ff;border:2px solid #bfdbfe;color:#1e40af;"
+  };
+  el.style.cssText = (styles[type]||styles.info)+"padding:14px;border-radius:12px;font-size:14px;text-align:center;margin-top:12px;";
+  el.innerHTML = msg;
+}
+
+async function recognizePlate(imageBase64){
+  if(!plateApiKey){ setOcrStatus("error","❌ مفتاح API غير موجود"); return null; }
+  setOcrStatus("loading","🔄 جارٍ قراءة اللوحة...");
+  $("ocrResult").style.display="none";
+  try{
+    var byteStr=atob(imageBase64.split(",")[1]);
+    var arr=new Uint8Array(byteStr.length);
+    for(var i=0;i<byteStr.length;i++) arr[i]=byteStr.charCodeAt(i);
+    var blob=new Blob([arr],{type:"image/jpeg"});
+    var fd=new FormData();
+    fd.append("upload",blob,"plate.jpg"); fd.append("regions","sa");
+    var resp=await fetch(PLATE_API_URL,{method:"POST",headers:{"Authorization":"Token "+plateApiKey},body:fd});
+    if(resp.status===401){ setOcrStatus("error","❌ مفتاح API منتهي"); return null; }
+    if(resp.status===429){ setOcrStatus("error","⚠️ تجاوزت الحد اليومي"); return null; }
+    if(!resp.ok){ setOcrStatus("error","❌ خطأ: "+resp.status); return null; }
+    var data=await resp.json();
+    if(!data.results||!data.results.length){ setOcrStatus("error","⚠️ لم يتم اكتشاف لوحة — جرب صورة أوضح"); return null; }
+    var best=data.results[0];
+    var plate=best.plate.toUpperCase();
+    var conf=Math.round((best.score||0)*100)+"%";
+    $("ocrStatus").style.display="none";
+    $("ocrPlateText").textContent=plate;
+    $("ocrConfidence").textContent=conf;
+    $("ocrResult").style.display="block";
+    if(data.results.length>1){
+      var alt="بدائل: ";
+      data.results.slice(1).forEach(function(r){ alt+='<span style="background:#f1f5f9;padding:2px 8px;border-radius:6px;margin:0 3px;font-family:monospace;font-weight:700;">'+r.plate.toUpperCase()+'</span>'; });
+      $("ocrAlternatives").innerHTML=alt;
+    } else { $("ocrAlternatives").innerHTML=""; }
+    return plate;
+  }catch(err){ setOcrStatus("error","❌ خطأ في PlateRecognizer: "+err.message); return null; }
+}
+
+async function openOcrCamera(){
+  try{
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1920},height:{ideal:1080}}});
+    els.cameraVideo.srcObject=cameraStream;
+    els.cameraVideo.style.display="block";
+    $("capturedPreview").style.display="none";
+    $("ocrStatus").style.display="none";
+    $("ocrResult").style.display="none";
+    $("retakeBtn").style.display="none";
+    els.captureBtn.style.display="inline-block";
+    els.cameraModal.classList.add("active");
+  }catch(e){ alert("لا يمكن فتح الكاميرا: "+e.message); }
+}
+
+function closeCamera(){
+  if(cameraStream){ cameraStream.getTracks().forEach(function(t){t.stop();}); cameraStream=null; }
+  els.cameraModal.classList.remove("active");
+}
+
+els.captureBtn.addEventListener("click", async function(){
+  var video=els.cameraVideo, canvas=els.cameraCanvas;
+  canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+  canvas.getContext("2d").drawImage(video,0,0);
+  var dataUrl=canvas.toDataURL("image/jpeg",0.9);
+  if(cameraStream){ cameraStream.getTracks().forEach(function(t){t.stop();}); cameraStream=null; }
+  video.style.display="none";
+  $("capturedImg").src=dataUrl;
+  $("capturedPreview").style.display="block";
+  els.captureBtn.style.display="none";
+  $("retakeBtn").style.display="inline-block";
+  var plate=await recognizePlate(dataUrl);
+  if(plate){
+    $("btnUseOcrPlate").onclick=function(){
+      els.plate.value=plate; setImage(dataUrl); closeCamera(); checkPlateExists(plate);
+    };
+  }
+});
+
+$("retakeBtn").addEventListener("click", async function(){
+  $("capturedPreview").style.display="none";
+  $("ocrStatus").style.display="none";
+  $("ocrResult").style.display="none";
+  $("retakeBtn").style.display="none";
+  els.captureBtn.style.display="inline-block";
+  els.cameraVideo.style.display="block";
+  try{
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1920},height:{ideal:1080}}});
+    els.cameraVideo.srcObject=cameraStream;
+  }catch(e){ alert("لا يمكن فتح الكاميرا"); }
+});
+
+$("btnOcrCamera").addEventListener("click", function(){
+  if(confirm("اختر طريقة قراءة اللوحة:\n\nموافق = كاميرا\nإلغاء = رفع صورة")){
+    openOcrCamera();
+  } else { $("ocrFileInput").click(); }
+});
+
+$("ocrFileInput").addEventListener("change", async function(e){
+  var file=e.target.files&&e.target.files[0]; if(!file) return;
+  e.target.value="";
+  var reader=new FileReader();
+  reader.onload=async function(ev){
+    var raw=ev.target.result;
+    var img=new Image();
+    img.onload=async function(){
+      var canvas=document.createElement("canvas");
+      var MAX=1200, w=img.width, h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      canvas.width=w; canvas.height=h;
+      canvas.getContext("2d").drawImage(img,0,0,w,h);
+      var compressed=canvas.toDataURL("image/jpeg",0.85);
+      $("capturedPreview").style.display="block";
+      $("capturedImg").src=compressed;
+      els.cameraVideo.style.display="none";
+      els.captureBtn.style.display="none";
+      $("retakeBtn").style.display="inline-block";
+      $("ocrStatus").style.display="none";
+      $("ocrResult").style.display="none";
+      els.cameraModal.classList.add("active");
+      var plate=await recognizePlate(compressed);
+      if(plate){
+        $("btnUseOcrPlate").onclick=function(){
+          els.plate.value=plate; setImage(compressed); closeCamera(); checkPlateExists(plate);
+        };
+      }
+    };
+    img.src=raw;
+  };
+  reader.readAsDataURL(file);
+});
+
+window.copyScript=function(){
+  var code=$("scriptCode").textContent;
+  navigator.clipboard.writeText(code)
+    .then(function(){ alert("✅ تم النسخ!"); })
+    .catch(function(){ alert("انسخ الكود يدوياً."); });
+};
+
+/* ════════ Event Listeners ════════ */
+els.btnLookup.addEventListener("click", lookupGuard);
+els.empId.addEventListener("keydown", function(e){ if(e.key==="Enter") lookupGuard(); });
+els.btnAdd.addEventListener("click", addVehicle);
+els.btnExportCSV.addEventListener("click", exportCSV);
+els.btnPrint.addEventListener("click", function(){ window.print(); });
+els.btnClearLocal.addEventListener("click", function(){
+  if(confirm("مسح البيانات المحلية فقط؟")){
+    localStorage.removeItem(STORAGE_KEY);
+    report={guard:{empId:"",name:"",dept:""},addedCount:0};
+    els.empId.value=""; els.empName.value="";
+    els.guardInfoCard.classList.remove("show");
+    setStatus("تم المسح المحلي");
+  }
+});
+els.btnSync.addEventListener("click", function(){ loadFromCloud(false); });
+els.btnShowSetup.addEventListener("click", function(){ els.setupModal.classList.add("active"); });
+els.closeSetup.addEventListener("click", function(){ els.setupModal.classList.remove("active"); });
+els.btnTestInModal.addEventListener("click", function(){ testConnection(els.testResultModal); });
+els.btnTestGuard.addEventListener("click", function(){ testGuardLookup(els.testResultModal); });
+els.closeCamera.addEventListener("click", closeCamera);
+els.cancelCamera.addEventListener("click", closeCamera);
+els.closeImage.addEventListener("click", function(){ els.imageModal.classList.remove("active"); });
+els.imageModal.addEventListener("click", function(e){ if(e.target===els.imageModal) els.imageModal.classList.remove("active"); });
+els.plate.addEventListener("input", function(){ checkPlateExists(els.plate.value.trim().toUpperCase()); });
+document.addEventListener("keydown", function(e){
+  if(e.ctrlKey&&e.key==="Enter"){ e.preventDefault(); addVehicle(); }
+  if(e.key==="Escape"){ closeCamera(); els.imageModal.classList.remove("active"); els.setupModal.classList.remove("active"); }
+});
+
+/* ════════ Init ════════ */
+setNow();
+loadLocal();
+if(report.guard&&report.guard.empId){
+  els.empId.value  = report.guard.empId;
+  els.empName.value= report.guard.name;
+  /* أعد عرض بطاقة الموظف عند استعادة الجلسة */
+  if(report.guard.name){
+    els.guardNameDisplay.textContent = report.guard.name;
+    els.guardIdDisplay.textContent   = "الرقم الوظيفي: "+report.guard.empId;
+    if(report.guard.dept){
+      els.guardDeptDisplay.textContent     = report.guard.dept;
+      els.guardDeptDisplay.style.display   = "inline-block";
+    }
+    els.guardInfoCard.classList.add("show");
+  }
+}
+window.addEventListener("load", function(){ loadFromCloud(true); });
+setInterval(function(){ loadFromCloud(false); }, 60000);
+
 })();
 </script>
 
