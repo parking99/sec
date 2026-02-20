@@ -334,10 +334,10 @@ td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-alig
 function doGet(e) {
 var params = e.parameter;
 var cb = params.callback;
-var action = params.action || “getAll”;
-if (action === “add”)    return handleAdd(params, cb);
-if (action === “getAll”) return handleGetAll(cb);
-return respond({error:“unknown”}, cb);
+var action = params.action || "getAll";
+if (action === "add")    return handleAdd(params, cb);
+if (action === "getAll") return handleGetAll(cb);
+return respond({error:"unknown"}, cb);
 }
 
 function handleAdd(p, cb) {
@@ -346,17 +346,17 @@ var sheet = getOrCreate(ss);
 if (sheet.getLastRow() === 0) setupHeaders(sheet);
 var nextRow = sheet.getLastRow() + 1;
 sheet.getRange(nextRow,1,1,11).setValues([[
-p.tower    || “”,
-p.floor    || “”,
-p.plate    || “”,
-p.obsDate  || p.date || “”,
+p.tower    || "",
+p.floor    || "",
+p.plate    || "",
+p.obsDate  || p.date || "",
 p.time     || "",
 p.carStatus || "",
 p.notes    || "",
-p.empName  || “”,
-p.empId    || “”,
-p.hasImage || “لا”,
-new Date().toLocaleString(“ar-SA”)
+p.empName  || "",
+p.empId    || "",
+p.hasImage || "لا",
+new Date().toLocaleString("ar-SA")
 ]]);
 formatRow(sheet, nextRow);
 return respond({success:true}, cb);
@@ -377,14 +377,14 @@ return respond(rows, cb);
 }
 
 function setupHeaders(sheet) {
-var h = [“🏢 البرج”,“🔢 الدور”,“🚗 رقم اللوحة”,
-“📅 تاريخ الرصد”,“⏰ الوقت”,“📝 ملاحظات”,
-“👤 رجل الأمن”,“🪪 الرقم الوظيفي”,“📷 صورة”,“🕐 وقت الإضافة”];
+var h = ["🏢 البرج","🔢 الدور","🚗 رقم اللوحة",
+"📅 تاريخ الرصد","⏰ الوقت","🚦 حالة المركبة","📝 ملاحظات",
+"👤 رجل الأمن","🪪 الرقم الوظيفي","📷 صورة","🕐 وقت الإضافة"];
 var r = sheet.getRange(1,1,1,h.length);
 r.setValues([h])
-.setBackground(”#1e3a8a”).setFontColor(”#ffffff”)
-.setFontWeight(“bold”).setFontSize(11)
-.setHorizontalAlignment(“center”);
+.setBackground("#1e3a8a").setFontColor("#ffffff")
+.setFontWeight("bold").setFontSize(11)
+.setHorizontalAlignment("center");
 sheet.setRowHeight(1, 36);
 [70,70,130,110,75,120,110,160,140,70,155].forEach(function(w,i){
 sheet.setColumnWidth(i+1, w);
@@ -395,20 +395,24 @@ sheet.setRightToLeft(true);
 
 function formatRow(sheet, row) {
 var r = sheet.getRange(row,1,1,11);
-r.setBackground(row%2===0?”#f0f4ff”:”#ffffff”)
-.setFontSize(10).setVerticalAlignment(“middle”);
+r.setBackground(row%2===0?"#f0f4ff":"#ffffff")
+.setFontSize(10).setVerticalAlignment("middle");
 sheet.setRowHeight(row, 30);
 sheet.getRange(row,3)
-.setBackground(”#1e3a8a”).setFontColor(”#ffffff”)
-.setFontWeight(“bold”).setHorizontalAlignment(“center”);
+.setBackground("#1e3a8a").setFontColor("#ffffff")
+.setFontWeight("bold").setHorizontalAlignment("center");
 sheet.getRange(row,1)
-.setBackground(”#dbeafe”).setFontColor(”#1d4ed8”)
-.setFontWeight(“bold”).setHorizontalAlignment(“center”);
+.setBackground("#dbeafe").setFontColor("#1d4ed8")
+.setFontWeight("bold").setHorizontalAlignment("center");
 sheet.getRange(row,2)
-.setBackground(”#fef9c3”).setFontColor(”#854d0e”)
-.setFontWeight(“bold”).setHorizontalAlignment(“center”);
-sheet.getRange(row,4,1,2).setHorizontalAlignment(“center”);
-r.setBorder(true,true,true,true,true,true,”#e2e8f0”,
+.setBackground("#fef9c3").setFontColor("#854d0e")
+.setFontWeight("bold").setHorizontalAlignment("center");
+sheet.getRange(row,4,1,2).setHorizontalAlignment("center");
+var sv = sheet.getRange(row,6).getValue();
+if(sv==="مغبرة") sheet.getRange(row,6).setBackground("#fee2e2").setFontColor("#991b1b").setFontWeight("bold").setHorizontalAlignment("center");
+else if(sv==="متوسطة الغبار") sheet.getRange(row,6).setBackground("#fef9c3").setFontColor("#854d0e").setFontWeight("bold").setHorizontalAlignment("center");
+else if(sv==="حديثة") sheet.getRange(row,6).setBackground("#dcfce7").setFontColor("#166534").setFontWeight("bold").setHorizontalAlignment("center");
+r.setBorder(true,true,true,true,true,true,"#e2e8f0",
 SpreadsheetApp.BorderStyle.SOLID);
 }
 
@@ -421,12 +425,12 @@ return SHEET_NAME ? ss.getSheetByName(SHEET_NAME) : ss.getActiveSheet();
 }
 function respond(data, cb) {
 var json = JSON.stringify(data);
-var out = cb ? cb+”(”+json+”);” : json;
+var out = cb ? cb+"("+json+");" : json;
 return ContentService.createTextOutput(out).setMimeType(
 cb ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);
 }
 function doPost(e) {
-return handleAdd(JSON.parse(e.postData.contents||”{}”), null);
+return handleAdd(JSON.parse(e.postData.contents||"{}"), null);
 }
 function formatAllExistingRows() {
 var sheet = getSheet(); if(!sheet) return;
