@@ -660,13 +660,13 @@ function fixExcelTime(val){
   var s = String(val).trim();
   if(/^\d{1,2}:\d{2}/.test(s)) return s.slice(0,5);
   var num = parseFloat(s);
-  if(!isNaN(num) && num>=0 && num<1){
-    var tot=Math.round(num*1440), h=Math.floor(tot/60), m=tot%60;
+  if(!isNaN(num) && num >= 0){
+    var frac = num % 1;
+    if(frac < 0.0001) return "";
+    var totalMin = Math.round(frac * 1440);
+    var h = Math.floor(totalMin / 60);
+    var m = totalMin % 60;
     return (h<10?"0":"")+h+":"+(m<10?"0":"")+m;
-  }
-  if(!isNaN(num) && num>1){
-    var d=new Date(Date.UTC(1899,11,30)+num*86400000);
-    return d.toISOString().slice(0,10);
   }
   return s.slice(0,5);
 }
