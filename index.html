@@ -608,13 +608,13 @@ var currentImgBase64 = null;
 /* ════════════════════════════════════════════════
    👤 بحث الموظف من Google Sheets  ← التغيير الجوهري
    ════════════════════════════════════════════════ */
-async function lookupGuard(){
+async function lookupGuard(silent){
   var id = els.empId.value.trim();
-  if(!id){ alert("أدخل الرقم الوظيفي"); return; }
+  if(!id){ if(!silent) alert("أدخل الرقم الوظيفي"); return; }
 
-  els.btnLookup.disabled   = true;
-  els.btnLookup.textContent = "⏳ بحث...";
-  setStatus("⏳ جارٍ البحث في قاعدة البيانات...");
+  els.btnLookup.disabled    = true;
+  els.btnLookup.textContent = "⏳";
+  els.empName.value         = "⏳ جارٍ البحث...";
   els.guardInfoCard.classList.remove("show");
 
   try {
@@ -891,15 +891,21 @@ async function addVehicle(){
     var res=await addToCloud(v, currentImgBase64);
     if(res&&res.success){
       report.addedCount=(report.addedCount||0)+1; saveLocal();
-      // احفظ الصورة محلياً قبل مسح النموذج
+      // احفظ الصورة محلياً مع الوقت الدقيق كمفتاح
       if(currentImgBase64){
-        var imgKey = v.plate + "_" + v.date;
+        var imgKey = v.plate + "_" + v.date + "_" + v.time.replace(":","");
         localImages[imgKey] = currentImgBase64;
-        try{ localStorage.setItem("img_"+imgKey, currentImgBase64); }catch(e){}
+        // احفظ أيضاً بمفتاح اللوحة فقط (للعرض السريع)
+        localImages["plate_" + v.plate] = currentImgBase64;
+        try{
+          localStorage.setItem("img_"+imgKey, currentImgBase64);
+          localStorage.setItem("img_plate_"+v.plate, currentImgBase64);
+        }catch(e){}
       }
       clearForm();
       setSyncStatus("loading","🔄 تم — جارٍ تحديث الجدول...");
       setStatus("✅ تم حفظ "+plate);
+      renderTable(); // أعد الرسم فوراً لعرض الصورة
       setTimeout(function(){ loadFromCloud(false); },1200);
     } else { throw new Error("لم يتأكد الحفظ من الخادم"); }
   }catch(err){
@@ -949,8 +955,11 @@ function renderTable(){
 
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
-    // ابحث عن الصورة المحفوظة محلياً
-    var localImg = localImages[v.plate + "_" + v.date] || null;
+    // ابحث عن الصورة بأكثر من مفتاح
+    var localImg = localImages["plate_" + v.plate]
+                || localImages[v.plate + "_" + v.date + "_" + v.time.replace(":","")]
+                || localImages[v.plate + "_" + v.date]
+                || null;
     var imgCell = localImg
       ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'"/>'
       : (v.hasImg==="نعم"
@@ -979,7 +988,7 @@ function renderTable(){
     els.tableBody.appendChild(tr);
   });
   els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
-    img.addEventListener("click",function(){ viewImage(img.src); });
+    img.addEventListener("click",function(){ viewImage(img.getAttribute("data-src")||img.src); });
   });
   els.tableFooter.style.display="block";
   els.footerCount.textContent = cloudData.length;
@@ -1199,6 +1208,18 @@ window.copyScript=function(){
 /* ════════ Event Listeners ════════ */
 els.btnLookup.addEventListener("click", lookupGuard);
 els.empId.addEventListener("keydown", function(e){ if(e.key==="Enter") lookupGuard(); });
+
+// بحث تلقائي أثناء الكتابة بعد 600ms
+var guardTypingTimer = null;
+els.empId.addEventListener("input", function(){
+  clearTimeout(guardTypingTimer);
+  els.guardInfoCard.classList.remove("show");
+  els.empName.value = "";
+  var id = els.empId.value.trim();
+  if(id.length >= 4){
+    guardTypingTimer = setTimeout(function(){ lookupGuard(true); }, 600);
+  }
+});
 els.btnAdd.addEventListener("click", addVehicle);
 els.btnExportCSV.addEventListener("click", exportCSV);
 els.btnPrint.addEventListener("click", function(){ window.print(); });
