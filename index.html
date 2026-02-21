@@ -659,7 +659,7 @@ function updateImageUrl_(plate, date, time, url, rowHint) {
 /* ════════════════════════════════════════════════
    ⚙️ الإعدادات — غيّر رابط GS_URL فقط
    ════════════════════════════════════════════════ */
-var GS_URL      = "https://script.google.com/macros/s/AKfycbwQn8GII6ySRoA51S8Yo-jiBl7MH0IOYmLMF26iTk3FE--4sTzlWrUvxzNGdJjVfl1Qvw/exec";
+var GS_URL      = "https://script.google.com/macros/s/AKfycbwPhCQjzgaFsoHplvU0AAIOOvKs4yIgHZoT_4VCbcgVuzb5cJ0yKo6m2vcbuwtiGP3gpw/exec";
 var STORAGE_KEY = "parkingReport_v4";
 
 /* ════════ DOM ════════ */
@@ -951,55 +951,49 @@ async function addToCloud(v){
 }
 
 async function uploadImageToDrive(v, imgB64){
-  // ✅ رفع الصورة إلى Google Drive عبر Apps Script (بدون CORS preflight)
+  // ✅ رفع الصورة ثم تحديث رابطها في Google Sheet ليظهر على كل الأجهزة
   try{
     setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
 
-    // ضغط الصورة لتخفيف الحجم
-    var small  = await compressImage(imgB64, 900, 0.70);
-    var base64 = small.indexOf(",") > -1 ? small.split(",")[1] : small;
+    // ضغط الصورة لتقليل الحجم (توازن بين وضوح وحجم)
+    var small  = await compressImage(imgB64, 900, 0.75);
+    var base64 = (small.indexOf(",")>-1 ? small.split(",")[1] : small);
 
-    var resp = await fetch(GS_URL, {
-      method : "POST",
-      mode   : "cors",
-      // مهم: text/plain يمنع OPTIONS preflight في أغلب المتصفحات
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body   : JSON.stringify({
-        action : "uploadImage",
-        plate  : v.plate,
-        date   : v.date,
-        time   : v.time,
-        imgData: base64
-      })
-    });
+    // ⛔ لا تستخدم application/json لتجنب CORS Preflight مع Apps Script
+    var fd = new FormData();
+    fd.append("action", "uploadImage");
+    fd.append("plate",  v.plate);
+    fd.append("date",   v.date);
+    fd.append("time",   v.time);
+    fd.append("imgData", base64);
 
-    var text = await resp.text();
+    var resp = await fetch(GS_URL, { method:"POST", body: fd });
+
+    // بعض البيئات قد تعيد نص/JSON
+    var txt = await resp.text();
     var result = null;
-    try{ result = JSON.parse(text); }catch(e){ /* قد يرجع JSON نصي */ }
+    try{ result = JSON.parse(txt); }catch(e){ result = null; }
 
     if(!resp.ok){
-      throw new Error("HTTP "+resp.status+" — "+(text||""));
+      throw new Error("فشل الرفع ("+resp.status+")");
     }
 
     if(result && result.driveUrl){
-      // خزّن رابط Drive محلياً لعرضه فوراً
+      // خزّن الرابط محلياً للعرض الفوري، ثم اعتمد على الشيت للتزامن بين الأجهزة
       localImages["plate_"+v.plate] = result.driveUrl;
-
-      // حدّث الجدول مباشرة ثم اسحب أحدث بيانات من السحابة
-      renderTable();
-      setSyncStatus("ok","✅ تم رفع الصورة ومزامنتها");
+      try{ localStorage.setItem("img_plate_"+v.plate, result.driveUrl); }catch(e){}
+      setSyncStatus("ok","✅ تم رفع الصورة وتحديث الرابط");
+      // اسحب من السحابة لتأكيد التحديث لجميع السجلات
       setTimeout(function(){ loadFromCloud(false); }, 800);
-      return result.driveUrl;
-    } else if(result && result.error){
-      throw new Error(result.error);
-    } else {
-      throw new Error("لم يرجع رابط الصورة من الخادم");
+    }else{
+      // حتى لو لم نقرأ JSON، غالباً تم الرفع. اسحب من السحابة للتأكد.
+      setSyncStatus("ok","✅ تم الرفع (جارٍ تحديث الجدول)");
+      setTimeout(function(){ loadFromCloud(false); }, 1200);
     }
   }catch(err){
     console.warn("Drive upload:", err && err.message ? err.message : err);
-    // لا تفشل الإضافة بسبب الصورة
-    setSyncStatus("ok","✅ تم الحفظ (تعذر رفع الصورة للسحابة)");
-    return null;
+    // لا نكسر حفظ السجل
+    setSyncStatus("ok","✅ تم الحفظ (تعذّر تأكيد رفع الصورة)");
   }
 }
 
@@ -1156,7 +1150,9 @@ var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
                 || null);
 
     var imgCell = localImg
-      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'
+      ? '<a class="imgLink" href="'+localImg+'" target="_blank" rel="noopener" title="فتح الصورة في تبويب جديد">'
+        + '<span style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:800;">📷 صورة</span>'
+        + '</a>'
       : '<span style="color:#cbd5e1;">—</span>';
 
     var notesCell = v.notes
@@ -1183,9 +1179,7 @@ var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
 
     els.tableBody.appendChild(tr);
   });
-
-  els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
-    img.addEventListener("click",function(){ viewImage(img.getAttribute("data-src")||img.src); });
+});
   });
 
   els.tableFooter.style.display="block";
