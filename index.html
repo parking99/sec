@@ -414,12 +414,56 @@
       color: var(--ink3);
       cursor: default;
     }
-    input.plate-input {
+    /* ── PLATE CELLS INPUT ── */
+    .plate-cells-wrap {
+      flex: 1;
+    }
+    .plate-cells {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .plate-cells:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(26,86,219,.15);
+    }
+    .plate-cell {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 2px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      background: rgba(255,255,255,.1);
+      border: 1.5px solid rgba(255,255,255,.2);
+      border-radius: 6px;
+      width: 36px;
+      height: 42px;
+      text-align: center;
       text-transform: uppercase;
+      caret-color: #fff;
+      transition: background .15s, border-color .15s;
+      padding: 0;
+      flex: 1;
+      min-width: 0;
+    }
+    .plate-cell:focus {
+      outline: none;
+      background: rgba(26,86,219,.5);
+      border-color: #93c5fd;
+    }
+    .plate-cell::placeholder { color: rgba(255,255,255,.2); }
+    .plate-sep {
+      width: 8px;
+      height: 3px;
+      background: rgba(255,255,255,.3);
+      border-radius: 2px;
+      flex-shrink: 0;
     }
 
     /* ── BUTTONS ── */
@@ -1300,7 +1344,20 @@
         <div class="form-group span2">
           <label>رقم اللوحة</label>
           <div class="flex gap8 items-end">
-            <input id="plate" class="plate-input" placeholder="ABC 1234" maxlength="12"/>
+            <div class="plate-cells-wrap" id="plateCellsWrap">
+              <div class="plate-cells" id="plateCells">
+                <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="0"/>
+                <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="1"/>
+                <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="2"/>
+                <div class="plate-sep"></div>
+                <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3"/>
+                <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4"/>
+                <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="5"/>
+                <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6"/>
+              </div>
+              <!-- hidden input يحمل القيمة الكاملة للإضافة -->
+              <input id="plate" type="hidden" value=""/>
+            </div>
             <button id="btnOcrCamera" class="btn btn-ghost btn-icon" title="قراءة بالكاميرا أو رفع صورة">📷</button>
             <input type="file" id="ocrFileInput" accept="image/*" style="display:none;"/>
           </div>
@@ -1860,6 +1917,67 @@ var els = {
   guardDeptDisplay:$("guardDeptDisplay")
 };
 
+/* ══ PLATE CELLS LOGIC ══ */
+(function(){
+  var cells = document.querySelectorAll('.plate-cell');
+  var hiddenPlate = document.getElementById('plate');
+
+  function syncHidden(){
+    var val = Array.from(cells).map(function(c){ return c.value.toUpperCase(); }).join('');
+    hiddenPlate.value = val;
+    // trigger checkPlateExists
+    checkPlateExists(val);
+  }
+
+  cells.forEach(function(cell, idx){
+    // عند الكتابة
+    cell.addEventListener('input', function(){
+      var v = cell.value.replace(/[^A-Za-z0-9أ-ي]/g,'');
+      cell.value = v ? v[v.length-1].toUpperCase() : '';
+      syncHidden();
+      if(cell.value && idx < cells.length - 1) cells[idx+1].focus();
+    });
+
+    // أسهم لوحة المفاتيح + حذف
+    cell.addEventListener('keydown', function(e){
+      if(e.key === 'Backspace'){
+        if(cell.value){ cell.value=''; syncHidden(); }
+        else if(idx > 0){ cells[idx-1].focus(); cells[idx-1].value=''; syncHidden(); }
+        e.preventDefault();
+      }
+      if(e.key === 'ArrowLeft'  && idx < cells.length-1) cells[idx+1].focus();
+      if(e.key === 'ArrowRight' && idx > 0) cells[idx-1].focus();
+    });
+
+    // لصق نص كامل مثل ABC1234
+    cell.addEventListener('paste', function(e){
+      e.preventDefault();
+      var pasted = (e.clipboardData||window.clipboardData).getData('text')
+                    .replace(/\s/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+      var chars = pasted.split('').slice(0,7);
+      cells.forEach(function(c,i){ c.value = chars[i]||''; });
+      var last = Math.min(chars.length, cells.length-1);
+      cells[last].focus();
+      syncHidden();
+    });
+  });
+
+  // دالة لملء الخانات من OCR أو clearForm
+  window.setPlateValue = function(val){
+    val = (val||'').replace(/\s/g,'').toUpperCase().slice(0,7);
+    cells.forEach(function(c,i){ c.value = val[i]||''; });
+    hiddenPlate.value = val;
+  };
+  window.getPlateValue = function(){
+    return Array.from(cells).map(function(c){ return c.value; }).join('');
+  };
+  window.clearPlateCells = function(){
+    cells.forEach(function(c){ c.value=''; });
+    hiddenPlate.value='';
+    cells[0].focus();
+  };
+})();
+
 var report      = { guard:{empId:"",name:"",dept:""}, addedCount:0 };
 var cloudData   = [];
 var localImages = {};
@@ -1908,7 +2026,8 @@ function setImage(base64){
 }
 
 function clearForm(){
-  els.tower.value=""; els.floor.value=""; els.plate.value="";
+  els.tower.value=""; els.floor.value="";
+  if(window.clearPlateCells) window.clearPlateCells();
   els.carStatus.value=""; els.notes.value="";
   var pn=$('parkingNum'); if(pn) pn.value='';
   var cn=$('colNum'); if(cn) cn.value='';
@@ -2300,7 +2419,7 @@ els.captureBtn.addEventListener("click",async function(){
   $("capturedImg").src=dataUrl;$("capturedPreview").style.display="block";
   els.captureBtn.style.display="none";$("retakeBtn").style.display="inline-flex";
   var plate=await recognizePlate(dataUrl);
-  if(plate){$("btnUseOcrPlate").onclick=function(){els.plate.value=plate;setImage(dataUrl);closeCamera();checkPlateExists(plate);};}
+  if(plate){$("btnUseOcrPlate").onclick=function(){if(window.setPlateValue)window.setPlateValue(plate);setImage(dataUrl);closeCamera();checkPlateExists(plate);};}
 });
 
 $("retakeBtn").addEventListener("click",async function(){
@@ -2329,7 +2448,7 @@ $("ocrFileInput").addEventListener("change",async function(e){
       $("retakeBtn").style.display="inline-flex";$("ocrStatus").style.display="none";$("ocrResult").style.display="none";
       els.cameraModal.classList.add("active");
       var plate=await recognizePlate(compressed);
-      if(plate){$("btnUseOcrPlate").onclick=function(){els.plate.value=plate;setImage(compressed);closeCamera();checkPlateExists(plate);};}
+      if(plate){$("btnUseOcrPlate").onclick=function(){if(window.setPlateValue)window.setPlateValue(plate);setImage(compressed);closeCamera();checkPlateExists(plate);};}
     };img.src=raw;
   };reader.readAsDataURL(file);
 });
