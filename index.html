@@ -352,9 +352,10 @@ function doGet(e) {
   var p      = e.parameter;
   var cb     = p.callback || "";
   var action = p.action   || "getAll";
-  if (action === "add")      return handleAdd(p, cb);
-  if (action === "getAll")   return handleGetAll(cb);
-  if (action === "getGuard") return handleGetGuard(p, cb);
+  if (action === "add")         return handleAdd(p, cb);
+  if (action === "getAll")      return handleGetAll(cb);
+  if (action === "getGuard")    return handleGetGuard(p, cb);
+  if (action === "uploadImage") return handleImageUploadCore(p, cb);
   return makeResponse({ error: "unknown_action" }, cb);
 }
 
@@ -362,20 +363,19 @@ function doPost(e) {
   try {
     var body = JSON.parse(e.postData.contents || "{}");
     if (body.action === "uploadImage") return handleImageUpload(body);
-    return handleAdd(body, "");
-  } catch(err) {
-    return makeResponse({ error: err.message }, "");
-  }
+    return handleAdd(body, "");/* ── رفع الصورة على Google Drive ── */
+function handleImageUpload(p) {
+  return handleImageUploadCore(p, "");
 }
 
-/* ── رفع الصورة على Google Drive ── */
-function handleImageUpload(p) {
+/* ── رفع الصورة عبر GET/JSONP (fallback لبعض الشبكات) ── */
+function handleImageUploadCore(p, cb) {
   try {
-    var plate   = String(p.plate || "unknown").replace(/[^A-Za-z0-9]/g, "");
+    var plate   = String(p.plate || "unknown").replace(/[^A-Za-z0-9؀-ۿ]/g, "");
     var date    = String(p.date  || "");
     var time    = String(p.time  || "").replace(":", "");
     var imgData = String(p.imgData || "");
-    if (!imgData) return makeResponse({ error: "no_image" }, "");
+    if (!imgData) return makeResponse({ error: "no_image" }, cb);
 
     var base64 = imgData.indexOf(",") > -1 ? imgData.split(",")[1] : imgData;
     var blob   = Utilities.newBlob(
@@ -390,22 +390,45 @@ function handleImageUpload(p) {
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
     var driveUrl = "https://drive.google.com/uc?export=view&id=" + file.getId();
-    updateImageUrl(plate, driveUrl);
+    updateImageUrl(plate, date, time, driveUrl);
 
-    return makeResponse({ success: true, driveUrl: driveUrl }, "");
+    return makeResponse({ success: true, driveUrl: driveUrl }, cb);
 
   } catch(err) {
-    return makeResponse({ error: err.message }, "");
+    return makeResponse({ error: err.message }, cb);
   }
 }
 
-/* ── تحديث رابط الصورة في الشيت ── */
-function updateImageUrl(plate, url) {
+/* ── تحديث رابط الصورة في الشيت (بالتاريخ والوقت للدقة) ── */
+function updateImageUrl(plate, date, time, url) {
   var sheet = getSheet();
   if (!sheet) return;
   var data = sheet.getDataRange().getValues();
+  var timeFormatted = time.length === 4 ? time.slice(0,2)+":"+time.slice(2,4) : time.slice(0,5);
+  // ابحث أولاً بالتطابق الكامل (لوحة + تاريخ + وقت)
   for (var i = data.length - 1; i >= 1; i--) {
-    if (String(data[i][2]).trim().toUpperCase() === plate.toUpperCase()) {
+    var rowPlate = String(data[i][2]).trim().toUpperCase();
+    var rowDate  = String(data[i][3]).trim().slice(0, 10);
+    var rowTime  = String(data[i][4]).trim().slice(0, 5);
+    if (rowPlate === plate.toUpperCase()
+        && rowDate === date.slice(0, 10)
+        && rowTime === timeFormatted) {
+      sheet.getRange(i + 1, 12).setValue(url);
+      SpreadsheetApp.flush();
+      return;
+    }
+  }
+  // fallback: آخر صف يطابق اللوحة فقط
+  for (var j = data.length - 1; j >= 1; j--) {
+    if (String(data[j][2]).trim().toUpperCase() === plate.toUpperCase()) {
+      sheet.getRange(j + 1, 12).setValue(url);
+      SpreadsheetApp.flush();
+      return;
+    }
+  }
+}
+
+) {
       sheet.getRange(i + 1, 12).setValue(url);
       return;
     }
@@ -895,36 +918,62 @@ async function addToCloud(v){
 }
 
 async function uploadImageToDrive(v, imgB64){
-  // ملاحظة مهمة: Web App (Apps Script) لا يدعم CORS بشكل كامل
-  // لذلك نرسل الطلب بـ no-cors (لا نستطيع قراءة الرد)، ثم نعمل Refresh للجدول لالتقاط رابط Drive من الشيت.
+  setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
   try {
-    setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
-
-    // ضغط الصورة (حجم مناسب للعرض داخل الجدول)
-    var small  = await compressImage(imgB64, 800, 0.75);
+    var small  = await compressImage(imgB64, 600, 0.7);
     var base64 = small.split(",")[1] || small;
 
-    await fetch(GS_URL, {
-      method : "POST",
-      mode   : "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body   : JSON.stringify({
-        action : "uploadImage",
-        plate  : v.plate,
-        date   : v.date,
-        time   : v.time,   // يساعد على تحديث نفس الصف عند تكرار اللوحة
-        imgData: base64
-      })
-    });
+    var result = null;
 
-    // لا يمكن قراءة الرد (opaque) — نعمل إعادة تحميل بعد فترة بسيطة
-    setSyncStatus("loading","✅ تم إرسال الصورة — جارٍ تحديث البيانات...");
-    setTimeout(function(){ loadFromCloud(false); }, 2000);
-    setTimeout(function(){ loadFromCloud(false); }, 5000); // محاولة ثانية للتأكد
+    // === محاولة 1: fetch POST ===
+    try {
+      var resp = await fetch(GS_URL, {
+        method : "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body   : JSON.stringify({
+          action : "uploadImage",
+          plate  : v.plate,
+          date   : v.date,
+          time   : v.time,
+          imgData: base64
+        })
+      });
+      if(resp.ok){
+        var text = await resp.text();
+        result = JSON.parse(text || "{}");
+      }
+    } catch(fetchErr) {
+      console.warn("⚠️ fetch فشل، سيجرب JSONP:", fetchErr.message);
+    }
 
+    // === محاولة 2: JSONP GET (صورة مضغوطة أكثر) إن فشل fetch ===
+    if(!result || !result.driveUrl){
+      try {
+        setSyncStatus("loading","📤 جارٍ الرفع عبر JSONP...");
+        var tinyB64 = (await compressImage(imgB64, 300, 0.45)).split(",")[1];
+        result = await jsonpCall(
+          GS_URL
+          +"?action=uploadImage"
+          +"&plate="+encodeURIComponent(v.plate)
+          +"&date=" +encodeURIComponent(v.date)
+          +"&time=" +encodeURIComponent(v.time)
+          +"&imgData="+encodeURIComponent(tinyB64),
+          30000
+        );
+      } catch(jpErr){
+        console.warn("❌ JSONP رفع الصورة فشل:", jpErr.message);
+      }
+    }
+
+    if(result && result.driveUrl){
+      setSyncStatus("ok","✅ تم رفع الصورة — جارٍ تحديث الجدول...");
+      setTimeout(function(){ loadFromCloud(false); }, 900);
+    } else {
+      setSyncStatus("error","⚠️ لم يتمكن من رفع الصورة (محفوظة محلياً فقط على هذا الجهاز)");
+    }
   } catch(err) {
-    console.warn("Drive upload:", err && err.message ? err.message : err);
-    setSyncStatus("error","⚠️ تعذّر رفع الصورة — تأكد من إعداد Apps Script والصلاحيات");
+    console.warn("Drive upload error:", err && err.message ? err.message : err);
+    setSyncStatus("ok","✅ تم الحفظ (الصورة محلياً فقط)");
   }
 }
 
@@ -1047,53 +1096,40 @@ function renderTable(){
     els.tableBody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">🚗</div><p><b>لا توجد بيانات بعد</b></p><p style="font-size:12px;">أضف سجلاً أو اضغط "🔄 تحديث"</p></div></td></tr>';
     els.tableFooter.style.display="none"; return;
   }
-  var rows = cloudData.map(function(rec){
-    var rawDate = getField(rec,["تاريخ الرصد","📅 تاريخ الرصد"]) || rec.obsDate || rec.date || "";
-    var rawTime = getField(rec,["الوقت","⏰ الوقت"]) || rec.time || "";
-    // رابط الصورة: من عمود "رابط الصورة" (أو أي حقل فيه رابط Drive)
-    var driveUrl = String(
-      getField(rec,["رابط الصورة","رابط_الصورة","driveUrl","DriveUrl","Image URL","رابط","Link"]) ||
-      rec.driveUrl || rec["رابط الصورة"] || ""
-    ).trim();
-    if(!driveUrl){
-      for(var kk in rec){
-        var vv = rec[kk];
-        if(typeof vv === "string" && /https?:\/\/(drive|lh3|googleusercontent|google)\./i.test(vv) && vv.indexOf("http")===0){
-          driveUrl = vv.trim();
-          break;
-        }
-      }
-    }
-    driveUrl = normalizeDriveUrl(driveUrl);
-
+  var rows = cloudData.map(function(v){
+    var rawDate=getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
+    var rawTime=getField(v,["الوقت","⏰ الوقت"])||v.time||"";
     return {
-      tower:  String(getField(rec,["البرج","🏢 البرج"])||rec.tower||"").trim().toUpperCase(),
-      floor:  String(getField(rec,["الدور","🔢 الدور"])||rec.floor||""),
-      plate:  String(getField(rec,["رقم اللوحة","🚗 رقم اللوحة"])||rec.plate||""),
+      tower:  String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
+      floor:  String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
+      plate:  String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
       date:   fixExcelDate(rawDate),
       time:   fixExcelTime(rawTime),
-      carStatus:String(getField(rec,["حالة المركبة","🚦 حالة المركبة"])||rec.carStatus||""),
-      notes:  String(getField(rec,["ملاحظات","📝 ملاحظات"])||rec.notes||""),
-      guard:  String(getField(rec,["رجل الأمن","👤 رجل الأمن"])||rec.empName||""),
-      hasImg: String(getField(rec,["صورة","📷 صورة"])||rec.hasImage||""),
-      driveUrl: driveUrl
+      carStatus:String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||""),
+      notes:  String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||""),
+      guard:  String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""),
+      hasImg: String(getField(v,["صورة","📷 صورة"])||v.hasImage||"")
     };
   }).reverse();
 
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
-    // الصورة: استخدم رابط Drive القادم من الشيت (يظهر لكل الأجهزة)
-    var driveUrl = v.driveUrl || "";
-    // احتياط: صور محلية إن وُجدت
-    var localImg = (driveUrl && driveUrl.indexOf("http")===0)
-      ? driveUrl
-      : (localImages["plate_" + v.plate]
-         || localImages[v.plate + "_" + v.date + "_" + v.time.replace(":","")]
-         || localImages[v.plate + "_" + v.date]
-         || null);
+
+    var driveUrlRaw = (
+  getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"])
+  || v.driveUrl || v["رابط الصورة"] || ""
+);
+var driveUrl = normalizeDriveUrl(driveUrlRaw);
+
+// إن لم يوجد رابط من الشيت، جرّب المحلي (جلسة نفس الجهاز فقط)
+var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
+             : (localImages["plate_" + v.plate]
+                || localImages[v.plate + "_" + v.date + "_" + v.time.replace(":","")]
+                || localImages[v.plate + "_" + v.date]
+                || null);
 
     var imgCell = localImg
-      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" />'
+      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'
       : '<span style="color:#cbd5e1;">—</span>';
 
     var notesCell = v.notes
