@@ -249,7 +249,6 @@
     .header-sub { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 1px; }
     .header-actions { display: flex; gap: 10px; align-items: center; }
 
-    /* User pill in header */
     .user-pill {
       display: flex;
       align-items: center;
@@ -874,10 +873,12 @@
       .user-pill span { display: none; }
     }
 
+    /* ════════════════════════════════════════
+       PRINT STYLES
+    ════════════════════════════════════════ */
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
-      /* ═══ إخفاء كل شيء ما عدا الجدول ═══ */
       #loginScreen,
       #fallbackBanner,
       .header,
@@ -888,7 +889,6 @@
       .card-header .btn,
       .img-drive-link { display: none !important; }
 
-      /* ═══ إعداد الصفحة ═══ */
       @page {
         size: A4 landscape;
         margin: 10mm 12mm;
@@ -901,10 +901,8 @@
       }
 
       #appWrapper { display: block !important; }
-
       .main { padding: 0 !important; max-width: 100% !important; }
 
-      /* ═══ رأس التقرير للطباعة ═══ */
       .print-report-header {
         display: flex !important;
         align-items: center;
@@ -936,21 +934,42 @@
         font-weight: 700;
       }
 
-      /* ═══ إخفاء عمود الصورة وإظهار عمود الرابط في الطباعة ═══ */
+      /* ═══ إخفاء عمود الصورة وإظهار عمود الأيقونة في الطباعة ═══ */
       .col-img-screen { display: none !important; }
       .col-link-print {
         display: table-cell !important;
-        width: 180px !important;
-        max-width: 180px !important;
+        width: 44px !important;
+        text-align: center !important;
         vertical-align: middle !important;
       }
-      .col-link-print a {
-        color: #1a56db !important;
-        font-size: 8.5px !important;
-        word-break: break-all !important;
-        text-decoration: underline !important;
-        display: block !important;
-        line-height: 1.4 !important;
+
+      /* ═══ أيقونة الرابط في الطباعة ═══ */
+      .print-link-icon-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 28px !important;
+        height: 28px !important;
+        border-radius: 6px !important;
+        background: #1a56db !important;
+        color: #fff !important;
+        text-decoration: none !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border: none !important;
+        box-shadow: 0 1px 4px rgba(26,86,219,.4) !important;
+      }
+
+      .print-no-link {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 28px !important;
+        height: 28px !important;
+        border-radius: 6px !important;
+        background: #f1f5f9 !important;
+        color: #cbd5e1 !important;
+        font-size: 14px !important;
       }
 
       /* ═══ الجدول ═══ */
@@ -1018,25 +1037,6 @@
         font-size: 9px !important;
         font-weight: 700 !important;
       }
-      .print-icon-link {
-        font-size: 14px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 26px !important; height: 26px !important;
-        border-radius: 5px !important;
-        background: #eff6ff !important;
-        border: 1px solid #bfdbfe !important;
-        text-decoration: none !important;
-        color: #1a56db !important;
-      }
-      .col-link-print {
-        display: table-cell !important;
-        width: 40px !important;
-        text-align: center !important;
-        vertical-align: middle !important;
-      }
-
       .plate-badge {
         font-size: 10px !important;
         padding: 3px 7px !important;
@@ -1099,7 +1099,6 @@
         border-radius: 3px !important;
       }
 
-      /* صورة + رابط في الطباعة */
       .img-thumb-wrap { display: block !important; }
       .img-thumb {
         width: 56px !important;
@@ -1107,20 +1106,8 @@
         border-radius: 4px !important;
         border: 1px solid #e2e8f0 !important;
       }
-      /* رابط الصورة كنص في الطباعة */
-      .print-img-link {
-        display: block !important;
-        font-size: 8px !important;
-        color: #1a56db !important;
-        text-decoration: underline !important;
-        margin-top: 2px !important;
-        word-break: break-all !important;
-        max-width: 80px !important;
-      }
 
-      /* footer */
       .table-footer { display: none !important; }
-
       thead { display: table-header-group; }
       tbody tr { break-inside: avoid; }
     }
@@ -1149,37 +1136,20 @@
       <div class="login-field">
         <label>الرقم الوظيفي</label>
         <div class="login-input-wrap">
-          <input
-            type="text"
-            id="loginEmpId"
-            class="login-input plate-style"
-            placeholder="12345"
-            inputmode="numeric"
-            maxlength="10"
-            autocomplete="username"
-          />
+          <input type="text" id="loginEmpId" class="login-input plate-style" placeholder="12345" inputmode="numeric" maxlength="10" autocomplete="username"/>
         </div>
       </div>
 
       <div class="login-field">
         <label>كلمة السر</label>
         <div class="login-input-wrap">
-          <input
-            type="password"
-            id="loginPassword"
-            class="login-input has-toggle"
-            placeholder="••••••••"
-            autocomplete="current-password"
-          />
+          <input type="password" id="loginPassword" class="login-input has-toggle" placeholder="••••••••" autocomplete="current-password"/>
           <button class="password-toggle" id="togglePwd" type="button">👁️</button>
         </div>
       </div>
 
       <div class="login-error" id="loginError">❌ الرقم الوظيفي أو كلمة السر غير صحيحة</div>
-
-      <button class="login-btn" id="loginBtn" type="button">
-        🔐 تسجيل الدخول
-      </button>
+      <button class="login-btn" id="loginBtn" type="button">🔐 تسجيل الدخول</button>
     </div>
 
     <div class="login-info">
@@ -1209,7 +1179,6 @@
     </div>
   </div>
   <div class="header-actions">
-    <!-- Logged-in user pill -->
     <div class="user-pill" id="userPill">
       <div class="user-avatar">👤</div>
       <span id="headerUserName">—</span>
@@ -1222,7 +1191,7 @@
   </div>
 </header>
 
-<!-- PRINT REPORT HEADER — يظهر فقط عند الطباعة -->
+<!-- PRINT REPORT HEADER -->
 <div class="print-report-header" style="display:none;">
   <div>
     <div class="print-report-title">🚗 تقرير رصد السيارات</div>
@@ -1238,6 +1207,7 @@
 <div id="fallbackBanner" style="display:none;background:linear-gradient(90deg,#92400e,#b45309);color:#fff;text-align:center;padding:8px 16px;font-size:12px;font-weight:700;">
   ⚠️ وضع احتياطي: تسجيل دخول بدون كلمة سر — يُرجى تحديث Apps Script من ⚙️ الإعداد لتفعيل الأمان الكامل
 </div>
+
 <!-- SYNC BAR -->
 <div class="sync-bar no-print">
   <div class="sync-dot" id="syncDot"></div>
@@ -1255,7 +1225,7 @@
     <div class="stat-card purple"><div class="stat-value" id="statApiCalls">0</div><div class="stat-label">تمت إضافتها</div></div>
   </div>
 
-  <!-- GUARD CARD — auto-filled from login -->
+  <!-- GUARD CARD -->
   <div class="card no-print">
     <div class="card-header">
       <div class="card-title"><div class="card-title-icon">👤</div> بيانات الحارس</div>
@@ -1370,7 +1340,7 @@
         <thead><tr>
           <th style="width:44px;">#</th>
           <th style="width:84px;" class="col-img-screen">الصورة</th>
-          <th class="col-link-print" style="width:48px;">صورة</th>
+          <th class="col-link-print" style="width:44px;">صورة</th>
           <th style="width:70px;">البرج</th>
           <th style="width:70px;">الدور</th>
           <th style="width:80px;">رقم الموقف</th>
@@ -1459,7 +1429,6 @@ function makeResponse(data, cb) {
   return ContentService.createTextOutput(out).setMimeType(mime);
 }
 
-// ★ NEW: Login handler — checks empId + password from column D
 function handleLogin(p, cb) {
   const id  = String(p.empId||"").trim();
   const pwd = String(p.password||"").trim();
@@ -1469,14 +1438,14 @@ function handleLogin(p, cb) {
   const rows = sheet.getDataRange().getValues();
   for(let i=1; i<rows.length; i++) {
     if(String(rows[i][0]).trim() === id) {
-      const storedPwd = String(rows[i][3]||"").trim(); // Column D = index 3
+      const storedPwd = String(rows[i][3]||"").trim();
       if(storedPwd === pwd) {
         return makeResponse({
           success: true,
           empId: id,
           name:  String(rows[i][1]||""),
           dept:  String(rows[i][2]||""),
-          role:  String(rows[i][4]||"guard")  // Column E = role (optional: admin/guard)
+          role:  String(rows[i][4]||"guard")
         }, cb);
       } else {
         return makeResponse({error:"wrong_password"}, cb);
@@ -1706,7 +1675,6 @@ async function doLogin(){
       15000
     );
 
-    // Debug: log raw response
     console.log("Login response:", JSON.stringify(data));
 
     if(!data){
@@ -1724,7 +1692,6 @@ async function doLogin(){
     } else if(data.error === "not_found"){
       showLoginError("❌ الرقم الوظيفي غير موجود في قاعدة البيانات");
     } else if(data.error === "unknown_action"){
-      // الوضع الاحتياطي: الكود القديم لا يدعم login — ندخل بالرقم الوظيفي فقط
       await fallbackLogin(id);
     } else if(data.error === "missing_fields"){
       showLoginError("❌ أدخل الرقم الوظيفي وكلمة السر");
@@ -1734,27 +1701,21 @@ async function doLogin(){
     }
   }catch(err){
     console.error("Login error:", err);
-    showLoginError("❌ تعذّر الاتصال بـ Google Sheets\n" + err.message + "\n\nتأكد من:\n• نشر Script كـ 'Anyone'\n• تحديث الكود الجديد");
+    showLoginError("❌ تعذّر الاتصال بـ Google Sheets\n" + err.message);
   }finally{
     loginBtn.disabled = false;
     loginBtn.textContent = "🔐 تسجيل الدخول";
   }
 }
 
-
-// ── وضع احتياطي: إذا كان الكود القديم لا يدعم login ──
-// يتحقق من الرقم الوظيفي فقط عبر getGuard (بدون كلمة سر)
 async function fallbackLogin(id){
   loginBtn.innerHTML = "⏳ جارٍ التحقق (وضع احتياطي)…";
   try{
     var data = await jsonpCall(GS_URL + "?action=getGuard&empId=" + encodeURIComponent(id), 12000);
     if(data && data.success){
-      // نجح — دخل بدون كلمة سر مع تحذير
       saveSession({empId: id, name: data.name, dept: data.dept||"", role: "guard", fallback: true});
-      // أضف شارة تحذير في اسم المستخدم
       currentUser.fallback = true;
       onLoginSuccess();
-      // تحذير بعد الدخول
       setTimeout(function(){
         setSyncStatus("error", "⚠️ وضع احتياطي — يُرجى تحديث Apps Script لتفعيل كلمة السر");
       }, 2000);
@@ -1781,7 +1742,6 @@ function showLoginError(msg){
 }
 
 function onLoginSuccess(){
-  // Fill header user pill
   $("headerUserName").textContent = currentUser.name;
   $("guardNameDisplay").textContent = currentUser.name;
   $("guardIdDisplay").textContent = "الرقم الوظيفي: " + currentUser.empId;
@@ -1790,11 +1750,9 @@ function onLoginSuccess(){
     $("guardDeptDisplay").style.display = "inline-block";
   }
 
-  // Update report object
   report.guard = {empId: currentUser.empId, name: currentUser.name, dept: currentUser.dept||""};
   saveLocal();
 
-  // Update print header info
   var pd = $("printDateInfo");
   var pg = $("printGuardInfo");
   var pc = $("printCountInfo");
@@ -1805,13 +1763,11 @@ function onLoginSuccess(){
   }
   if(pg && currentUser) pg.textContent = "الحارس: "+currentUser.name+" | الرقم: "+currentUser.empId+(currentUser.dept?" | "+currentUser.dept:"");
 
-  // Show fallback warning banner if needed
   if(currentUser && currentUser.fallback){
     var banner = $("fallbackBanner");
     if(banner) banner.style.display = "block";
   }
 
-  // Animate login screen out, show app
   loginScreen.classList.add("hidden");
   setTimeout(function(){
     loginScreen.style.display = "none";
@@ -1847,7 +1803,7 @@ window.addEventListener("load", function(){
 });
 
 /* ══════════════════════════════════
-   APP LOGIC (unchanged from original)
+   APP LOGIC
 ══════════════════════════════════ */
 var els = {
   reportDate:$("reportDate"), reportTime:$("reportTime"),
@@ -2116,7 +2072,7 @@ function normalizeDriveUrl(u){
 function renderTable(){
   els.tableBody.innerHTML="";
   if(!cloudData.length){
-    els.tableBody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🚗</div><div class="empty-title">لا توجد بيانات بعد</div><div class="empty-sub">أضف سجلاً أو اضغط "تحديث"</div></div></td></tr>';
+    els.tableBody.innerHTML='<tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🚗</div><div class="empty-title">لا توجد بيانات بعد</div><div class="empty-sub">أضف سجلاً أو اضغط "تحديث"</div></div></td></tr>';
     els.footerCount.textContent="0 سجل";return;
   }
   var rows=cloudData.map(function(v){
@@ -2141,11 +2097,16 @@ function renderTable(){
     var driveUrl=normalizeDriveUrl(v.driveUrlRaw);
     var localImg=(driveUrl&&driveUrl.startsWith("http"))?driveUrl:(localImages["plate_"+v.plate]||localImages[v.plate+"_"+v.date]||null);
 
+    // ═══ خلية الصورة — للشاشة ═══
     var imgCell=localImg
       ?'<div class="img-thumb-wrap"><img class="img-thumb" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\'">'+(driveUrl?'<a class="img-drive-link" href="'+driveUrl+'" target="_blank">↗</a>':'')+
-        (driveUrl?'<a class="print-img-link" href="'+driveUrl+'" target="_blank">🔗 صورة</a>':'')+
         '</div>'
       :'<span style="color:var(--border);">—</span>';
+
+    // ═══ خلية الأيقونة — للطباعة فقط (أيقونة زر قابلة للنقر) ═══
+    var linkCellPrint = driveUrl
+      ? '<td class="col-link-print"><a class="print-link-icon-btn" href="'+driveUrl+'" target="_blank">🔗</a></td>'
+      : '<td class="col-link-print"><span class="print-no-link">—</span></td>';
 
     var towerClass="tower-badge tower-"+(["A","B","C"].includes(v.tower)?v.tower:"");
     var statusHtml='<span style="color:var(--border);">—</span>';
@@ -2156,12 +2117,8 @@ function renderTable(){
 
     var notesCell=v.notes?'<span class="notes-text" title="'+v.notes+'">'+(v.notes.length>22?v.notes.slice(0,22)+"…":v.notes)+'</span>':'<span style="color:var(--border);">—</span>';
 
-    var linkCellPrint = driveUrl
-      ? '<td class="col-link-print"><a href="'+driveUrl+'" style="color:#1a56db;font-size:9px;word-break:break-all;text-decoration:underline;display:block;">'+driveUrl+'</a></td>'
-      : '<td class="col-link-print" style="display:none;"><span style="color:#cbd5e1;font-size:9px;">لا توجد صورة</span></td>';
-
-    var parkingNum = getField(v,["رقم الموقف","موقف"]) || '';
-    var colNum     = getField(v,["رقم العامود","عامود","العمود"]) || '';
+    var parkingNum = v.parkingNum || getField(v,["رقم الموقف","موقف"]) || '';
+    var colNum     = v.colNum     || getField(v,["رقم العامود","عامود","العمود"]) || '';
 
     tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
