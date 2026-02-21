@@ -659,8 +659,7 @@ function updateImageUrl_(plate, date, time, url, rowHint) {
 /* ════════════════════════════════════════════════
    ⚙️ الإعدادات — غيّر رابط GS_URL فقط
    ════════════════════════════════════════════════ */
-// ✅ رابط سكربت Google Apps Script (Web App)
-var GS_URL      = "https://script.google.com/macros/s/AKfycbwPhCQjzgaFsoHplvU0AAIOOvKs4yIgHZoT_4VCbcgVuzb5cJ0yKo6m2vcbuwtiGP3gpw/exec";
+var GS_URL      = "https://script.google.com/macros/s/AKfycbwQn8GII6ySRoA51S8Yo-jiBl7MH0IOYmLMF26iTk3FE--4sTzlWrUvxzNGdJjVfl1Qvw/exec";
 var STORAGE_KEY = "parkingReport_v4";
 
 /* ════════ DOM ════════ */
@@ -952,41 +951,55 @@ async function addToCloud(v){
 }
 
 async function uploadImageToDrive(v, imgB64){
-  /*
-    ✅ مهم: Web App في Apps Script غالباً لا يسمح بقراءة ردّ fetch بسبب CORS.
-    عشان كذا نرسل POST بصيغة x-www-form-urlencoded مع mode:no-cors.
-    الطلب يوصل للسكربت ويرفع الصورة ويحدّث رابطها في Google Sheet.
-    ثم نسوي تحديث للسحابة بعد ثواني عشان تظهر الصورة لكل الأجهزة.
-  */
-  try {
+  // ✅ رفع الصورة إلى Google Drive عبر Apps Script (بدون CORS preflight)
+  try{
     setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
 
-    // ضغط الصورة (جودة مناسبة + حجم معقول)
+    // ضغط الصورة لتخفيف الحجم
     var small  = await compressImage(imgB64, 900, 0.70);
-    var base64 = small.split(",")[1] || small;
+    var base64 = small.indexOf(",") > -1 ? small.split(",")[1] : small;
 
-    var body = new URLSearchParams({
-      action: "uploadImage",
-      plate : v.plate,
-      date  : v.date,
-      time  : v.time,
-      row   : String(v._row || ""),
-      imgData: base64
-    }).toString();
-
-    await fetch(GS_URL, {
+    var resp = await fetch(GS_URL, {
       method : "POST",
-      mode   : "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body   : body
+      mode   : "cors",
+      // مهم: text/plain يمنع OPTIONS preflight في أغلب المتصفحات
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body   : JSON.stringify({
+        action : "uploadImage",
+        plate  : v.plate,
+        date   : v.date,
+        time   : v.time,
+        imgData: base64
+      })
     });
 
-    setSyncStatus("ok","✅ تم إرسال الصورة — جارٍ تحديث الجدول...");
-    setTimeout(function(){ loadFromCloud(false); }, 2500);
-  } catch(err) {
+    var text = await resp.text();
+    var result = null;
+    try{ result = JSON.parse(text); }catch(e){ /* قد يرجع JSON نصي */ }
+
+    if(!resp.ok){
+      throw new Error("HTTP "+resp.status+" — "+(text||""));
+    }
+
+    if(result && result.driveUrl){
+      // خزّن رابط Drive محلياً لعرضه فوراً
+      localImages["plate_"+v.plate] = result.driveUrl;
+
+      // حدّث الجدول مباشرة ثم اسحب أحدث بيانات من السحابة
+      renderTable();
+      setSyncStatus("ok","✅ تم رفع الصورة ومزامنتها");
+      setTimeout(function(){ loadFromCloud(false); }, 800);
+      return result.driveUrl;
+    } else if(result && result.error){
+      throw new Error(result.error);
+    } else {
+      throw new Error("لم يرجع رابط الصورة من الخادم");
+    }
+  }catch(err){
     console.warn("Drive upload:", err && err.message ? err.message : err);
-    // فشل رفع الصورة لا يؤثر على السجل
-    setSyncStatus("ok","✅ تم الحفظ (تعذّر تأكيد رفع الصورة)");
+    // لا تفشل الإضافة بسبب الصورة
+    setSyncStatus("ok","✅ تم الحفظ (تعذر رفع الصورة للسحابة)");
+    return null;
   }
 }
 
