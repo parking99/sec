@@ -593,6 +593,12 @@ function makeResponse(data, cb) {
   <div class="modal-content" style="padding:10px;">
     <button class="modal-close" id="closeImage">×</button>
     <img id="fullImage" style="max-width:100%;max-height:90vh;border-radius:10px;"/>
+    <div id="imgFallback" style="display:none;margin-top:10px;font-size:13px;color:#334155;text-align:center;">
+      ⚠️ لم تظهر الصورة داخل البرنامج.
+      <div style="margin-top:8px;">
+        <a id="openImageLink" target="_blank" rel="noopener" style="display:inline-block;background:#2563eb;color:#fff;padding:8px 14px;border-radius:10px;font-weight:700;text-decoration:none;">فتح الصورة في تبويب جديد</a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1144,8 +1150,12 @@ function renderTable(){
     els.tableBody.appendChild(tr);
   });
 
-  els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
-    img.addEventListener("click",function(){ viewImage(img.getAttribute("data-src")||img.src); });
+  els.tableBody.querySelectorAll(".imgHolder").forEach(function(box){
+    box.addEventListener("click", function(){
+      var src = box.getAttribute("data-src");
+      if(src) viewImage(src);
+    });
+  });
   });
 
   els.tableBody.querySelectorAll(".imgHolder").forEach(function(box){
@@ -1159,16 +1169,17 @@ function renderTable(){
   els.footerCount.textContent = cloudData.length;
 }
 
-function viewImage(src){ els.fullImage.src=src; els.imageModal.classList.add("active"); }
-
-/* ════════ Local Storage ════════ */
-function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(report)); }
-function loadLocal(){
-  try{
-    var d=localStorage.getItem(STORAGE_KEY);
-    if(d){ report=JSON.parse(d); return true; }
-  }catch(e){}
-  return false;
+function viewImage(src){
+  src = String(src||"").trim();
+  var direct = normalizeDriveUrl(src) || src;
+  // إعداد رابط احتياطي
+  try{ $("openImageLink").href = direct; }catch(e){}
+  els.fullImage.onload = function(){ try{ $("imgFallback").style.display="none"; }catch(e){} };
+  els.fullImage.onerror = function(){
+    try{ $("imgFallback").style.display="block"; }catch(e){}
+  };
+  els.fullImage.src = direct;
+  els.imageModal.classList.add("active");
 }
 
 /* ════════ Export ════════ */
