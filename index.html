@@ -888,9 +888,12 @@ async function addToCloud(v){
 async function uploadImageToDrive(v, imgB64){
   try {
     setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
-    var small = await compressImage(imgB64, 300, 0.45);
+
+    // ضغط الصورة (حجم أكبر قليلًا للوضوح داخل الجدول)
+    var small  = await compressImage(imgB64, 600, 0.7);
     var base64 = small.split(",")[1] || small;
 
+    // ملاحظة: بعض بيئات Apps Script تتعامل أفضل مع text/plain
     var resp = await fetch(GS_URL, {
       method : "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -898,22 +901,24 @@ async function uploadImageToDrive(v, imgB64){
         action : "uploadImage",
         plate  : v.plate,
         date   : v.date,
-        time   : v.time,
+        time   : v.time,   // ✅ مهم لتحديث نفس الصف
         imgData: base64
       })
     });
-    var txt = await resp.text();
-    var result = null;
-    try{ result = JSON.parse(txt); }catch(e){ result = null; }
+
+    var text   = await resp.text();
+    var result = JSON.parse(text || "{}");
+
     if(result && result.driveUrl){
-      localImages["plate_"+v.plate] = result.driveUrl;
-      renderTable();
-      setSyncStatus("ok","✅ تم رفع الصورة على Drive");
+      // بعد نجاح الرفع: أعِد جلب البيانات من السحابة ليظهر الرابط لكل الأجهزة
+      setSyncStatus("ok","✅ تم رفع الصورة على Drive — جارٍ تحديث الجدول...");
+      setTimeout(function(){ loadFromCloud(false); }, 900);
     } else {
-      setSyncStatus("ok","✅ تم الحفظ (الصورة محلياً فقط)");
+      setSyncStatus("error","⚠️ تم رفع الصورة لكن لم يتم إرجاع رابط");
     }
   } catch(err) {
-    console.warn("Drive upload:", err.message);
+    console.warn("Drive upload:", err && err.message ? err.message : err);
+    // فشل رفع الصورة لا يؤثر على السجل
     setSyncStatus("ok","✅ تم الحفظ (الصورة محلياً فقط)");
   }
 }
