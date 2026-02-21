@@ -1052,32 +1052,28 @@ function renderTable(){
     els.tableFooter.style.display="none"; return;
   }
   var rows = cloudData.map(function(v){
-    var rawDate = getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
-    var rawTime = getField(v,["الوقت","⏰ الوقت"])||v.time||"";
-    // رابط الصورة قد يكون في عمود: "رابط الصورة" (الموصى به)
-    var rawImgUrl = String(
-      getField(v,["رابط الصورة","🔗 رابط الصورة","رابط الصوره","driveUrl","imageUrl","Image URL","بيانات الصورة"])
-      || v.driveUrl || v.imageUrl || v["رابط الصورة"] || ""
-    ).trim();
-
+    var rawDate=getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
+    var rawTime=getField(v,["الوقت","⏰ الوقت"])||v.time||"";
     return {
-      tower:   String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
-      floor:   String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
-      plate:   String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
-      date:    fixExcelDate(rawDate),
-      time:    fixExcelTime(rawTime),
+      tower:  String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
+      floor:  String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
+      plate:  String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
+      date:   fixExcelDate(rawDate),
+      time:   fixExcelTime(rawTime),
       carStatus:String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||""),
-      notes:   String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||""),
-      guard:   String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""),
-      hasImg:  String(getField(v,["صورة","📷 صورة"])||v.hasImage||""),
-      imageUrl: rawImgUrl
+      notes:  String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||""),
+      guard:  String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""),
+      hasImg: String(getField(v,["صورة","📷 صورة"])||v.hasImage||"")
     };
   }).reverse();
 
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
 
-    var driveUrlRaw = (v.imageUrl || "").trim();
+    var driveUrlRaw = (
+  getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"])
+  || v.driveUrl || v["رابط الصورة"] || ""
+);
 var driveUrl = normalizeDriveUrl(driveUrlRaw);
 
 // إن لم يوجد رابط من الشيت، جرّب المحلي (جلسة نفس الجهاز فقط)
@@ -1347,6 +1343,34 @@ els.vehicleImg.addEventListener("change", function(e){
 els.btnClearImg.addEventListener("click", function(){ setImage(null); });
 
 /* ════════ Event Listeners ════════ */
+/* ───── صورة المركبة (رفع/مسح) ───── */
+els.vehicleImg.addEventListener("change", function(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+  e.target.value = "";
+  var reader = new FileReader();
+  reader.onload = async function(ev){
+    try{
+      var raw = ev.target.result;
+      // ضغط معقول قبل التخزين/الرفع
+      var compressed = await compressImage(raw, 1200, 0.80);
+      setImage(compressed); // يحدد currentImgBase64 ويحدث الواجهة
+      setStatus("✅ تم اختيار صورة");
+    }catch(err){
+      console.warn(err);
+      alert("تعذّر قراءة الصورة");
+    }
+  };
+  reader.readAsDataURL(file);
+});
+
+els.btnClearImg.addEventListener("click", function(){
+  currentImgBase64 = null;
+  els.imgUploadArea.classList.remove("has-img");
+  els.imgUploadArea.innerHTML = '<div class="upload-icon">📷</div><div class="upload-hint">اضغط لرفع صورة أو التقاط بالكاميرا</div>';
+  els.btnClearImg.style.display = "none";
+});
+
 els.btnLookup.addEventListener("click", lookupGuard);
 els.empId.addEventListener("keydown", function(e){ if(e.key==="Enter") lookupGuard(); });
 
