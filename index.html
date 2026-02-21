@@ -6,7 +6,6 @@
   <title>رصد السيارات — تسجيل الدخول</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
       --ink: #0a0f1e;
@@ -939,25 +938,26 @@
       .col-img-screen { display: none !important; }
       .col-link-print {
         display: table-cell !important;
-        width: 52px !important;
+        width: 32px !important;
         text-align: center !important;
         vertical-align: middle !important;
         padding: 4px !important;
       }
 
-      /* ═══ QR code في الطباعة ═══ */
+      /* ═══ أيقونة الرابط في الطباعة ═══ */
       .print-link-icon-btn {
-        display: block !important;
-        margin: 0 auto !important;
+        display: inline-block !important;
+        width: 22px !important;
+        height: 22px !important;
+        line-height: 22px !important;
+        text-align: center !important;
+        border-radius: 4px !important;
+        background: #1a56db !important;
+        color: #fff !important;
         text-decoration: none !important;
-      }
-      .print-link-icon-btn img,
-      .print-link-icon-btn canvas {
-        width: 46px !important;
-        height: 46px !important;
-        display: block !important;
-        border-radius: 3px !important;
-        border: 1px solid #e2e8f0 !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        font-family: Arial, sans-serif !important;
       }
 
       .print-no-link {
@@ -1105,7 +1105,6 @@
       tbody tr { break-inside: avoid; }
     }
   </style>
-</head>
 <body>
 
 <!-- ══════════════════════════════════════
@@ -1333,7 +1332,7 @@
         <thead><tr>
           <th style="width:44px;">#</th>
           <th style="width:84px;" class="col-img-screen">الصورة</th>
-          <th class="col-link-print" style="width:52px;">QR</th>
+          <th class="col-link-print" style="width:32px;">↗</th>
           <th style="width:70px;">البرج</th>
           <th style="width:70px;">الدور</th>
           <th style="width:80px;">رقم الموقف</th>
@@ -2096,11 +2095,9 @@ function renderTable(){
         '</div>'
       :'<span style="color:var(--border);">—</span>';
 
-    // ═══ خلية الأيقونة — للطباعة فقط (أيقونة زر قابلة للنقر) ═══
-    // ═══ خلية الأيقونة — للطباعة: QR code ═══
-    var qrDivId = 'qr-'+i+'-'+Date.now();
+    // ═══ خلية الرابط — للطباعة ═══
     var linkCellPrint = driveUrl
-      ? '<td class="col-link-print"><div id="'+qrDivId+'" class="print-link-icon-btn"></div></td>'
+      ? '<td class="col-link-print"><a class="print-link-icon-btn" href="'+driveUrl+'" target="_blank">&#8599;</a></td>'
       : '<td class="col-link-print"><span class="print-no-link">—</span></td>';
 
     var towerClass="tower-badge tower-"+(["A","B","C"].includes(v.tower)?v.tower:"");
@@ -2131,23 +2128,6 @@ function renderTable(){
       '<td>'+(v.guard?'<span class="guard-pill">'+v.guard+'</span>':'<span style="color:var(--border);">—</span>')+'</td>';
 
     els.tableBody.appendChild(tr);
-
-    // توليد QR code للطباعة
-    if(driveUrl && typeof QRCode !== 'undefined') {
-      var qrEl = document.getElementById(qrDivId);
-      if(qrEl) {
-        try {
-          new QRCode(qrEl, {
-            text: driveUrl,
-            width: 46,
-            height: 46,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-          });
-        } catch(e) {}
-      }
-    }
   });
 
   els.tableBody.querySelectorAll("img.img-thumb").forEach(function(img){
