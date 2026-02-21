@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>رصد السيارات</title>
+  <title>رصد السيارات — تسجيل الدخول</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -37,6 +37,183 @@
       line-height: 1.6;
     }
 
+    /* ══ LOGIN SCREEN ══ */
+    #loginScreen {
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0a0f1e 0%, #1a2744 50%, #0e3a8c 100%);
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      padding: 20px;
+    }
+    #loginScreen.hidden {
+      animation: loginOut .5s ease forwards;
+    }
+    @keyframes loginOut {
+      to { opacity: 0; transform: scale(1.05); pointer-events: none; }
+    }
+
+    .login-bg-decoration {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .login-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(26,86,219,.08);
+      border: 1px solid rgba(26,86,219,.12);
+    }
+    .login-circle:nth-child(1) { width: 400px; height: 400px; top: -100px; right: -100px; }
+    .login-circle:nth-child(2) { width: 300px; height: 300px; bottom: -80px; left: -80px; }
+    .login-circle:nth-child(3) { width: 200px; height: 200px; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
+    .login-box {
+      background: rgba(255,255,255,.04);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 24px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      box-shadow: 0 32px 80px rgba(0,0,0,.4);
+      animation: loginIn .5s ease;
+    }
+    @keyframes loginIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-logo-icon {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 32px rgba(26,86,219,.4);
+    }
+    .login-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    .login-subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,.45);
+    }
+
+    .login-form { display: flex; flex-direction: column; gap: 16px; }
+
+    .login-field { display: flex; flex-direction: column; gap: 7px; }
+    .login-field label {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,.5);
+      text-transform: uppercase;
+      letter-spacing: .7px;
+    }
+    .login-input-wrap { position: relative; }
+    .login-input {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-size: 15px;
+      color: #fff;
+      background: rgba(255,255,255,.08);
+      border: 1.5px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 13px 16px;
+      width: 100%;
+      transition: all .2s;
+      letter-spacing: 0.3px;
+    }
+    .login-input::placeholder { color: rgba(255,255,255,.25); }
+    .login-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(26,86,219,.15);
+      box-shadow: 0 0 0 3px rgba(26,86,219,.2);
+    }
+    .login-input.plate-style {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+    .password-toggle {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: rgba(255,255,255,.4);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      transition: color .2s;
+    }
+    .password-toggle:hover { color: rgba(255,255,255,.7); }
+    .login-input.has-toggle { padding-left: 44px; }
+
+    .login-btn {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      width: 100%;
+      transition: all .2s;
+      margin-top: 4px;
+      box-shadow: 0 4px 20px rgba(26,86,219,.4);
+      letter-spacing: 0.3px;
+    }
+    .login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(26,86,219,.55); }
+    .login-btn:active { transform: translateY(0); }
+    .login-btn:disabled { opacity: .6; transform: none; cursor: not-allowed; }
+
+    .login-error {
+      display: none;
+      background: rgba(220,38,38,.15);
+      border: 1px solid rgba(220,38,38,.3);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #fca5a5;
+      text-align: center;
+      animation: shake .3s ease;
+    }
+    .login-error.show { display: block; }
+    @keyframes shake {
+      0%,100%{ transform:translateX(0); }
+      25%{ transform:translateX(-6px); }
+      75%{ transform:translateX(6px); }
+    }
+
+    .login-info {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      text-align: center;
+    }
+    .login-info-text { font-size: 11px; color: rgba(255,255,255,.25); }
+
     /* ── HEADER ── */
     .header {
       background: var(--ink);
@@ -57,27 +234,48 @@
       gap: 12px;
     }
     .header-icon {
-      width: 36px;
-      height: 36px;
+      width: 36px; height: 36px;
       background: var(--accent);
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       font-size: 18px;
     }
-    .header-title {
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      color: #fff;
-    }
-    .header-sub {
-      font-size: 11px;
-      color: rgba(255,255,255,.45);
-      margin-top: 1px;
-    }
+    .header-title { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; color: #fff; }
+    .header-sub { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 1px; }
     .header-actions { display: flex; gap: 10px; align-items: center; }
+
+    /* User pill in header */
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 30px;
+      padding: 6px 14px 6px 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,.8);
+      font-weight: 600;
+    }
+    .user-avatar {
+      width: 26px; height: 26px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+    }
+    .logout-btn {
+      background: rgba(220,38,38,.15);
+      border: 1px solid rgba(220,38,38,.2);
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .logout-btn:hover { background: rgba(220,38,38,.25); color: #fff; }
 
     /* ── SYNC BAR ── */
     .sync-bar {
@@ -399,7 +597,6 @@
     }
     td:first-child { color: var(--border2); font-size: 11px; font-weight: 700; text-align: center; width: 44px; }
 
-    /* Badges */
     .plate-badge {
       font-family: 'JetBrains Mono', monospace;
       font-weight: 800;
@@ -424,22 +621,8 @@
     .tower-A { background: var(--accent); }
     .tower-B { background: var(--green); }
     .tower-C { background: var(--red); }
-    .floor-badge {
-      background: #fef3c7;
-      color: #92400e;
-      padding: 3px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .guard-pill {
-      background: #f5f3ff;
-      color: #5b21b6;
-      padding: 3px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-    }
+    .floor-badge { background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+    .guard-pill { background: #f5f3ff; color: #5b21b6; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
     .status-new { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; }
     .status-mid { background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; }
     .status-dust { background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; }
@@ -447,7 +630,6 @@
     .time-pill { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--ink); background: var(--paper); padding: 3px 9px; border-radius: 6px; display: inline-block; }
     .notes-text { color: var(--ink3); font-size: 12px; }
 
-    /* Img in table */
     .img-thumb-wrap { position: relative; display: inline-block; }
     .img-thumb {
       width: 72px; height: 52px;
@@ -472,24 +654,10 @@
       box-shadow: 0 2px 6px rgba(26,86,219,.4);
     }
 
-    /* ── EMPTY STATE ── */
     .empty-state { text-align: center; padding: 60px 20px; color: var(--border2); }
     .empty-icon { font-size: 48px; margin-bottom: 12px; }
     .empty-title { font-size: 16px; font-weight: 700; color: var(--ink3); margin-bottom: 6px; }
     .empty-sub { font-size: 13px; }
-
-    /* ── FOOTER BAR ── */
-    .table-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 24px;
-      border-top: 1px solid var(--border);
-      font-size: 12px;
-      color: var(--ink3);
-      background: var(--paper);
-      border-radius: 0 0 var(--radius) var(--radius);
-    }
 
     /* ── LOADING ── */
     .loading-overlay {
@@ -549,7 +717,7 @@
     }
     .modal-close:hover { background: #fee2e2; border-color: #fca5a5; color: var(--red); }
 
-    /* ── Camera ── */
+    /* Camera */
     .camera-wrap { position: relative; width: 100%; text-align: center; }
     #cameraVideo { width: 100%; max-width: 600px; border-radius: 12px; background: #000; display: block; margin: 0 auto; }
     #cameraCanvas { display: none; }
@@ -576,7 +744,6 @@
       font-weight: 700;
     }
 
-    /* ── Setup Modal Code Box ── */
     .code-box {
       background: #0f172a;
       border-radius: 10px;
@@ -588,7 +755,6 @@
     .setup-step { background: var(--paper); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin: 10px 0; }
     .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--accent); color: #fff; border-radius: 6px; font-size: 11px; font-weight: 800; margin-left: 8px; }
 
-    /* ── OCR Result ── */
     .ocr-result {
       display: none;
       background: #f0fdf4;
@@ -612,7 +778,6 @@
     .ocr-status.loading { background: #fefce8; border: 1.5px solid #fde68a; color: #92400e; }
     .ocr-status.error { background: #fee2e2; border: 1.5px solid #fca5a5; color: #991b1b; }
 
-    /* ── Helpers ── */
     .flex { display: flex; }
     .gap8 { gap: 8px; }
     .gap12 { gap: 12px; }
@@ -624,6 +789,14 @@
     .ml-auto { margin-right: auto; }
     .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
+    /* App hidden until login */
+    #appWrapper { display: none; }
+    #appWrapper.visible { display: block; }
+
+    /* Session pill colors */
+    .role-admin { background: rgba(124,58,237,.2); border-color: rgba(124,58,237,.3); color: #c4b5fd; }
+    .role-guard { background: rgba(5,150,105,.15); border-color: rgba(5,150,105,.25); color: #6ee7b7; }
+
     @media (max-width: 900px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .header { padding: 0 16px; }
@@ -631,21 +804,90 @@
       .main { padding: 16px; }
       .card-body { padding: 16px; }
       .card-header { padding: 14px 16px; }
+      .login-box { padding: 28px 20px; }
     }
     @media (max-width: 600px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .form-grid { grid-template-columns: 1fr 1fr; }
       .form-group.span2, .form-group.span3 { grid-column: span 2; }
+      .user-pill span { display: none; }
     }
 
     @media print {
       .no-print { display: none !important; }
       .header { position: static; }
       body { background: #fff; }
+      #loginScreen { display: none !important; }
     }
   </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-bg-decoration">
+    <div class="login-circle"></div>
+    <div class="login-circle"></div>
+    <div class="login-circle"></div>
+  </div>
+
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">🚗</div>
+      <div class="login-title">رصد السيارات</div>
+      <div class="login-subtitle">نظام المراقبة الذكي — Google Sheets</div>
+    </div>
+
+    <div class="login-form">
+      <div class="login-field">
+        <label>الرقم الوظيفي</label>
+        <div class="login-input-wrap">
+          <input
+            type="text"
+            id="loginEmpId"
+            class="login-input plate-style"
+            placeholder="12345"
+            inputmode="numeric"
+            maxlength="10"
+            autocomplete="username"
+          />
+        </div>
+      </div>
+
+      <div class="login-field">
+        <label>كلمة السر</label>
+        <div class="login-input-wrap">
+          <input
+            type="password"
+            id="loginPassword"
+            class="login-input has-toggle"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+          <button class="password-toggle" id="togglePwd" type="button">👁️</button>
+        </div>
+      </div>
+
+      <div class="login-error" id="loginError">❌ الرقم الوظيفي أو كلمة السر غير صحيحة</div>
+
+      <button class="login-btn" id="loginBtn" type="button">
+        🔐 تسجيل الدخول
+      </button>
+    </div>
+
+    <div class="login-info">
+      <div class="login-info-text">بيانات الدخول محفوظة في Google Sheets — ورقة "الموظفون"</div>
+      <div class="login-info-text" style="margin-top:4px;">العمود A: الرقم الوظيفي | B: الاسم | C: القسم | D: كلمة السر</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div id="appWrapper">
 
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
@@ -662,10 +904,16 @@
     </div>
   </div>
   <div class="header-actions">
-    <button class="btn btn-ghost btn-sm" id="btnPrint">🖨️ طباعة</button>
-    <button class="btn btn-ghost btn-sm" id="btnExportCSV">📄 تصدير CSV</button>
-    <button class="btn btn-ghost btn-sm" id="btnShowSetup">⚙️ إعداد</button>
-    <button class="btn btn-primary btn-sm" id="btnSync">🔄 تحديث</button>
+    <!-- Logged-in user pill -->
+    <div class="user-pill" id="userPill">
+      <div class="user-avatar">👤</div>
+      <span id="headerUserName">—</span>
+    </div>
+    <button class="logout-btn" id="btnLogout">🚪 خروج</button>
+    <button class="btn btn-ghost btn-sm no-print" id="btnPrint">🖨️ طباعة</button>
+    <button class="btn btn-ghost btn-sm no-print" id="btnExportCSV">📄 CSV</button>
+    <button class="btn btn-ghost btn-sm no-print" id="btnShowSetup">⚙️ إعداد</button>
+    <button class="btn btn-primary btn-sm no-print" id="btnSync">🔄 تحديث</button>
   </div>
 </header>
 
@@ -680,25 +928,13 @@
 
   <!-- STATS -->
   <div class="stats-grid no-print">
-    <div class="stat-card blue">
-      <div class="stat-value" id="statTotal">0</div>
-      <div class="stat-label">إجمالي المركبات</div>
-    </div>
-    <div class="stat-card green">
-      <div class="stat-value" id="statToday">0</div>
-      <div class="stat-label">اليوم</div>
-    </div>
-    <div class="stat-card amber">
-      <div class="stat-value" id="statWithPhotos">0</div>
-      <div class="stat-label">بصور</div>
-    </div>
-    <div class="stat-card purple">
-      <div class="stat-value" id="statApiCalls">0</div>
-      <div class="stat-label">تمت إضافتها</div>
-    </div>
+    <div class="stat-card blue"><div class="stat-value" id="statTotal">0</div><div class="stat-label">إجمالي المركبات</div></div>
+    <div class="stat-card green"><div class="stat-value" id="statToday">0</div><div class="stat-label">اليوم</div></div>
+    <div class="stat-card amber"><div class="stat-value" id="statWithPhotos">0</div><div class="stat-label">بصور</div></div>
+    <div class="stat-card purple"><div class="stat-value" id="statApiCalls">0</div><div class="stat-label">تمت إضافتها</div></div>
   </div>
 
-  <!-- GUARD + META CARD -->
+  <!-- GUARD CARD — auto-filled from login -->
   <div class="card no-print">
     <div class="card-header">
       <div class="card-title"><div class="card-title-icon">👤</div> بيانات الحارس</div>
@@ -708,28 +944,14 @@
       </div>
     </div>
     <div class="card-body">
-      <div class="form-grid" style="grid-template-columns: 160px 1fr auto;">
-        <div class="form-group">
-          <label>الرقم الوظيفي</label>
-          <input id="empId" inputmode="numeric" placeholder="88840"/>
-        </div>
-        <div class="form-group">
-          <label>اسم الموظف</label>
-          <input id="empName" placeholder="يظهر تلقائياً…" readonly/>
-        </div>
-        <div class="form-group" style="justify-content:flex-end;">
-          <button class="btn btn-primary" id="btnLookup">🔍 بحث</button>
-        </div>
-      </div>
-
-      <div class="guard-card" id="guardInfoCard">
+      <div class="guard-card show" id="guardInfoCard">
         <div class="guard-avatar">👤</div>
         <div>
-          <div class="guard-name" id="guardNameDisplay"></div>
-          <div class="guard-meta" id="guardIdDisplay"></div>
-          <div id="guardDeptDisplay" style="display:none;margin-top:4px;font-size:11px;background:#bbf7d0;color:#065f46;padding:2px 10px;border-radius:20px;display:none;"></div>
+          <div class="guard-name" id="guardNameDisplay">—</div>
+          <div class="guard-meta" id="guardIdDisplay">الرقم الوظيفي: —</div>
+          <div id="guardDeptDisplay" style="margin-top:4px;font-size:11px;background:#bbf7d0;color:#065f46;padding:2px 10px;border-radius:20px;display:none;"></div>
         </div>
-        <span class="guard-badge-pill">✅ موظف موثّق</span>
+        <span class="guard-badge-pill">✅ مسجّل الدخول</span>
       </div>
     </div>
   </div>
@@ -741,7 +963,6 @@
     </div>
     <div class="card-body">
 
-      <!-- Plate Alert -->
       <div class="plate-alert" id="plateFoundCard">
         <div class="plate-alert-header">
           ⚠️ هذه اللوحة مرصودة مسبقاً
@@ -844,8 +1065,8 @@
     <p style="color:var(--ink3);font-size:13px;margin-bottom:16px;">انسخ الكود والصقه في Apps Script ثم انشر من جديد</p>
 
     <div class="setup-step" style="background:#fffbeb;border-color:#fde68a;">
-      <strong style="color:#92400e;">📋 ورقة الموظفين</strong>
-      <p style="font-size:12px;margin:6px 0 0;">أنشئ ورقة باسم <b>الموظفون</b> | عمود A: الرقم الوظيفي | B: الاسم | C: القسم</p>
+      <strong style="color:#92400e;">📋 ورقة الموظفين — مع كلمة السر</strong>
+      <p style="font-size:12px;margin:6px 0 0;">ورقة باسم <b>الموظفون</b> | A: الرقم الوظيفي | B: الاسم | C: القسم | <b style="color:var(--red);">D: كلمة السر</b></p>
     </div>
 
     <div class="setup-step">
@@ -864,6 +1085,7 @@ function doGet(e) {
   if (action === "add")         return handleAdd(p, cb);
   if (action === "getAll")      return handleGetAll(cb);
   if (action === "getGuard")    return handleGetGuard(p, cb);
+  if (action === "login")       return handleLogin(p, cb);
   if (action === "uploadImage") return handleImageUpload(p, cb);
   return makeResponse({ error: "unknown_action" }, cb);
 }
@@ -903,6 +1125,33 @@ function makeResponse(data, cb) {
   const out  = (cb&&cb!=="")?(cb+"("+json+");"):json;
   const mime = (cb&&cb!=="") ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON;
   return ContentService.createTextOutput(out).setMimeType(mime);
+}
+
+// ★ NEW: Login handler — checks empId + password from column D
+function handleLogin(p, cb) {
+  const id  = String(p.empId||"").trim();
+  const pwd = String(p.password||"").trim();
+  if(!id || !pwd) return makeResponse({error:"missing_fields"}, cb);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GUARDS_SHEET);
+  if(!sheet) return makeResponse({error:"no_sheet", msg:"أنشئ ورقة: "+GUARDS_SHEET}, cb);
+  const rows = sheet.getDataRange().getValues();
+  for(let i=1; i<rows.length; i++) {
+    if(String(rows[i][0]).trim() === id) {
+      const storedPwd = String(rows[i][3]||"").trim(); // Column D = index 3
+      if(storedPwd === pwd) {
+        return makeResponse({
+          success: true,
+          empId: id,
+          name:  String(rows[i][1]||""),
+          dept:  String(rows[i][2]||""),
+          role:  String(rows[i][4]||"guard")  // Column E = role (optional: admin/guard)
+        }, cb);
+      } else {
+        return makeResponse({error:"wrong_password"}, cb);
+      }
+    }
+  }
+  return makeResponse({error:"not_found"}, cb);
 }
 
 function handleAdd(p, cb) {
@@ -956,7 +1205,7 @@ function handleImageUpload(p, cb) {
     const imgData=String(p.imgData||""), rowHint=Number(p.row||0)||0;
     if(!imgData) return makeResponse({error:"no_image"},"");
     const base64 = imgData.indexOf(",")>-1 ? imgData.split(",")[1] : imgData;
-    const filename=[plate,date,time?time.replace(":","):""].filter(Boolean).join("_")+".jpg";
+    const filename=[plate,date,time?time.replace(":","-"):""].filter(Boolean).join("_")+".jpg";
     const blob = Utilities.newBlob(Utilities.base64Decode(base64),"image/jpeg",filename);
     const folders=DriveApp.getFoldersByName(DRIVE_FOLDER);
     const folder=folders.hasNext()?folders.next():DriveApp.createFolder(DRIVE_FOLDER);
@@ -992,15 +1241,16 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
     </div>
 
     <div class="setup-step" style="background:#eff6ff;border-color:#bfdbfe;">
-      <strong style="color:#1d4ed8;">📁 Google Drive</strong>
-      <p style="font-size:12px;margin:6px 0 0;">سيُنشئ الكود مجلداً تلقائياً: <b>"صور مركبات الرصد"</b> — الصور مشتركة تلقائياً ✅</p>
+      <strong style="color:#1d4ed8;">📁 Google Drive + 🔑 كلمة السر</strong>
+      <p style="font-size:12px;margin:6px 0 0;">أضف كلمة السر في العمود <b>D</b> لكل موظف في ورقة <b>الموظفون</b></p>
+      <p style="font-size:12px;margin:4px 0 0;color:var(--ink3);">العمود E اختياري: <b>admin</b> أو <b>guard</b> (للأدوار المستقبلية)</p>
     </div>
 
     <div class="setup-step">
       <strong><span class="step-num">3</span> اختبر الاتصال:</strong>
       <div class="flex gap8 mt12">
         <button class="btn btn-primary btn-sm" id="btnTestInModal">🧪 اختبار الاتصال</button>
-        <button class="btn btn-ghost btn-sm" id="btnTestGuard">👤 اختبار الموظف</button>
+        <button class="btn btn-ghost btn-sm" id="btnTestLogin">🔑 اختبار تسجيل دخول</button>
       </div>
       <div id="testResultModal" style="margin-top:10px;font-size:13px;"></div>
     </div>
@@ -1048,25 +1298,170 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
   </div>
 </div>
 
+</div><!-- /appWrapper -->
+
 <script>
 (function(){
 "use strict";
 
 var GS_URL      = "https://script.google.com/macros/s/AKfycbwPhCQjzgaFsoHplvU0AAIOOvKs4yIgHZoT_4VCbcgVuzb5cJ0yKo6m2vcbuwtiGP3gpw/exec";
 var STORAGE_KEY = "parkingReport_v4";
+var SESSION_KEY = "parkingSession_v1";
 
 function $(id){ return document.getElementById(id); }
+
+/* ══════════════════════════════════
+   SESSION MANAGEMENT
+══════════════════════════════════ */
+var currentUser = null;
+
+function saveSession(user) {
+  currentUser = user;
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(user)); } catch(e) {}
+}
+function loadSession() {
+  try {
+    var s = sessionStorage.getItem(SESSION_KEY);
+    if(s) { currentUser = JSON.parse(s); return true; }
+  } catch(e) {}
+  return false;
+}
+function clearSession() {
+  currentUser = null;
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
+
+function jsonpCall(url, ms){
+  ms=ms||12000;
+  return new Promise(function(resolve,reject){
+    var cb="gs_"+Date.now()+"_"+Math.floor(Math.random()*99999);
+    var scr=document.createElement("script");
+    var tim=setTimeout(function(){ cleanup(); reject(new Error("انتهت مهلة الاتصال")); },ms);
+    window[cb]=function(d){ cleanup(); resolve(d); };
+    scr.onerror=function(){ cleanup(); reject(new Error("تأكد من Who has access = Anyone")); };
+    scr.src=url+"&callback="+cb+"&_t="+Date.now();
+    document.head.appendChild(scr);
+    function cleanup(){ clearTimeout(tim); try{delete window[cb];}catch(e){} if(scr.parentNode) scr.remove(); }
+  });
+}
+
+/* ══ LOGIN LOGIC ══ */
+var loginEmpId   = $("loginEmpId");
+var loginPassword= $("loginPassword");
+var loginBtn     = $("loginBtn");
+var loginError   = $("loginError");
+var loginScreen  = $("loginScreen");
+var appWrapper   = $("appWrapper");
+
+$("togglePwd").addEventListener("click", function(){
+  var t = loginPassword.type === "password" ? "text" : "password";
+  loginPassword.type = t;
+  $("togglePwd").textContent = t === "password" ? "👁️" : "🙈";
+});
+
+async function doLogin(){
+  var id  = loginEmpId.value.trim();
+  var pwd = loginPassword.value.trim();
+  if(!id || !pwd){ showLoginError("أدخل الرقم الوظيفي وكلمة السر"); return; }
+
+  loginBtn.disabled = true;
+  loginBtn.textContent = "⏳ جارٍ التحقق…";
+  loginError.classList.remove("show");
+
+  try{
+    var data = await jsonpCall(
+      GS_URL + "?action=login&empId=" + encodeURIComponent(id) + "&password=" + encodeURIComponent(pwd),
+      15000
+    );
+    if(data && data.success){
+      saveSession({empId: data.empId, name: data.name, dept: data.dept||"", role: data.role||"guard"});
+      onLoginSuccess();
+    } else if(data && data.error === "no_sheet"){
+      showLoginError("⚠️ " + (data.msg||"ورقة الموظفون غير موجودة في Google Sheets"));
+    } else if(data && data.error === "wrong_password"){
+      showLoginError("❌ كلمة السر غير صحيحة");
+    } else if(data && data.error === "not_found"){
+      showLoginError("❌ الرقم الوظيفي غير موجود");
+    } else {
+      showLoginError("❌ خطأ غير متوقع — حاول مجدداً");
+    }
+  }catch(err){
+    showLoginError("❌ تعذّر الاتصال: " + err.message);
+  }finally{
+    loginBtn.disabled = false;
+    loginBtn.textContent = "🔐 تسجيل الدخول";
+  }
+}
+
+function showLoginError(msg){
+  loginError.textContent = msg;
+  loginError.classList.add("show");
+  loginPassword.value = "";
+  loginPassword.focus();
+}
+
+function onLoginSuccess(){
+  // Fill header user pill
+  $("headerUserName").textContent = currentUser.name;
+  $("guardNameDisplay").textContent = currentUser.name;
+  $("guardIdDisplay").textContent = "الرقم الوظيفي: " + currentUser.empId;
+  if(currentUser.dept){
+    $("guardDeptDisplay").textContent = currentUser.dept;
+    $("guardDeptDisplay").style.display = "inline-block";
+  }
+
+  // Update report object
+  report.guard = {empId: currentUser.empId, name: currentUser.name, dept: currentUser.dept||""};
+  saveLocal();
+
+  // Animate login screen out, show app
+  loginScreen.classList.add("hidden");
+  setTimeout(function(){
+    loginScreen.style.display = "none";
+    appWrapper.classList.add("visible");
+    loadFromCloud(true);
+  }, 500);
+}
+
+function doLogout(){
+  if(!confirm("تسجيل الخروج؟")){ return; }
+  clearSession();
+  appWrapper.classList.remove("visible");
+  loginScreen.style.display = "flex";
+  loginScreen.classList.remove("hidden");
+  loginEmpId.value = "";
+  loginPassword.value = "";
+  loginError.classList.remove("show");
+  loginEmpId.focus();
+}
+
+loginBtn.addEventListener("click", doLogin);
+loginEmpId.addEventListener("keydown", function(e){ if(e.key==="Enter") loginPassword.focus(); });
+loginPassword.addEventListener("keydown", function(e){ if(e.key==="Enter") doLogin(); });
+$("btnLogout").addEventListener("click", doLogout);
+
+/* ══ CHECK SESSION ON LOAD ══ */
+window.addEventListener("load", function(){
+  if(loadSession()){
+    onLoginSuccess();
+  } else {
+    loginEmpId.focus();
+  }
+});
+
+/* ══════════════════════════════════
+   APP LOGIC (unchanged from original)
+══════════════════════════════════ */
 var els = {
-  empId:$("empId"), empName:$("empName"),
   reportDate:$("reportDate"), reportTime:$("reportTime"),
-  status:$("status"), btnLookup:$("btnLookup"),
+  status:$("status"),
   tower:$("tower"), floor:$("floor"), plate:$("plate"),
   obsDate:$("obsDate"), notes:$("notes"), carStatus:$("carStatus"),
   btnAdd:$("btnAdd"), btnCamera:$("btnCamera"),
   btnExportCSV:$("btnExportCSV"), btnPrint:$("btnPrint"),
   btnClearLocal:$("btnClearLocal"), btnSync:$("btnSync"),
   btnShowSetup:$("btnShowSetup"),
-  btnTestInModal:$("btnTestInModal"), btnTestGuard:$("btnTestGuard"),
+  btnTestInModal:$("btnTestInModal"),
   closeSetup:$("closeSetup"),
   vehicleImg:$("vehicleImg"), imgUploadArea:$("imgUploadArea"), btnClearImg:$("btnClearImg"),
   tableBody:$("tableBody"), footerCount:$("footerCount"),
@@ -1107,6 +1502,7 @@ function setNow(){
   tick();
   setInterval(tick, 15000);
 }
+setNow();
 
 function setImage(base64){
   currentImgBase64 = base64 || null;
@@ -1127,45 +1523,6 @@ function clearForm(){
   els.obsDate.value = new Date().toISOString().slice(0,10);
   els.plateFoundCard.classList.remove("show");
   setImage(null);
-}
-
-async function lookupGuard(silent){
-  var id = els.empId.value.trim();
-  if(!id){ if(!silent) alert("أدخل الرقم الوظيفي"); return; }
-  els.btnLookup.disabled = true;
-  els.btnLookup.textContent = "⏳";
-  els.empName.value = "⏳ جارٍ البحث…";
-  els.guardInfoCard.classList.remove("show");
-  try{
-    var data = await jsonpCall(GS_URL+"?action=getGuard&empId="+encodeURIComponent(id), 10000);
-    if(data && data.success){
-      report.guard = {empId:id, name:data.name, dept:data.dept||""};
-      els.empName.value = data.name;
-      setStatus("✅ "+data.name);
-      saveLocal();
-      els.guardNameDisplay.textContent = data.name;
-      els.guardIdDisplay.textContent = "الرقم الوظيفي: "+id;
-      if(data.dept){
-        els.guardDeptDisplay.textContent = data.dept;
-        els.guardDeptDisplay.style.display = "inline-block";
-      } else { els.guardDeptDisplay.style.display = "none"; }
-      els.guardInfoCard.classList.add("show");
-    } else if(data && data.error==="no_sheet"){
-      alert("⚠️ "+(data.msg||"ورقة الموظفين غير موجودة\nأنشئ ورقة باسم: الموظفون"));
-      els.empName.value = "";
-    } else {
-      alert("❌ الرقم الوظيفي غير موجود في قاعدة البيانات");
-      els.empName.value = "";
-      els.guardInfoCard.classList.remove("show");
-    }
-  }catch(err){
-    setStatus("❌ تعذّر الاتصال");
-    alert("❌ فشل الاتصال بـ Google Sheets\n"+err.message);
-    els.empName.value = "";
-  }finally{
-    els.btnLookup.disabled = false;
-    els.btnLookup.textContent = "🔍 بحث";
-  }
 }
 
 function getField(v, keys){
@@ -1195,20 +1552,6 @@ function fixExcelDate(val){
   var num=parseFloat(s);
   if(!isNaN(num)&&num>1){ var d=new Date(Date.UTC(1899,11,30)+num*86400000); return d.toISOString().slice(0,10); }
   return s.slice(0,10);
-}
-
-function jsonpCall(url, ms){
-  ms=ms||12000;
-  return new Promise(function(resolve,reject){
-    var cb="gs_"+Date.now()+"_"+Math.floor(Math.random()*99999);
-    var scr=document.createElement("script");
-    var tim=setTimeout(function(){ cleanup(); reject(new Error("انتهت مهلة الاتصال")); },ms);
-    window[cb]=function(d){ cleanup(); resolve(d); };
-    scr.onerror=function(){ cleanup(); reject(new Error("تأكد من Who has access = Anyone")); };
-    scr.src=url+"&callback="+cb+"&_t="+Date.now();
-    document.head.appendChild(scr);
-    function cleanup(){ clearTimeout(tim); try{delete window[cb];}catch(e){} if(scr.parentNode) scr.remove(); }
-  });
 }
 
 function setSyncStatus(state, msg){
@@ -1327,7 +1670,7 @@ async function addVehicle(){
   var plate=els.plate.value.trim().toUpperCase().replace(/\s/g,"");
   var obsDate=els.obsDate.value,carStatus=els.carStatus.value;
   if(!tower||!floor||!plate){alert("أدخل البرج والدور ورقم اللوحة");return;}
-  if(!report.guard.empId){alert("أدخل الرقم الوظيفي أولاً");return;}
+  if(!currentUser){alert("يجب تسجيل الدخول أولاً");return;}
   var n=new Date();
   var v={tower,floor,plate,obsDate:obsDate||n.toISOString().split("T")[0],date:n.toISOString().split("T")[0],time:n.toTimeString().slice(0,5),carStatus,notes:els.notes.value.trim(),hasImage:(currentImgBase64?"نعم":"لا")};
   els.btnAdd.disabled=true;els.btnAdd.innerHTML="<span style='opacity:.7'>⏳ جارٍ الحفظ…</span>";
@@ -1462,14 +1805,19 @@ async function testConnection(el){
   }catch(e){el.innerHTML='<span style="color:var(--red);">❌ '+e.message+'</span>';}
 }
 
-async function testGuardLookup(el){
-  var id=els.empId.value.trim()||"88840";
-  el.innerHTML="⏳ اختبار: "+id+"…";
+async function testLoginInModal(el){
+  var id=prompt("أدخل الرقم الوظيفي للاختبار:","88840");
+  if(!id) return;
+  var pwd=prompt("أدخل كلمة السر:");
+  if(!pwd) return;
+  el.innerHTML="⏳ جارٍ الاختبار…";
   try{
-    var data=await jsonpCall(GS_URL+"?action=getGuard&empId="+encodeURIComponent(id),8000);
-    if(data&&data.success) el.innerHTML='<span style="color:var(--green);font-weight:700;">✅ '+data.name+(data.dept?" — "+data.dept:"")+'</span>';
+    var data=await jsonpCall(GS_URL+"?action=login&empId="+encodeURIComponent(id)+"&password="+encodeURIComponent(pwd),8000);
+    if(data&&data.success) el.innerHTML='<span style="color:var(--green);font-weight:700;">✅ تسجيل دخول ناجح: '+data.name+(data.dept?" — "+data.dept:"")+'</span>';
     else if(data&&data.error==="no_sheet") el.innerHTML='<span style="color:var(--red);">❌ ورقة الموظفون غير موجودة</span>';
-    else el.innerHTML='<span style="color:var(--amber);">⚠️ الرقم '+id+' غير موجود</span>';
+    else if(data&&data.error==="wrong_password") el.innerHTML='<span style="color:var(--red);">❌ كلمة السر خاطئة</span>';
+    else if(data&&data.error==="not_found") el.innerHTML='<span style="color:var(--amber);">⚠️ الرقم الوظيفي غير موجود</span>';
+    else el.innerHTML='<span style="color:var(--amber);">⚠️ خطأ: '+(data&&data.error||"unknown")+'</span>';
   }catch(e){el.innerHTML='<span style="color:var(--red);">❌ '+e.message+'</span>';}
 }
 
@@ -1591,16 +1939,6 @@ els.vehicleImg.addEventListener("change",function(e){
   reader.readAsDataURL(file);
 });
 els.btnClearImg.addEventListener("click",function(){setImage(null);});
-els.btnLookup.addEventListener("click",lookupGuard);
-els.empId.addEventListener("keydown",function(e){if(e.key==="Enter")lookupGuard();});
-
-var guardTypingTimer=null;
-els.empId.addEventListener("input",function(){
-  clearTimeout(guardTypingTimer);
-  els.guardInfoCard.classList.remove("show");els.empName.value="";
-  var id=els.empId.value.trim();
-  if(id.length>=4){guardTypingTimer=setTimeout(function(){lookupGuard(true);},600);}
-});
 
 els.btnAdd.addEventListener("click",addVehicle);
 els.btnExportCSV.addEventListener("click",exportCSV);
@@ -1610,15 +1948,14 @@ els.btnClearLocal.addEventListener("click",function(){
   if(confirm("مسح البيانات المحلية فقط؟")){
     localStorage.removeItem(STORAGE_KEY);
     report={guard:{empId:"",name:"",dept:""},addedCount:0};
-    els.empId.value="";els.empName.value="";
-    els.guardInfoCard.classList.remove("show");setStatus("تم المسح المحلي");
+    setStatus("تم المسح المحلي");
   }
 });
 els.btnSync.addEventListener("click",function(){loadFromCloud(false);});
 els.btnShowSetup.addEventListener("click",function(){els.setupModal.classList.add("active");});
 els.closeSetup.addEventListener("click",function(){els.setupModal.classList.remove("active");});
 els.btnTestInModal.addEventListener("click",function(){testConnection(els.testResultModal);});
-els.btnTestGuard.addEventListener("click",function(){testGuardLookup(els.testResultModal);});
+$("btnTestLogin").addEventListener("click",function(){testLoginInModal(els.testResultModal);});
 els.closeCamera.addEventListener("click",closeCamera);
 els.cancelCamera.addEventListener("click",closeCamera);
 els.closeImage.addEventListener("click",function(){els.imageModal.classList.remove("active");});
@@ -1630,26 +1967,14 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Escape"){closeCamera();els.imageModal.classList.remove("active");els.setupModal.classList.remove("active");}
 });
 
-setNow();loadLocal();
-
+loadLocal();
 try{
   for(var k in localStorage){
     if(k.indexOf("img_")===0){localImages[k.slice(4)]=localStorage.getItem(k);}
   }
 }catch(e){}
 
-if(report.guard&&report.guard.empId){
-  els.empId.value=report.guard.empId;els.empName.value=report.guard.name;
-  if(report.guard.name){
-    els.guardNameDisplay.textContent=report.guard.name;
-    els.guardIdDisplay.textContent="الرقم الوظيفي: "+report.guard.empId;
-    if(report.guard.dept){els.guardDeptDisplay.textContent=report.guard.dept;els.guardDeptDisplay.style.display="inline-block";}
-    els.guardInfoCard.classList.add("show");
-  }
-}
-
-window.addEventListener("load",function(){loadFromCloud(true);});
-setInterval(function(){loadFromCloud(false);},60000);
+setInterval(function(){if(currentUser)loadFromCloud(false);},60000);
 
 })();
 </script>
