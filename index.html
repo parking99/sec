@@ -3,708 +3,1048 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>رصد السيارات 🎯</title>
+  <title>رصد السيارات</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root{--b:#0f172a;--g:#e2e8f0;--bg:#f1f5f9;--w:#fff;--r:#ef4444;--p:#2563eb;--gr:#16a34a;--o:#f97316;}
-    *{box-sizing:border-box;}
-    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial;background:var(--bg);color:var(--b);}
-    .wrap{max-width:1200px;margin:18px auto;padding:0 14px;}
-    .card{background:var(--w);border:1px solid var(--g);border-radius:14px;padding:16px;box-shadow:0 2px 14px rgba(15,23,42,.08);}
-    h1{font-size:18px;margin:0 0 10px;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;}
-    label{display:block;font-size:12px;margin-bottom:5px;color:#334155;font-weight:600;}
-    input,select{width:100%;padding:10px;border:1px solid var(--g);border-radius:10px;background:#fff;font-size:14px;transition:border-color .2s;}
-    input:focus,select:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
-    input[readonly]{background:#f1f5f9;}
-    .col{flex:1 1 200px;min-width:170px;}
-    .col.small{flex:1 1 140px;min-width:130px;}
-    .col.wide{flex:2 1 300px;min-width:250px;}
-    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
-    button{border:0;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;transition:all .2s;}
-    button:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.12);}
-    button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-    .primary{background:var(--p);color:#fff;}
-    .ghost{background:#fff;border:1px solid var(--g);color:var(--b);}
-    .success{background:var(--gr);color:#fff;}
-    .danger{background:var(--r);color:#fff;}
-    .orange{background:var(--o);color:#fff;}
-    .hint{font-size:12px;color:#475569;margin-top:8px;}
-    .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;color:#475569;font-size:12px;}
-    .topnote{background:#f1f5f9;border:1px dashed #cbd5e1;padding:10px;border-radius:12px;margin:10px 0;font-size:12px;color:#334155;}
+    :root {
+      --ink: #0a0f1e;
+      --ink2: #1e293b;
+      --ink3: #475569;
+      --paper: #f8f9fc;
+      --white: #ffffff;
+      --accent: #1a56db;
+      --accent2: #0e3a8c;
+      --green: #059669;
+      --amber: #d97706;
+      --red: #dc2626;
+      --border: #e2e8f0;
+      --border2: #cbd5e1;
+      --card-shadow: 0 1px 3px rgba(10,15,30,.06), 0 8px 32px rgba(10,15,30,.08);
+      --card-shadow-hover: 0 4px 12px rgba(10,15,30,.1), 0 20px 48px rgba(10,15,30,.12);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
 
-    /* ── Sync Banner ── */
-    .sync-banner{display:flex;align-items:center;gap:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin:10px 0;font-size:13px;flex-wrap:wrap;}
-    .sync-banner.syncing{background:#fefce8;border-color:#fde68a;}
-    .sync-banner.error{background:#fef2f2;border-color:#fecaca;}
-    .sync-banner.ok{background:#f0fdf4;border-color:#bbf7d0;}
-    .sync-dot{width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;}
-    .sync-dot.pulse{background:#3b82f6;animation:pulse 1.2s infinite;}
-    .sync-dot.ok{background:#22c55e;}
-    .sync-dot.error{background:#ef4444;}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── بطاقة البحث عن اللوحة ── */
-    .plate-found-card{display:none;background:linear-gradient(135deg,#fef3c7,#fff7ed);border:2px solid #f59e0b;border-radius:14px;padding:14px 16px;margin:0 0 14px 0;animation:slideIn .3s ease;}
-    .plate-found-card.show{display:block;}
-    @keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-    .plate-found-title{font-size:14px;font-weight:700;color:#92400e;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
-    .plate-found-items{display:flex;flex-wrap:wrap;gap:8px;}
-    .pf-item{background:#fff;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;min-width:180px;flex:1;}
-    .pf-item .pf-label{font-size:10px;color:#92400e;font-weight:700;margin-bottom:4px;text-transform:uppercase;}
-    .pf-item .pf-val{font-size:13px;color:#1c1917;font-weight:600;}
-    .pf-plate{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border:none;border-radius:10px;padding:10px 18px;min-width:180px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-    .pf-plate .pf-val{font-size:22px;font-family:'Courier New',monospace;letter-spacing:3px;font-weight:900;}
-    .pf-count-badge{background:#ef4444;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;}
+    body {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+    }
 
-    /* ── رفع الصورة ── */
-    .img-upload-area{border:2px dashed #cbd5e1;border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;min-height:80px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;}
-    .img-upload-area:hover{border-color:#2563eb;background:#eff6ff;}
-    .img-upload-area.has-img{border-color:#16a34a;background:#f0fdf4;padding:6px;}
-    .img-upload-area img{max-width:100%;max-height:120px;border-radius:8px;object-fit:cover;}
-    .img-upload-area .upload-hint{font-size:12px;color:#94a3b8;}
-    .img-upload-area .upload-icon{font-size:24px;}
+    /* ── HEADER ── */
+    .header {
+      background: var(--ink);
+      color: #fff;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #fff;
+    }
+    .header-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,.45);
+      margin-top: 1px;
+    }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
 
-    /* ── بطاقة بيانات الموظف ── */
-    .guard-info-card{display:none;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #16a34a;border-radius:12px;padding:12px 16px;margin:8px 0;animation:slideIn .3s ease;}
-    .guard-info-card.show{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
-    .guard-avatar{width:44px;height:44px;background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-    .guard-details{flex:1;}
-    .guard-name{font-size:15px;font-weight:700;color:#166534;}
-    .guard-id{font-size:12px;color:#16a34a;margin-top:2px;}
-    .guard-dept{font-size:12px;color:#15803d;background:#bbf7d0;padding:2px 8px;border-radius:6px;display:inline-block;margin-top:4px;}
+    /* ── SYNC BAR ── */
+    .sync-bar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--ink3);
+    }
+    .sync-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #94a3b8;
+      flex-shrink: 0;
+    }
+    .sync-dot.pulse { background: #3b82f6; animation: pulse 1.4s ease-in-out infinite; }
+    .sync-dot.ok { background: var(--green); }
+    .sync-dot.error { background: var(--red); }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
 
-    /* ── Stats ── */
-    .stats{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap;}
-    .stat-card{flex:1;min-width:130px;padding:13px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(102,126,234,.3);}
-    .stat-card.green{background:linear-gradient(135deg,#16a34a,#059669);box-shadow:0 2px 8px rgba(22,163,74,.3);}
-    .stat-card.orange{background:linear-gradient(135deg,#f97316,#ea580c);box-shadow:0 2px 8px rgba(249,115,22,.3);}
-    .stat-card.blue{background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 2px 8px rgba(37,99,235,.3);}
-    .stat-value{font-size:26px;font-weight:800;}
-    .stat-label{font-size:11px;opacity:.9;margin-top:3px;}
+    /* ── MAIN ── */
+    .main { max-width: 1280px; margin: 0 auto; padding: 28px 24px; }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: var(--card-shadow);
+      transition: box-shadow .2s, transform .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 4px;
+      height: 100%;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+    .stat-card.blue::before { background: var(--accent); }
+    .stat-card.green::before { background: var(--green); }
+    .stat-card.amber::before { background: var(--amber); }
+    .stat-card.purple::before { background: #7c3aed; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--card-shadow-hover); }
+    .stat-value { font-size: 34px; font-weight: 700; letter-spacing: -1px; line-height: 1; margin-bottom: 6px; }
+    .stat-card.blue .stat-value { color: var(--accent); }
+    .stat-card.green .stat-value { color: var(--green); }
+    .stat-card.amber .stat-value { color: var(--amber); }
+    .stat-card.purple .stat-value { color: #7c3aed; }
+    .stat-label { font-size: 12px; color: var(--ink3); font-weight: 500; }
+
+    /* ── SECTION CARD ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 18px 24px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title-icon {
+      width: 28px; height: 28px;
+      background: #eff6ff;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .card-body { padding: 20px 24px; }
+
+    /* ── FORM ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.span2 { grid-column: span 2; }
+    .form-group.span3 { grid-column: span 3; }
+    label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink3);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+    input, select, textarea {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 13px;
+      transition: border-color .18s, box-shadow .18s, background .18s;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(26,86,219,.1);
+    }
+    input[readonly] {
+      background: #f1f5f9;
+      color: var(--ink3);
+      cursor: default;
+    }
+    input.plate-input {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 10px 18px;
+      transition: all .18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(26,86,219,.25); }
+    .btn-primary:hover { background: var(--accent2); box-shadow: 0 4px 16px rgba(26,86,219,.35); }
+
+    .btn-success { background: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(5,150,105,.25); }
+    .btn-success:hover { background: #047857; box-shadow: 0 4px 16px rgba(5,150,105,.35); }
+
+    .btn-ghost { background: var(--white); color: var(--ink); border: 1.5px solid var(--border); }
+    .btn-ghost:hover { background: var(--paper); border-color: var(--border2); }
+
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+
+    .btn-icon {
+      width: 42px; height: 42px;
+      padding: 0;
+      border-radius: var(--radius-sm);
+      justify-content: center;
+      font-size: 18px;
+    }
+    .btn-sm { padding: 7px 14px; font-size: 12px; }
+
+    /* ── GUARD CARD ── */
+    .guard-card {
+      display: none;
+      background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+      border: 1.5px solid #6ee7b7;
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      margin-top: 12px;
+      align-items: center;
+      gap: 14px;
+      animation: slideDown .25s ease;
+    }
+    .guard-card.show { display: flex; }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    .guard-avatar {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .guard-name { font-size: 15px; font-weight: 700; color: #065f46; }
+    .guard-meta { font-size: 12px; color: #047857; margin-top: 2px; }
+    .guard-badge-pill {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 12px;
+      margin-right: auto;
+    }
+
+    /* ── PLATE ALERT ── */
+    .plate-alert {
+      display: none;
+      background: #fffbeb;
+      border: 1.5px solid #fcd34d;
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 16px;
+      animation: slideDown .25s ease;
+    }
+    .plate-alert.show { display: block; }
+    .plate-alert-header {
+      font-size: 13px;
+      font-weight: 700;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .plate-alert-badge {
+      background: var(--red);
+      color: #fff;
+      border-radius: 20px;
+      padding: 1px 10px;
+      font-size: 11px;
+    }
+    .plate-alert-items { display: flex; flex-wrap: wrap; gap: 10px; }
+    .plate-alert-item {
+      background: #fff;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      min-width: 180px;
+      flex: 1;
+    }
+    .pai-label { font-size: 10px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+    .pai-val { font-size: 13px; color: var(--ink); font-weight: 600; }
+    .plate-hero {
+      background: var(--ink);
+      border-radius: 8px;
+      padding: 10px 18px;
+      min-width: 160px;
+      flex: 0 0 auto;
+      text-align: center;
+    }
+    .plate-hero .pai-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 3px;
+    }
+
+    /* ── IMAGE UPLOAD ── */
+    .img-drop {
+      border: 2px dashed var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      background: var(--paper);
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .img-drop:hover { border-color: var(--accent); background: #eff6ff; }
+    .img-drop.has-img { border-color: var(--green); background: #f0fdf4; border-style: solid; }
+    .img-drop img { max-width: 100%; max-height: 110px; border-radius: 8px; object-fit: cover; }
+    .img-drop .drop-icon { font-size: 24px; color: var(--border2); }
+    .img-drop .drop-text { font-size: 12px; color: var(--ink3); }
 
     /* ══ TABLE ══ */
-    .table-wrap{overflow:auto;border-radius:14px;margin-top:14px;box-shadow:0 2px 16px rgba(15,23,42,.08);}
-    table{width:100%;border-collapse:collapse;min-width:900px;background:#fff;}
-    thead tr{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);}
-    th{padding:13px 12px;font-size:12px;font-weight:700;color:#fff;text-align:right;position:sticky;top:0;z-index:2;border-bottom:2px solid #1d4ed8;white-space:nowrap;}
-    th:first-child{border-radius:14px 0 0 0;}
-    th:last-child{border-radius:0 14px 0 0;}
-    tbody tr{transition:background .15s;}
-    tbody tr:nth-child(odd){background:#f8fafc;}
-    tbody tr:nth-child(even){background:#fff;}
-    tbody tr:hover{background:#eff6ff!important;}
-    td{padding:10px 12px;font-size:13px;border-bottom:1px solid #e8edf3;vertical-align:middle;text-align:right;}
-    td:first-child{font-weight:700;color:#94a3b8;font-size:12px;width:40px;text-align:center;}
+    .table-wrap { overflow: auto; border-radius: 0 0 var(--radius) var(--radius); }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    thead tr { background: var(--ink); }
+    th {
+      padding: 13px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,.7);
+      text-align: right;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      position: sticky; top: 0; z-index: 2;
+      white-space: nowrap;
+    }
+    th:first-child { color: rgba(255,255,255,.3); }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8faff; }
+    td {
+      padding: 11px 14px;
+      font-size: 13px;
+      color: var(--ink2);
+      vertical-align: middle;
+      text-align: right;
+    }
+    td:first-child { color: var(--border2); font-size: 11px; font-weight: 700; text-align: center; width: 44px; }
 
-    .plate-badge{display:inline-block;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:5px 14px;border-radius:8px;font-weight:800;font-size:14px;letter-spacing:2px;font-family:'Courier New',monospace;box-shadow:0 2px 6px rgba(37,99,235,.35);white-space:nowrap;}
-    .tower-badge{display:inline-block;padding:5px 14px;border-radius:8px;font-weight:800;font-size:13px;color:#fff !important;letter-spacing:1px;min-width:34px;text-align:center;}
-    .floor-badge{display:inline-block;background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
-    .guard-badge{display:inline-flex;align-items:center;gap:4px;background:#f5f3ff;color:#5b21b6;padding:3px 10px;border-radius:6px;font-weight:600;font-size:11px;}
-    .date-badge{display:inline-block;background:#f1f5f9;color:#334155;padding:3px 8px;border-radius:6px;font-size:12px;}
-    .time-cell{font-weight:700;color:#0f172a;background:#f1f5f9;padding:3px 8px;border-radius:6px;font-size:12px;display:inline-block;}
-    .imgPrev{width:80px;height:60px;object-fit:cover;border-radius:10px;border:2px solid #2563eb;cursor:pointer;transition:transform .2s, box-shadow .2s;box-shadow:0 2px 8px rgba(37,99,235,.2);}
-    .imgPrev:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(37,99,235,.35);}
-    
+    /* Badges */
+    .plate-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 2px;
+      background: var(--ink);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 7px;
+      display: inline-block;
+    }
+    .tower-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 13px;
+      color: #fff;
+    }
+    .tower-A { background: var(--accent); }
+    .tower-B { background: var(--green); }
+    .tower-C { background: var(--red); }
+    .floor-badge {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .guard-pill {
+      background: #f5f3ff;
+      color: #5b21b6;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-new { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; }
+    .status-mid { background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; }
+    .status-dust { background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; }
+    .date-pill { background: var(--paper); color: var(--ink3); padding: 3px 9px; border-radius: 6px; font-size: 12px; display: inline-block; }
+    .time-pill { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--ink); background: var(--paper); padding: 3px 9px; border-radius: 6px; display: inline-block; }
+    .notes-text { color: var(--ink3); font-size: 12px; }
 
-    /* ── Camera Link Button (محاذاة محسنة للجوال) ── */
-    .img-wrapper{
-      position:relative;
-      display:inline-block;
-      line-height:0; /* يمنع أي فراغ إضافي */
+    /* Img in table */
+    .img-thumb-wrap { position: relative; display: inline-block; }
+    .img-thumb {
+      width: 72px; height: 52px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
+      display: block;
+    }
+    .img-thumb:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0,0,0,.2); }
+    .img-drive-link {
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 22px; height: 22px;
+      border-radius: 5px;
+      background: var(--accent);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      text-decoration: none;
+      box-shadow: 0 2px 6px rgba(26,86,219,.4);
     }
 
-    .img-link-btn{
-      position:absolute;
-      top:6px;
-      right:6px;   /* لأن الاتجاه RTL */
-      width:28px;
-      height:28px;
-      border-radius:8px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(135deg,#2563eb,#1d4ed8);
-      color:#fff;
-      text-decoration:none;
-      box-shadow:0 3px 10px rgba(37,99,235,.45);
-      transition:all .2s ease;
-      font-size:16px;
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--border2); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-title { font-size: 16px; font-weight: 700; color: var(--ink3); margin-bottom: 6px; }
+    .empty-sub { font-size: 13px; }
+
+    /* ── FOOTER BAR ── */
+    .table-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--ink3);
+      background: var(--paper);
+      border-radius: 0 0 var(--radius) var(--radius);
     }
 
-    .img-link-btn:hover{
-      transform:scale(1.08);
-      box-shadow:0 5px 14px rgba(37,99,235,.6);
+    /* ── LOADING ── */
+    .loading-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(248,249,252,.92);
+      z-index: 9000;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+      backdrop-filter: blur(4px);
     }
-
-    @media (hover: none){
-      .img-link-btn{opacity:1;transform:scale(1);}
+    .loading-overlay.active { display: flex; }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
     }
-.notes-cell{color:#64748b;font-size:12px;}
-    .empty-state{text-align:center;padding:50px 20px;color:#94a3b8;}
-    .empty-state .icon{font-size:48px;margin-bottom:10px;}
-    .status-badge-new{display:inline-block;background:#dcfce7;color:#166534;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
-    .status-badge-mid{display:inline-block;background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
-    .status-badge-dust{display:inline-block;background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:6px;font-weight:700;font-size:12px;}
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner-text { font-size: 14px; color: var(--ink3); font-weight: 600; }
 
-    /* ── Loading ── */
-    .loading-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.88);z-index:8888;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
-    .loading-overlay.active{display:flex;}
-    .spinner{width:52px;height:52px;border:5px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite;}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    /* ── MODALS ── */
+    .modal {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(10,15,30,.85);
+      z-index: 9999;
+      align-items: center; justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(6px);
+    }
+    .modal.active { display: flex; }
+    .modal-box {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 28px;
+      max-width: 95%;
+      max-height: 90vh;
+      overflow: auto;
+      position: relative;
+      box-shadow: 0 24px 64px rgba(10,15,30,.3);
+      animation: modalIn .25s ease;
+    }
+    @keyframes modalIn { from { opacity:0; transform:scale(.96) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-close {
+      position: absolute;
+      top: 16px; left: 16px;
+      width: 32px; height: 32px;
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      transition: all .15s;
+    }
+    .modal-close:hover { background: #fee2e2; border-color: #fca5a5; color: var(--red); }
 
     /* ── Camera ── */
-    .camera-container{position:relative;display:inline-block;width:100%;text-align:center;}
-    #cameraVideo{width:100%;max-width:640px;border-radius:10px;background:#000;display:block;margin:0 auto;}
-    #cameraCanvas{display:none;}
-    .plate-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:4px solid #22c55e;background:rgba(34,197,94,.05);width:70%;height:25%;pointer-events:none;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.5);}
-    .plate-guide::before{content:"📸 ضع اللوحة هنا";position:absolute;top:-40px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:8px 20px;border-radius:10px;font-size:15px;font-weight:700;}
-    .camera-controls{margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
-
-    /* ── Modal ── */
-    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:9999;align-items:center;justify-content:center;}
-    .modal.active{display:flex;}
-    .modal-content{background:#fff;border-radius:16px;padding:22px;max-width:95%;max-height:95%;overflow:auto;position:relative;}
-    .modal-close{position:absolute;top:10px;left:10px;background:var(--r);color:#fff;border:0;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px;line-height:36px;text-align:center;}
-
-    /* ── Apps Script Code Box ── */
-    .script-box{background:#0f172a;border-radius:12px;padding:16px;margin:10px 0;direction:ltr;}
-    .script-box pre{color:#e2e8f0;font-family:monospace;font-size:11px;margin:0;white-space:pre-wrap;overflow:auto;max-height:360px;}
-    .copy-btn{float:left;background:#2563eb;color:#fff;border:0;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;margin-bottom:6px;}
-    .setup-step{background:#f8fafc;border:1px solid var(--g);border-radius:10px;padding:12px;margin:10px 0;}
-    .setup-step h4{margin:0 0 6px;color:#1d4ed8;font-size:14px;}
-    .badge-num{display:inline-block;background:#2563eb;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:6px;}
-
-    @media print{
-      .no-print{display:none!important;}
-      body{background:#fff;}
-      .table-wrap{overflow:visible;box-shadow:none;}
-      table{min-width:auto;}
-      th{position:static;}
-      thead tr{background:#1e3a8a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-      tbody tr:nth-child(odd){background:#f8fafc!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .camera-wrap { position: relative; width: 100%; text-align: center; }
+    #cameraVideo { width: 100%; max-width: 600px; border-radius: 12px; background: #000; display: block; margin: 0 auto; }
+    #cameraCanvas { display: none; }
+    .plate-guide {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border: 3px solid #22c55e;
+      background: rgba(34,197,94,.05);
+      width: 70%; height: 26%;
+      pointer-events: none;
+      border-radius: 10px;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,.45);
     }
-  
-    /* ── محاذاة نهائية للجوال داخل الجدول ── */
-    td{vertical-align:middle !important;}
-    
-    .img-wrapper{
-      position:relative;
-      display:inline-block;
-      vertical-align:middle;
+    .plate-guide::before {
+      content: "ضع اللوحة هنا";
+      position: absolute;
+      top: -36px; left: 50%;
+      transform: translateX(-50%);
+      background: #22c55e;
+      color: #fff;
+      padding: 5px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
     }
 
-    .imgPrev{
-      display:block; /* يمنع الفراغ السفلي */
+    /* ── Setup Modal Code Box ── */
+    .code-box {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 12px 0;
+      direction: ltr;
+    }
+    .code-box pre { color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 11px; margin: 0; white-space: pre-wrap; overflow: auto; max-height: 340px; line-height: 1.6; }
+    .setup-step { background: var(--paper); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin: 10px 0; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--accent); color: #fff; border-radius: 6px; font-size: 11px; font-weight: 800; margin-left: 8px; }
+
+    /* ── OCR Result ── */
+    .ocr-result {
+      display: none;
+      background: #f0fdf4;
+      border: 2px solid #6ee7b7;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .ocr-plate-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      background: var(--ink);
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+    .ocr-status { display: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; text-align: center; margin-top: 10px; }
+    .ocr-status.loading { background: #fefce8; border: 1.5px solid #fde68a; color: #92400e; }
+    .ocr-status.error { background: #fee2e2; border: 1.5px solid #fca5a5; color: #991b1b; }
+
+    /* ── Helpers ── */
+    .flex { display: flex; }
+    .gap8 { gap: 8px; }
+    .gap12 { gap: 12px; }
+    .gap16 { gap: 16px; }
+    .mt12 { margin-top: 12px; }
+    .mt16 { margin-top: 16px; }
+    .items-end { align-items: flex-end; }
+    .flex-wrap { flex-wrap: wrap; }
+    .ml-auto { margin-right: auto; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .header { padding: 0 16px; }
+      .sync-bar { padding: 10px 16px; }
+      .main { padding: 16px; }
+      .card-body { padding: 16px; }
+      .card-header { padding: 14px 16px; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      .form-group.span2, .form-group.span3 { grid-column: span 2; }
     }
 
-    .img-link-btn{
-      top:4px !important;
-      right:4px !important;
+    @media print {
+      .no-print { display: none !important; }
+      .header { position: static; }
+      body { background: #fff; }
     }
-
-</style>
+  </style>
 </head>
 <body>
 
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
-  <div style="font-size:15px;color:#334155;font-weight:600;">⏳ جارٍ تحميل البيانات من Google Sheets...</div>
+  <div class="spinner-text">جارٍ جلب البيانات…</div>
 </div>
 
-<div class="wrap"><div class="card">
-  <h1>🤖 برنامج رصد السيارات — Google Sheets</h1>
-
-  <div class="topnote no-print">
-    <b>✨ المميزات:</b>
-    <span style="background:#d1fae5;padding:3px 8px;border-radius:6px;">☁️ مزامنة سحابية</span>
-    <span style="background:#dbeafe;padding:3px 8px;border-radius:6px;">🔍 بحث فوري عن اللوحة</span>
-    <span style="background:#fef3c7;padding:3px 8px;border-radius:6px;">🤖 قراءة اللوحة بالكاميرا</span>
-    <span style="background:#dcfce7;padding:3px 8px;border-radius:6px;">👤 بيانات الموظف من Sheets</span>
-  </div>
-
-  <!-- Sync Bar -->
-  <div class="sync-banner no-print" id="syncBanner">
-    <div class="sync-dot" id="syncDot"></div>
-    <span id="syncMsg">يتم الاتصال بالسحابة...</span>
-    <div style="margin-right:auto;display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="primary" id="btnSync" style="padding:6px 14px;font-size:12px;">🔄 تحديث</button>
-      <button class="ghost" id="btnShowSetup" style="padding:6px 14px;font-size:12px;">⚙️ إعداد Apps Script</button>
+<!-- HEADER -->
+<header class="header no-print">
+  <div class="header-brand">
+    <div class="header-icon">🚗</div>
+    <div>
+      <div class="header-title">رصد السيارات</div>
+      <div class="header-sub">نظام المراقبة الذكي — Google Sheets</div>
     </div>
   </div>
-
-  <!-- Stats -->
-  <div class="stats no-print">
-    <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">إجمالي المركبات</div></div>
-    <div class="stat-card green"><div class="stat-value" id="statToday">0</div><div class="stat-label">اليوم</div></div>
-    <div class="stat-card orange"><div class="stat-value" id="statWithPhotos">0</div><div class="stat-label">بصور</div></div>
-    <div class="stat-card blue"><div class="stat-value" id="statApiCalls">0</div><div class="stat-label">تمت إضافتها</div></div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" id="btnPrint">🖨️ طباعة</button>
+    <button class="btn btn-ghost btn-sm" id="btnExportCSV">📄 تصدير CSV</button>
+    <button class="btn btn-ghost btn-sm" id="btnShowSetup">⚙️ إعداد</button>
+    <button class="btn btn-primary btn-sm" id="btnSync">🔄 تحديث</button>
   </div>
+</header>
 
-  <!-- Guard Info -->
-  <div class="row no-print">
-    <div class="col small">
-      <label>الرقم الوظيفي</label>
-      <input id="empId" inputmode="numeric" placeholder="88840"/>
+<!-- SYNC BAR -->
+<div class="sync-bar no-print">
+  <div class="sync-dot" id="syncDot"></div>
+  <span id="syncMsg">جارٍ الاتصال بالسحابة…</span>
+  <span id="status" style="margin-right: auto; color: var(--ink); font-weight:600;"></span>
+</div>
+
+<div class="main">
+
+  <!-- STATS -->
+  <div class="stats-grid no-print">
+    <div class="stat-card blue">
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-label">إجمالي المركبات</div>
     </div>
-    <div class="col wide">
-      <label>اسم رجل الأمن</label>
-      <input id="empName" placeholder="يظهر تلقائياً من قاعدة البيانات" readonly/>
+    <div class="stat-card green">
+      <div class="stat-value" id="statToday">0</div>
+      <div class="stat-label">اليوم</div>
     </div>
-    <div class="col small">
-      <label>التاريخ</label>
-      <input id="reportDate" readonly/>
+    <div class="stat-card amber">
+      <div class="stat-value" id="statWithPhotos">0</div>
+      <div class="stat-label">بصور</div>
     </div>
-    <div class="col small">
-      <label>الوقت</label>
-      <input id="reportTime" readonly/>
-    </div>
-    <div class="col small">
-      <button class="primary" id="btnLookup" style="width:100%">🔍 بحث</button>
+    <div class="stat-card purple">
+      <div class="stat-value" id="statApiCalls">0</div>
+      <div class="stat-label">تمت إضافتها</div>
     </div>
   </div>
 
-  <!-- بطاقة بيانات الموظف -->
-  <div class="guard-info-card no-print" id="guardInfoCard">
-    <div class="guard-avatar">👤</div>
-    <div class="guard-details">
-      <div class="guard-name" id="guardNameDisplay"></div>
-      <div class="guard-id" id="guardIdDisplay"></div>
-      <div class="guard-dept" id="guardDeptDisplay" style="display:none;"></div>
-    </div>
-    <div style="margin-right:auto;">
-      <span style="background:#dcfce7;color:#166534;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">✅ موظف موثّق</span>
-    </div>
-  </div>
-
-  <div class="meta"><span>الحالة: <b id="status">جارٍ التحميل...</b></span></div>
-  <hr style="border:0;border-top:1px solid var(--g);margin:14px 0;"/>
-
-  <!-- Plate Already Found Alert -->
-  <div class="plate-found-card" id="plateFoundCard">
-    <div class="plate-found-title">
-      ⚠️ هذه اللوحة مرصودة مسبقاً!
-      <span class="pf-count-badge" id="pfCount"></span>
-    </div>
-    <div class="plate-found-items" id="pfItems"></div>
-  </div>
-
-  <!-- Vehicle Inputs -->
-  <div class="row no-print">
-    <div class="col small">
-      <label>البرج</label>
-      <select id="tower"><option value="">اختر</option><option>A</option><option>B</option><option>C</option></select>
-    </div>
-    <div class="col small">
-      <label>الدور</label>
-      <select id="floor"><option value="">اختر</option><option>LG</option><option>B</option></select>
-    </div>
-    <div class="col">
-      <label>رقم اللوحة</label>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <input id="plate" placeholder="ABC1234" maxlength="12" style="text-transform:uppercase;font-weight:700;font-size:15px;letter-spacing:1px;flex:1;"/>
-        <button id="btnOcrCamera" title="قراءة اللوحة بالكاميرا أو رفع صورة" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border:0;border-radius:10px;width:44px;height:44px;cursor:pointer;font-size:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">📷</button>
-        <input type="file" id="ocrFileInput" accept="image/*" style="display:none;"/>
+  <!-- GUARD + META CARD -->
+  <div class="card no-print">
+    <div class="card-header">
+      <div class="card-title"><div class="card-title-icon">👤</div> بيانات الموظف</div>
+      <div class="flex gap8">
+        <span id="reportDate" style="font-size:12px;color:var(--ink3);padding:4px 10px;background:var(--paper);border-radius:6px;"></span>
+        <span id="reportTime" style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:4px 10px;background:var(--paper);border-radius:6px;"></span>
       </div>
     </div>
-    <div class="col small">
-      <label>تاريخ الرصد</label>
-      <input type="date" id="obsDate"/>
-    </div>
-    <div class="col small">
-      <label>حالة المركبة</label>
-      <select id="carStatus">
-        <option value="">اختر</option>
-        <option value="حديثة">🟢 حديثة</option>
-        <option value="متوسطة الغبار">🟡 متوسطة الغبار</option>
-        <option value="مغبرة">🔴 مغبرة</option>
-      </select>
-    </div>
-    <div class="col wide">
-      <label>ملاحظات</label>
-      <input id="notes" placeholder="اختياري"/>
-    </div>
-  </div>
-
-  <!-- Image Upload -->
-  <div class="row no-print" style="margin-top:10px;">
-    <div class="col wide">
-      <label>📷 صورة المركبة <span style="color:#94a3b8;font-weight:400;">(اختياري)</span></label>
-      <div class="img-upload-area" id="imgUploadArea">
-        <div class="upload-icon">📷</div>
-        <div class="upload-hint">اضغط لرفع صورة أو التقاط بالكاميرا</div>
+    <div class="card-body">
+      <div class="form-grid" style="grid-template-columns: 160px 1fr auto;">
+        <div class="form-group">
+          <label>الرقم الوظيفي</label>
+          <input id="empId" inputmode="numeric" placeholder="88840"/>
+        </div>
+        <div class="form-group">
+          <label>اسم الموظف</label>
+          <input id="empName" placeholder="يظهر تلقائياً…" readonly/>
+        </div>
+        <div class="form-group" style="justify-content:flex-end;">
+          <button class="btn btn-primary" id="btnLookup">🔍 بحث</button>
+        </div>
       </div>
-      <input type="file" id="vehicleImg" accept="image/*" capture="environment" style="display:none;"/>
-    </div>
-    <div class="col" style="display:flex;flex-direction:column;justify-content:flex-end;">
-      <div class="btns" style="margin-top:0;">
-        <button class="success" id="btnAdd" style="flex:1;">➕ إضافة وحفظ</button>
-        <button class="primary" id="btnCamera" style="padding:10px 12px;" title="التقاط صورة للمركبة">📸</button>
+
+      <div class="guard-card" id="guardInfoCard">
+        <div class="guard-avatar">👤</div>
+        <div>
+          <div class="guard-name" id="guardNameDisplay"></div>
+          <div class="guard-meta" id="guardIdDisplay"></div>
+          <div id="guardDeptDisplay" style="display:none;margin-top:4px;font-size:11px;background:#bbf7d0;color:#065f46;padding:2px 10px;border-radius:20px;display:none;"></div>
+        </div>
+        <span class="guard-badge-pill">✅ موظف موثّق</span>
       </div>
-      <button class="ghost" id="btnClearImg" style="margin-top:8px;font-size:12px;padding:7px 10px;display:none;">🗑️ حذف الصورة</button>
     </div>
   </div>
-  <div class="hint no-print">💡 Ctrl+Enter للإضافة السريعة | تحديث تلقائي كل 60 ثانية</div>
 
-  <!-- Table -->
-  <div class="table-wrap">
-    <table id="vehiclesTable">
-      <thead><tr>
-        <th style="width:42px;">#</th>
-        <th style="width:80px;">الصورة</th>
-        <th style="width:68px;">البرج</th>
-        <th style="width:68px;">الدور</th>
-        <th style="width:140px;">رقم اللوحة</th>
-        <th style="width:105px;">تاريخ الرصد</th>
-        <th style="width:75px;">الوقت</th>
-        <th style="width:120px;">حالة المركبة</th>
-        <th style="width:140px;">ملاحظات</th>
-        <th style="width:130px;">رجل الأمن</th>
-      </tr></thead>
-      <tbody id="tableBody"></tbody>
-    </table>
+  <!-- ADD VEHICLE CARD -->
+  <div class="card no-print">
+    <div class="card-header">
+      <div class="card-title"><div class="card-title-icon">➕</div> إضافة مركبة</div>
+    </div>
+    <div class="card-body">
+
+      <!-- Plate Alert -->
+      <div class="plate-alert" id="plateFoundCard">
+        <div class="plate-alert-header">
+          ⚠️ هذه اللوحة مرصودة مسبقاً
+          <span class="plate-alert-badge" id="pfCount"></span>
+        </div>
+        <div class="plate-alert-items" id="pfItems"></div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>البرج</label>
+          <select id="tower"><option value="">— اختر —</option><option>A</option><option>B</option><option>C</option></select>
+        </div>
+        <div class="form-group">
+          <label>الدور</label>
+          <select id="floor"><option value="">— اختر —</option><option>LG</option><option>B</option></select>
+        </div>
+        <div class="form-group span2">
+          <label>رقم اللوحة</label>
+          <div class="flex gap8 items-end">
+            <input id="plate" class="plate-input" placeholder="ABC 1234" maxlength="12"/>
+            <button id="btnOcrCamera" class="btn btn-ghost btn-icon" title="قراءة بالكاميرا أو رفع صورة">📷</button>
+            <input type="file" id="ocrFileInput" accept="image/*" style="display:none;"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>تاريخ الرصد</label>
+          <input type="date" id="obsDate"/>
+        </div>
+        <div class="form-group span2">
+          <label>حالة المركبة</label>
+          <select id="carStatus">
+            <option value="">— اختر —</option>
+            <option value="حديثة">🟢 حديثة</option>
+            <option value="متوسطة الغبار">🟡 متوسطة الغبار</option>
+            <option value="مغبرة">🔴 مغبرة</option>
+          </select>
+        </div>
+        <div class="form-group span3">
+          <label>ملاحظات</label>
+          <input id="notes" placeholder="اختياري…"/>
+        </div>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="flex gap16 flex-wrap items-end">
+        <div style="flex:1;min-width:220px;">
+          <label style="display:block;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;">📷 صورة المركبة <span style="font-weight:400;text-transform:none;">(اختياري)</span></label>
+          <div class="img-drop" id="imgUploadArea">
+            <div class="drop-icon">📷</div>
+            <div class="drop-text">اضغط لرفع صورة</div>
+          </div>
+          <input type="file" id="vehicleImg" accept="image/*" capture="environment" style="display:none;"/>
+        </div>
+        <div class="flex flex-wrap gap8" style="align-items:flex-end;">
+          <button class="btn btn-success" id="btnAdd" style="font-size:14px;padding:12px 24px;">➕ إضافة وحفظ</button>
+          <button class="btn btn-ghost btn-icon" id="btnCamera" title="التقاط صورة">📸</button>
+          <button class="btn btn-ghost btn-sm" id="btnClearImg" style="display:none;">🗑️ حذف</button>
+          <button class="btn btn-danger btn-sm" id="btnClearLocal">🗑️ مسح محلي</button>
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:var(--ink3);margin-top:10px;">💡 Ctrl+Enter للإضافة السريعة — يتحدث تلقائياً كل 60 ثانية</div>
+    </div>
   </div>
-  <div id="tableFooter" style="display:none;margin-top:8px;color:#64748b;font-size:12px;text-align:left;">
-    إجمالي: <b id="footerCount">0</b> سجل
-  </div>
 
-  <div class="btns no-print" style="margin-top:12px;">
-    <button class="ghost" id="btnPrint">🖨️ طباعة</button>
-    <button class="ghost" id="btnExportCSV">📄 تصدير CSV</button>
-    <button class="danger" id="btnClearLocal">🗑️ مسح محلي</button>
-  </div>
-</div></div>
-
-<!-- Setup Modal -->
-<div class="modal" id="setupModal">
-  <div class="modal-content" style="max-width:760px;">
-    <button class="modal-close" id="closeSetup">×</button>
-    <h2 style="margin-top:0;color:#1d4ed8;">⚙️ كود Google Apps Script المحدّث</h2>
-    <p style="color:#475569;font-size:13px;">انسخ الكود كاملاً والصقه في Apps Script ثم انشر من جديد:</p>
-
-    <div class="setup-step" style="background:#fef3c7;border-color:#fde68a;">
-      <h4 style="color:#92400e;">📋 ورقة الموظفين "الموظفون"</h4>
-      <p style="font-size:13px;margin:4px 0;">أنشئ ورقة جديدة باسم <b>الموظفون</b> بهذه الأعمدة:</p>
-      <table style="border-collapse:collapse;font-size:12px;margin-top:6px;">
-        <tr style="background:#1e3a8a;color:#fff;">
-          <th style="padding:6px 12px;border:1px solid #ccc;">A — الرقم الوظيفي</th>
-          <th style="padding:6px 12px;border:1px solid #ccc;">B — الاسم</th>
-          <th style="padding:6px 12px;border:1px solid #ccc;">C — القسم</th>
-        </tr>
-        <tr><td style="padding:6px 12px;border:1px solid #ccc;">88840</td><td style="padding:6px 12px;border:1px solid #ccc;">عبدالله الزهراني</td><td style="padding:6px 12px;border:1px solid #ccc;">الأمن</td></tr>
-        <tr><td style="padding:6px 12px;border:1px solid #ccc;">88841</td><td style="padding:6px 12px;border:1px solid #ccc;">محمد العتيبي</td><td style="padding:6px 12px;border:1px solid #ccc;">الأمن</td></tr>
+  <!-- TABLE CARD -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="card-title-icon">📋</div> سجل المركبات</div>
+      <span id="footerCount" style="font-size:12px;color:var(--ink3);">0 سجل</span>
+    </div>
+    <div class="table-wrap">
+      <table id="vehiclesTable">
+        <thead><tr>
+          <th style="width:44px;">#</th>
+          <th style="width:84px;">الصورة</th>
+          <th style="width:70px;">البرج</th>
+          <th style="width:70px;">الدور</th>
+          <th>رقم اللوحة</th>
+          <th>تاريخ الرصد</th>
+          <th style="width:80px;">الوقت</th>
+          <th>الحالة</th>
+          <th>ملاحظات</th>
+          <th>رجل الأمن</th>
+        </tr></thead>
+        <tbody id="tableBody"></tbody>
       </table>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ══ SETUP MODAL ══ -->
+<div class="modal" id="setupModal">
+  <div class="modal-box" style="max-width:740px;width:100%;">
+    <button class="modal-close" id="closeSetup">×</button>
+    <h2 style="margin:0 0 6px;font-size:20px;">⚙️ إعداد Google Apps Script</h2>
+    <p style="color:var(--ink3);font-size:13px;margin-bottom:16px;">انسخ الكود والصقه في Apps Script ثم انشر من جديد</p>
+
+    <div class="setup-step" style="background:#fffbeb;border-color:#fde68a;">
+      <strong style="color:#92400e;">📋 ورقة الموظفين</strong>
+      <p style="font-size:12px;margin:6px 0 0;">أنشئ ورقة باسم <b>الموظفون</b> | عمود A: الرقم الوظيفي | B: الاسم | C: القسم</p>
     </div>
 
     <div class="setup-step">
-      <h4><span class="badge-num">1</span> الصق الكود الكامل:</h4>
-      <button class="copy-btn" onclick="copyScript()">📋 نسخ</button>
-      <div class="script-box"><pre id="scriptCode">const SHEET_NAME   = "رصد السيارات";
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <strong><span class="step-num">1</span> الصق الكود الكامل:</strong>
+        <button class="btn btn-primary btn-sm" onclick="copyScript()">📋 نسخ الكود</button>
+      </div>
+      <div class="code-box"><pre id="scriptCode">const SHEET_NAME   = "رصد السيارات";
 const GUARDS_SHEET = "الموظفون";
 const DRIVE_FOLDER = "صور مركبات الرصد";
 
-/* =========================================================
-   Entry points
-   ========================================================= */
 function doGet(e) {
   const p      = (e && e.parameter) ? e.parameter : {};
   const cb     = p.callback || "";
   const action = p.action   || "getAll";
-
   if (action === "add")         return handleAdd(p, cb);
   if (action === "getAll")      return handleGetAll(cb);
   if (action === "getGuard")    return handleGetGuard(p, cb);
-  if (action === "uploadImage") return handleImageUpload(p, cb); // JSONP fallback
-
+  if (action === "uploadImage") return handleImageUpload(p, cb);
   return makeResponse({ error: "unknown_action" }, cb);
 }
 
 function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) ? e.postData.contents : "{}");
-    if (body.action === "uploadImage") return handleImageUpload(body); // JSON response
-    return handleAdd(body, ""); // JSON response
+    if (body.action === "uploadImage") return handleImageUpload(body);
+    return handleAdd(body, "");
   } catch (err) {
     return makeResponse({ error: String(err && err.message ? err.message : err) }, "");
   }
 }
 
-/* =========================================================
-   Helpers
-   ========================================================= */
 function getSheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   return ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
 }
 
 function setupHeaders_(sheet) {
-  const h = [
-    "البرج", "الدور", "رقم اللوحة", "تاريخ الرصد", "الوقت",
-    "حالة المركبة", "ملاحظات", "رجل الأمن", "الرقم الوظيفي",
-    "صورة", "وقت الإضافة", "رابط الصورة"
-  ];
-  sheet.getRange(1, 1, 1, h.length).setValues([h])
-    .setBackground("#1e3a8a").setFontColor("#ffffff")
-    .setFontWeight("bold").setFontSize(11)
-    .setHorizontalAlignment("center");
-  sheet.setRowHeight(1, 36);
-  sheet.setFrozenRows(1);
-  sheet.setRightToLeft(true);
+  const h = ["البرج","الدور","رقم اللوحة","تاريخ الرصد","الوقت","حالة المركبة","ملاحظات","رجل الأمن","الرقم الوظيفي","صورة","وقت الإضافة","رابط الصورة"];
+  sheet.getRange(1,1,1,h.length).setValues([h]).setBackground("#0a0f1e").setFontColor("#ffffff").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+  sheet.setRowHeight(1,36); sheet.setFrozenRows(1); sheet.setRightToLeft(true);
 }
 
 function formatRow_(sheet, row) {
-  sheet.getRange(row, 1, 1, 12)
-    .setBackground(row % 2 === 0 ? "#f0f4ff" : "#ffffff")
-    .setFontSize(10)
-    .setVerticalAlignment("middle");
-  sheet.setRowHeight(row, 30);
-
-  const sv = String(sheet.getRange(row, 6).getValue() || "").trim();
-  if (sv === "مغبرة") {
-    sheet.getRange(row, 6).setBackground("#fee2e2").setFontColor("#991b1b").setFontWeight("bold");
-  } else if (sv === "متوسطة الغبار") {
-    sheet.getRange(row, 6).setBackground("#fef9c3").setFontColor("#854d0e").setFontWeight("bold");
-  } else if (sv === "حديثة") {
-    sheet.getRange(row, 6).setBackground("#dcfce7").setFontColor("#166534").setFontWeight("bold");
-  }
+  sheet.getRange(row,1,1,12).setBackground(row%2===0?"#f0f4ff":"#ffffff").setFontSize(10).setVerticalAlignment("middle");
+  sheet.setRowHeight(row,30);
+  const sv = String(sheet.getRange(row,6).getValue()||"").trim();
+  if(sv==="مغبرة") sheet.getRange(row,6).setBackground("#fee2e2").setFontColor("#991b1b").setFontWeight("bold");
+  else if(sv==="متوسطة الغبار") sheet.getRange(row,6).setBackground("#fef9c3").setFontColor("#854d0e").setFontWeight("bold");
+  else if(sv==="حديثة") sheet.getRange(row,6).setBackground("#dcfce7").setFontColor("#166534").setFontWeight("bold");
 }
 
 function makeResponse(data, cb) {
   const json = JSON.stringify(data);
-  const out  = (cb && cb !== "") ? (cb + "(" + json + ");") : json;
-  const mime = (cb && cb !== "")
-    ? ContentService.MimeType.JAVASCRIPT
-    : ContentService.MimeType.JSON;
+  const out  = (cb&&cb!=="")?(cb+"("+json+");"):json;
+  const mime = (cb&&cb!=="") ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON;
   return ContentService.createTextOutput(out).setMimeType(mime);
 }
 
-/* =========================================================
-   Add / GetAll
-   ========================================================= */
 function handleAdd(p, cb) {
   const sheet = getSheet_();
-  if (sheet.getLastRow() === 0) setupHeaders_(sheet);
-
-  const nextRow = sheet.getLastRow() + 1;
-
-  const tower     = p.tower     || "";
-  const floor     = p.floor     || "";
-  const plate     = p.plate     || "";
-  const obsDate   = p.obsDate   || p.date || "";
-  const time      = p.time      || "";
-  const carStatus = p.carStatus || "";
-  const notes     = p.notes     || "";
-  const empName   = p.empName   || "";
-  const empId     = p.empId     || "";
-  const hasImage  = p.hasImage  || "لا";
-
-  sheet.getRange(nextRow, 1, 1, 12).setValues([[
-    tower, floor, plate, obsDate, time,
-    carStatus, notes, empName, empId,
-    hasImage,
-    new Date().toLocaleString("ar-SA"),
-    "" // رابط الصورة
-  ]]);
-
+  if(sheet.getLastRow()===0) setupHeaders_(sheet);
+  const nextRow = sheet.getLastRow()+1;
+  sheet.getRange(nextRow,1,1,12).setValues([[p.tower||"",p.floor||"",p.plate||"",p.obsDate||p.date||"",p.time||"",p.carStatus||"",p.notes||"",p.empName||"",p.empId||"",p.hasImage||"لا",new Date().toLocaleString("ar-SA"),""]]);
   formatRow_(sheet, nextRow);
   SpreadsheetApp.flush();
-
-  return makeResponse({ success: true, row: nextRow }, cb);
+  return makeResponse({success:true, row:nextRow}, cb);
 }
 
 function handleGetAll(cb) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-  if (!sheet) return makeResponse([], cb);
-
+  if(!sheet) return makeResponse([],cb);
   const data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return makeResponse([], cb);
-
-  const headers = data[0];
-  const tz      = Session.getScriptTimeZone();
-
+  if(data.length<=1) return makeResponse([],cb);
+  const headers = data[0], tz = Session.getScriptTimeZone();
   const rows = data.slice(1).map(r => {
     const obj = {};
-    headers.forEach((h, i) => {
+    headers.forEach((h,i) => {
       let val = r[i];
-      if (val instanceof Date) {
-        // وقت (أحياناً يجي كتاريخ 1899)
-        if (val.getFullYear() <= 1900) {
-          const hh = val.getHours(), mm = val.getMinutes();
-          val = (hh < 10 ? "0" : "") + hh + ":" + (mm < 10 ? "0" : "") + mm;
-        } else {
-          val = Utilities.formatDate(val, tz, "yyyy-MM-dd");
-        }
+      if(val instanceof Date) {
+        if(val.getFullYear()<=1900){const hh=val.getHours(),mm=val.getMinutes();val=(hh<10?"0":"")+hh+":"+(mm<10?"0":"")+mm;}
+        else val = Utilities.formatDate(val,tz,"yyyy-MM-dd");
       }
       obj[String(h)] = val;
     });
     return obj;
   });
-
-  return makeResponse(rows, cb);
+  return makeResponse(rows,cb);
 }
 
-/* =========================================================
-   Guards sheet
-   ========================================================= */
 function handleGetGuard(p, cb) {
-  const id = String(p.empId || "").trim();
-  if (!id) return makeResponse({ error: "no_id" }, cb);
-
+  const id = String(p.empId||"").trim();
+  if(!id) return makeResponse({error:"no_id"},cb);
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GUARDS_SHEET);
-  if (!sheet) return makeResponse({ error: "no_sheet", msg: "أنشئ ورقة: " + GUARDS_SHEET }, cb);
-
+  if(!sheet) return makeResponse({error:"no_sheet",msg:"أنشئ ورقة: "+GUARDS_SHEET},cb);
   const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]).trim() === id) {
-      return makeResponse({
-        success: true,
-        empId: id,
-        name: String(rows[i][1] || ""),
-        dept: String(rows[i][2] || "")
-      }, cb);
-    }
+  for(let i=1;i<rows.length;i++) {
+    if(String(rows[i][0]).trim()===id) return makeResponse({success:true,empId:id,name:String(rows[i][1]||""),dept:String(rows[i][2]||"")},cb);
   }
-  return makeResponse({ error: "not_found" }, cb);
+  return makeResponse({error:"not_found"},cb);
 }
 
-/* =========================================================
-   Image upload (Drive) + update sheet
-   ========================================================= */
 function handleImageUpload(p, cb) {
-  cb = cb || "";
+  cb = cb||"";
   try {
-    const plate   = String(p.plate || "unknown").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-    const date    = String(p.date  || "").trim();     // yyyy-mm-dd
-    const time    = String(p.time  || "").trim();     // HH:MM
-    const imgData = String(p.imgData || "");
-    const rowHint = Number(p.row || 0) || 0;
-
-    if (!imgData) return makeResponse({ error: "no_image" }, "");
-
-    const base64 = imgData.indexOf(",") > -1 ? imgData.split(",")[1] : imgData;
-
-    const safeTime = time ? time.replace(":", "") : "";
-    const filename = [plate, date, safeTime].filter(Boolean).join("_") + ".jpg";
-
-    const blob = Utilities.newBlob(
-      Utilities.base64Decode(base64),
-      "image/jpeg",
-      filename
-    );
-
-    const folders = DriveApp.getFoldersByName(DRIVE_FOLDER);
-    const folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder(DRIVE_FOLDER);
-    const file    = folder.createFile(blob);
-
-    // مشاركة: أي شخص معه الرابط
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-
-    const fileId   = file.getId();
-    const viewUrl  = "https://drive.google.com/uc?export=view&id=" + fileId;
-    const thumbUrl = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w800";
-
-    // اكتب الرابط في الشيت (نستخدم thumbUrl للعرض داخل <img>)
-    updateImageUrl_(plate, date, time, thumbUrl, rowHint);
-
-    return makeResponse({ success: true, viewUrl: viewUrl, thumbUrl: thumbUrl, fileId: fileId }, cb);
-  } catch (err) {
-    return makeResponse({ error: String(err && err.message ? err.message : err) }, cb);
+    const plate=String(p.plate||"unknown").replace(/[^A-Za-z0-9]/g,"").toUpperCase();
+    const date=String(p.date||"").trim(), time=String(p.time||"").trim();
+    const imgData=String(p.imgData||""), rowHint=Number(p.row||0)||0;
+    if(!imgData) return makeResponse({error:"no_image"},"");
+    const base64 = imgData.indexOf(",")>-1 ? imgData.split(",")[1] : imgData;
+    const filename=[plate,date,time?time.replace(":","):""].filter(Boolean).join("_")+".jpg";
+    const blob = Utilities.newBlob(Utilities.base64Decode(base64),"image/jpeg",filename);
+    const folders=DriveApp.getFoldersByName(DRIVE_FOLDER);
+    const folder=folders.hasNext()?folders.next():DriveApp.createFolder(DRIVE_FOLDER);
+    const file=folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW);
+    const fileId=file.getId();
+    const viewUrl="https://drive.google.com/uc?export=view&id="+fileId;
+    const thumbUrl="https://drive.google.com/thumbnail?id="+fileId+"&sz=w800";
+    updateImageUrl_(plate,date,time,thumbUrl,rowHint);
+    return makeResponse({success:true,viewUrl,thumbUrl,fileId},cb);
+  } catch(err) {
+    return makeResponse({error:String(err&&err.message?err.message:err)},cb);
   }
 }
 
-function updateImageUrl_(plate, date, time, url, rowHint) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-  if (!sheet) return;
-
-  const data = sheet.getDataRange().getValues(); // includes header row
-  // columns:
-  // 1 برج, 2 دور, 3 لوحة, 4 تاريخ الرصد, 5 الوقت, ... 10 صورة, 12 رابط الصورة
-  const PLATE_COL = 3; // 1-based
-  const DATE_COL  = 4;
-  const TIME_COL  = 5;
-  const HASIMG_COL= 10;
-  const URL_COL   = 12;
-
-  // إذا أرسلنا row من handleAdd، نحدثه مباشرة (أسرع وأدق)
-  if (rowHint && rowHint >= 2 && rowHint <= data.length) {
-    sheet.getRange(rowHint, URL_COL).setValue(url);
-    sheet.getRange(rowHint, HASIMG_COL).setValue("نعم");
-    return;
+function updateImageUrl_(plate,date,time,url,rowHint) {
+  const sheet=SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  if(!sheet) return;
+  const data=sheet.getDataRange().getValues();
+  if(rowHint&&rowHint>=2&&rowHint<=data.length){sheet.getRange(rowHint,12).setValue(url);sheet.getRange(rowHint,10).setValue("نعم");return;}
+  for(let r=data.length;r>=2;r--){
+    const p=String(data[r-1][2]||"").trim().toUpperCase();
+    const d=String(data[r-1][3]||"").trim();
+    const t=String(data[r-1][4]||"").trim();
+    if(p===plate&&(!date||d===date)&&(!time||t===time)){sheet.getRange(r,12).setValue(url);sheet.getRange(r,10).setValue("نعم");return;}
   }
-
-  // otherwise: ابحث من آخر الصفوف عن نفس اللوحة + التاريخ + الوقت
-  for (let r = data.length; r >= 2; r--) {
-    const p = String(data[r-1][PLATE_COL-1] || "").trim().toUpperCase();
-    const d = String(data[r-1][DATE_COL-1]  || "").trim();
-    const t = String(data[r-1][TIME_COL-1]  || "").trim();
-
-    if (p === plate && (!date || d === date) && (!time || t === time)) {
-      sheet.getRange(r, URL_COL).setValue(url);
-      sheet.getRange(r, HASIMG_COL).setValue("نعم");
-      return;
-    }
-  }
-}
-</pre></div>
+}</pre></div>
     </div>
 
     <div class="setup-step">
-      <h4><span class="badge-num">2</span> انشر التحديث:</h4>
-      <p style="font-size:13px;margin:4px 0;"><b>Deploy</b> ← <b>Manage deployments</b> ← ✏️ ← <b>New version</b> ← <b>Who has access = Anyone</b> ← <b>Deploy</b></p>
+      <strong><span class="step-num">2</span> انشر التحديث:</strong>
+      <p style="font-size:12px;margin:6px 0 0;">Deploy → Manage deployments → ✏️ → New version → Anyone → Deploy</p>
     </div>
 
     <div class="setup-step" style="background:#eff6ff;border-color:#bfdbfe;">
-      <h4 style="color:#1d4ed8;">📁 ملاحظة Google Drive</h4>
-      <p style="font-size:13px;margin:4px 0;">سيُنشئ الكود مجلداً تلقائياً اسمه <b>“صور مركبات الرصد”</b> في Google Drive الخاص بحساب الـ Apps Script.<br/>الصور تكون مشتركة تلقائياً — تظهر على كل الأجهزة ✅</p>
+      <strong style="color:#1d4ed8;">📁 Google Drive</strong>
+      <p style="font-size:12px;margin:6px 0 0;">سيُنشئ الكود مجلداً تلقائياً: <b>"صور مركبات الرصد"</b> — الصور مشتركة تلقائياً ✅</p>
     </div>
 
     <div class="setup-step">
-      <h4><span class="badge-num">3</span> اختبر الاتصال:</h4>
-      <button class="primary" id="btnTestInModal" style="padding:8px 16px;">🧪 اختبار الاتصال</button>
-      <button class="orange" id="btnTestGuard" style="padding:8px 16px;margin-right:8px;">👤 اختبار بحث الموظف</button>
+      <strong><span class="step-num">3</span> اختبر الاتصال:</strong>
+      <div class="flex gap8 mt12">
+        <button class="btn btn-primary btn-sm" id="btnTestInModal">🧪 اختبار الاتصال</button>
+        <button class="btn btn-ghost btn-sm" id="btnTestGuard">👤 اختبار الموظف</button>
+      </div>
       <div id="testResultModal" style="margin-top:10px;font-size:13px;"></div>
     </div>
-
   </div>
 </div>
 
-<!-- Camera Modal -->
+<!-- ══ CAMERA MODAL ══ -->
 <div class="modal" id="cameraModal">
-  <div class="modal-content" style="max-width:680px;">
+  <div class="modal-box" style="max-width:660px;width:100%;">
     <button class="modal-close" id="closeCamera">×</button>
-    <h2 style="text-align:center;margin-top:0;">📸 قراءة اللوحة بالكاميرا</h2>
-    <div class="camera-container">
+    <h2 style="margin:0 0 16px;font-size:18px;text-align:center;">📸 قراءة اللوحة</h2>
+    <div class="camera-wrap">
       <video id="cameraVideo" autoplay playsinline></video>
       <div class="plate-guide"></div>
     </div>
     <canvas id="cameraCanvas"></canvas>
-    <div id="capturedPreview" style="display:none;text-align:center;margin-top:10px;">
-      <img id="capturedImg" style="max-width:100%;max-height:220px;border-radius:10px;border:2px solid #e2e8f0;"/>
+    <div id="capturedPreview" style="display:none;text-align:center;margin-top:12px;">
+      <img id="capturedImg" style="max-width:100%;max-height:200px;border-radius:10px;border:2px solid var(--border);"/>
     </div>
-    <div id="ocrStatus" style="display:none;margin-top:12px;padding:14px;border-radius:12px;font-size:14px;text-align:center;"></div>
-    <div id="ocrResult" style="display:none;margin-top:10px;background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:14px;">
-      <div style="font-size:12px;color:#166534;font-weight:700;margin-bottom:6px;">✅ تم قراءة اللوحة:</div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span id="ocrPlateText" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:8px 20px;border-radius:10px;font-size:22px;font-weight:900;letter-spacing:3px;font-family:'Courier New',monospace;"></span>
-        <div style="flex:1;min-width:120px;">
-          <div style="font-size:11px;color:#166534;">الثقة: <b id="ocrConfidence"></b></div>
+    <div class="ocr-status" id="ocrStatus"></div>
+    <div class="ocr-result" id="ocrResult">
+      <div style="font-size:12px;color:#065f46;font-weight:700;margin-bottom:10px;">✅ تم قراءة اللوحة:</div>
+      <div class="flex gap12 items-end flex-wrap">
+        <div class="ocr-plate-display" id="ocrPlateText"></div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:#065f46;">الثقة: <b id="ocrConfidence"></b></div>
+          <div id="ocrAlternatives" style="margin-top:4px;font-size:11px;color:var(--ink3);"></div>
         </div>
-        <button id="btnUseOcrPlate" class="success" style="padding:8px 16px;font-size:13px;">✔ استخدم هذه اللوحة</button>
+        <button class="btn btn-success btn-sm" id="btnUseOcrPlate">✔ استخدام</button>
       </div>
-      <div id="ocrAlternatives" style="margin-top:8px;font-size:12px;color:#475569;"></div>
     </div>
-    <div class="camera-controls">
-      <button class="success" id="captureBtn" style="font-size:14px;padding:12px 22px;">📸 التقاط وقراءة</button>
-      <button id="retakeBtn" class="ghost" style="display:none;">🔄 إعادة التقاط</button>
-      <button class="danger" id="cancelCamera">❌ إغلاق</button>
+    <div class="flex gap8 mt16" style="justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-success" id="captureBtn">📸 التقاط وقراءة</button>
+      <button class="btn btn-ghost" id="retakeBtn" style="display:none;">🔄 إعادة</button>
+      <button class="btn btn-danger btn-sm" id="cancelCamera">❌ إغلاق</button>
     </div>
   </div>
 </div>
 
-<!-- Image Modal -->
+<!-- ══ IMAGE MODAL ══ -->
 <div class="modal" id="imageModal">
-  <div class="modal-content" style="padding:10px;">
-    <button class="modal-close" id="closeImage">×</button>
-    <img id="fullImage" style="max-width:100%;max-height:90vh;border-radius:10px;"/>
+  <div class="modal-box" style="padding:10px;background:transparent;box-shadow:none;">
+    <button class="modal-close" id="closeImage" style="background:rgba(255,255,255,.9);">×</button>
+    <img id="fullImage" style="max-width:100%;max-height:90vh;border-radius:12px;display:block;"/>
   </div>
 </div>
 
@@ -712,13 +1052,9 @@ function updateImageUrl_(plate, date, time, url, rowHint) {
 (function(){
 "use strict";
 
-/* ════════════════════════════════════════════════
-   ⚙️ الإعدادات — غيّر رابط GS_URL فقط
-   ════════════════════════════════════════════════ */
 var GS_URL      = "https://script.google.com/macros/s/AKfycbwPhCQjzgaFsoHplvU0AAIOOvKs4yIgHZoT_4VCbcgVuzb5cJ0yKo6m2vcbuwtiGP3gpw/exec";
 var STORAGE_KEY = "parkingReport_v4";
 
-/* ════════ DOM ════════ */
 function $(id){ return document.getElementById(id); }
 var els = {
   empId:$("empId"), empName:$("empName"),
@@ -733,14 +1069,14 @@ var els = {
   btnTestInModal:$("btnTestInModal"), btnTestGuard:$("btnTestGuard"),
   closeSetup:$("closeSetup"),
   vehicleImg:$("vehicleImg"), imgUploadArea:$("imgUploadArea"), btnClearImg:$("btnClearImg"),
-  tableBody:$("tableBody"), tableFooter:$("tableFooter"), footerCount:$("footerCount"),
+  tableBody:$("tableBody"), footerCount:$("footerCount"),
   cameraModal:$("cameraModal"), cameraVideo:$("cameraVideo"),
   cameraCanvas:$("cameraCanvas"), closeCamera:$("closeCamera"),
   cancelCamera:$("cancelCamera"), captureBtn:$("captureBtn"),
   imageModal:$("imageModal"), fullImage:$("fullImage"), closeImage:$("closeImage"),
   statTotal:$("statTotal"), statToday:$("statToday"),
   statWithPhotos:$("statWithPhotos"), statApiCalls:$("statApiCalls"),
-  syncBanner:$("syncBanner"), syncDot:$("syncDot"), syncMsg:$("syncMsg"),
+  syncDot:$("syncDot"), syncMsg:$("syncMsg"),
   loadingOverlay:$("loadingOverlay"),
   setupModal:$("setupModal"), testResultModal:$("testResultModal"),
   plateFoundCard:$("plateFoundCard"), pfCount:$("pfCount"), pfItems:$("pfItems"),
@@ -750,25 +1086,22 @@ var els = {
   guardDeptDisplay:$("guardDeptDisplay")
 };
 
-/* ════════ State ════════ */
 var report      = { guard:{empId:"",name:"",dept:""}, addedCount:0 };
 var cloudData   = [];
-var localImages = {}; // تخزين الصور محلياً: key = plate_date
+var localImages = {};
 var cameraStream= null;
 var isSyncing   = false;
 var currentImgBase64 = null;
 
-/* ════════════════════════════════════════════════
-   🧩 وظائف ناقصة لضبط الملف + المزامنة
-   ════════════════════════════════════════════════ */
 function setStatus(msg){ els.status.textContent = msg || ""; }
 
 function setNow(){
   function pad(n){ return (n<10?"0":"")+n; }
   function tick(){
     var d = new Date();
-    els.reportDate.value = d.toISOString().slice(0,10);
-    els.reportTime.value = pad(d.getHours())+":"+pad(d.getMinutes());
+    var months = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+    els.reportDate.textContent = d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear();
+    els.reportTime.textContent = pad(d.getHours())+":"+pad(d.getMinutes());
     if(!els.obsDate.value) els.obsDate.value = d.toISOString().slice(0,10);
   }
   tick();
@@ -779,13 +1112,13 @@ function setImage(base64){
   currentImgBase64 = base64 || null;
   if(!base64){
     els.imgUploadArea.classList.remove("has-img");
-    els.imgUploadArea.innerHTML = '<div class="upload-icon">📷</div><div class="upload-hint">اضغط لرفع صورة أو التقاط بالكاميرا</div>';
+    els.imgUploadArea.innerHTML = '<div class="drop-icon">📷</div><div class="drop-text">اضغط لرفع صورة</div>';
     els.btnClearImg.style.display = "none";
     return;
   }
   els.imgUploadArea.classList.add("has-img");
-  els.imgUploadArea.innerHTML = '<img src="'+base64+'" alt="صورة المركبة"/><div class="upload-hint">✅ تم اختيار صورة</div>';
-  els.btnClearImg.style.display = "inline-block";
+  els.imgUploadArea.innerHTML = '<img src="'+base64+'" alt="صورة المركبة"/><div class="drop-text" style="color:var(--green);">✅ تم اختيار صورة</div>';
+  els.btnClearImg.style.display = "inline-flex";
 }
 
 function clearForm(){
@@ -796,97 +1129,61 @@ function clearForm(){
   setImage(null);
 }
 
-/* ════════════════════════════════════════════════
-   👤 بحث الموظف من Google Sheets
-   ════════════════════════════════════════════════ */
 async function lookupGuard(silent){
   var id = els.empId.value.trim();
   if(!id){ if(!silent) alert("أدخل الرقم الوظيفي"); return; }
-
-  els.btnLookup.disabled    = true;
+  els.btnLookup.disabled = true;
   els.btnLookup.textContent = "⏳";
-  els.empName.value         = "⏳ جارٍ البحث...";
+  els.empName.value = "⏳ جارٍ البحث…";
   els.guardInfoCard.classList.remove("show");
-
-  try {
-    var data = await jsonpCall(GS_URL + "?action=getGuard&empId=" + encodeURIComponent(id), 10000);
-
+  try{
+    var data = await jsonpCall(GS_URL+"?action=getGuard&empId="+encodeURIComponent(id), 10000);
     if(data && data.success){
-      report.guard = { empId:id, name:data.name, dept:data.dept||"" };
+      report.guard = {empId:id, name:data.name, dept:data.dept||""};
       els.empName.value = data.name;
-      setStatus("✅ " + data.name);
+      setStatus("✅ "+data.name);
       saveLocal();
-
       els.guardNameDisplay.textContent = data.name;
-      els.guardIdDisplay.textContent   = "الرقم الوظيفي: " + id;
+      els.guardIdDisplay.textContent = "الرقم الوظيفي: "+id;
       if(data.dept){
         els.guardDeptDisplay.textContent = data.dept;
         els.guardDeptDisplay.style.display = "inline-block";
-      } else {
-        els.guardDeptDisplay.style.display = "none";
-      }
+      } else { els.guardDeptDisplay.style.display = "none"; }
       els.guardInfoCard.classList.add("show");
-
-    } else if(data && data.error === "no_sheet"){
-      alert("⚠️ " + (data.msg || "ورقة الموظفين غير موجودة\nأنشئ ورقة باسم: الموظفون"));
+    } else if(data && data.error==="no_sheet"){
+      alert("⚠️ "+(data.msg||"ورقة الموظفين غير موجودة\nأنشئ ورقة باسم: الموظفون"));
       els.empName.value = "";
     } else {
       alert("❌ الرقم الوظيفي غير موجود في قاعدة البيانات");
       els.empName.value = "";
       els.guardInfoCard.classList.remove("show");
     }
-  } catch(err){
-    setStatus("❌ تعذّر الاتصال بقاعدة البيانات");
-    alert("❌ فشل الاتصال بـ Google Sheets\n" + err.message +
-          "\n\nتأكد من:\n• رابط GS_URL صحيح\n• Who has access = Anyone");
+  }catch(err){
+    setStatus("❌ تعذّر الاتصال");
+    alert("❌ فشل الاتصال بـ Google Sheets\n"+err.message);
     els.empName.value = "";
-  } finally {
-    els.btnLookup.disabled    = false;
+  }finally{
+    els.btnLookup.disabled = false;
     els.btnLookup.textContent = "🔍 بحث";
   }
 }
 
-/* ════════════════════════════════════════════════
-   🔧 مساعدات
-   ════════════════════════════════════════════════ */
 function getField(v, keys){
-  function normKey(k){
-    return String(k||"")
-      .replace(/[\u{1F300}-\u{1FAFF}]/gu,"")
-      .replace(/[^\u0600-\u06FFa-zA-Z0-9 ]/g," ")
-      .replace(/\s+/g," ")
-      .trim();
-  }
-
-  for(var i=0;i<keys.length;i++){
-    if(v[keys[i]] !== undefined && v[keys[i]] !== "") return v[keys[i]];
-  }
-
+  function normKey(k){ return String(k||"").replace(/[\u{1F300}-\u{1FAFF}]/gu,"").replace(/[^\u0600-\u06FFa-zA-Z0-9 ]/g," ").replace(/\s+/g," ").trim(); }
+  for(var i=0;i<keys.length;i++) if(v[keys[i]]!==undefined&&v[keys[i]]!=="") return v[keys[i]];
   var want = keys.map(normKey);
-  for(var vk in v){
-    var nk = normKey(vk);
-    for(var j=0;j<want.length;j++){
-      if(nk === want[j] && v[vk] !== undefined && v[vk] !== "") return v[vk];
-    }
-  }
+  for(var vk in v){ var nk=normKey(vk); for(var j=0;j<want.length;j++) if(nk===want[j]&&v[vk]!==undefined&&v[vk]!=="") return v[vk]; }
   return "";
 }
 
 function fixExcelTime(val){
-  if(!val && val!==0) return "";
-  var s = String(val).trim();
+  if(!val&&val!==0) return "";
+  var s=String(val).trim();
   if(/^\d{1,2}:\d{2}/.test(s)) return s.slice(0,5);
-  var isoMatch = s.match(/T(\d{2}):(\d{2})/);
+  var isoMatch=s.match(/T(\d{2}):(\d{2})/);
   if(isoMatch) return isoMatch[1]+":"+isoMatch[2];
-  var num = parseFloat(s);
-  if(!isNaN(num) && num >= 0){
-    var frac = num % 1;
-    if(frac < 0.0001) return "";
-    var totalMin = Math.round(frac * 1440);
-    var h = Math.floor(totalMin / 60);
-    var m = totalMin % 60;
-    return (h<10?"0":"")+h+":"+(m<10?"0":"")+m;
-  }
+  var num=parseFloat(s);
+  if(!isNaN(num)&&num>=0){ var frac=num%1; if(frac<0.0001) return ""; var totalMin=Math.round(frac*1440); var h=Math.floor(totalMin/60); var m=totalMin%60; return (h<10?"0":"")+h+":"+(m<10?"0":"")+m; }
   return s.slice(0,5);
 }
 
@@ -896,55 +1193,46 @@ function fixExcelDate(val){
   if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
   if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) return s;
   var num=parseFloat(s);
-  if(!isNaN(num) && num>1){
-    var d=new Date(Date.UTC(1899,11,30)+num*86400000);
-    return d.toISOString().slice(0,10);
-  }
+  if(!isNaN(num)&&num>1){ var d=new Date(Date.UTC(1899,11,30)+num*86400000); return d.toISOString().slice(0,10); }
   return s.slice(0,10);
 }
 
-/* ════════ JSONP ════════ */
 function jsonpCall(url, ms){
-  ms = ms||12000;
+  ms=ms||12000;
   return new Promise(function(resolve,reject){
-    var cb  = "gs_"+Date.now()+"_"+Math.floor(Math.random()*99999);
-    var scr = document.createElement("script");
-    var tim = setTimeout(function(){ cleanup(); reject(new Error("انتهت مهلة الاتصال")); }, ms);
-    window[cb] = function(d){ cleanup(); resolve(d); };
-    scr.onerror= function(){ cleanup(); reject(new Error("تأكد من Who has access = Anyone")); };
-    scr.src = url + "&callback="+cb+"&_t="+Date.now();
+    var cb="gs_"+Date.now()+"_"+Math.floor(Math.random()*99999);
+    var scr=document.createElement("script");
+    var tim=setTimeout(function(){ cleanup(); reject(new Error("انتهت مهلة الاتصال")); },ms);
+    window[cb]=function(d){ cleanup(); resolve(d); };
+    scr.onerror=function(){ cleanup(); reject(new Error("تأكد من Who has access = Anyone")); };
+    scr.src=url+"&callback="+cb+"&_t="+Date.now();
     document.head.appendChild(scr);
-    function cleanup(){ clearTimeout(tim); try{ delete window[cb]; }catch(e){} if(scr.parentNode) scr.remove(); }
+    function cleanup(){ clearTimeout(tim); try{delete window[cb];}catch(e){} if(scr.parentNode) scr.remove(); }
   });
 }
 
-/* ════════ Sync Status ════════ */
 function setSyncStatus(state, msg){
-  var dotClass = {loading:"pulse", ok:"ok", error:"error"};
-  var banClass = {loading:"syncing", ok:"ok", error:"error"};
-  els.syncDot.className    = "sync-dot "+(dotClass[state]||"");
-  els.syncBanner.className = "sync-banner no-print "+(banClass[state]||"");
-  els.syncMsg.textContent  = msg;
+  var dotClass={loading:"pulse",ok:"ok",error:"error"};
+  els.syncDot.className="sync-dot "+(dotClass[state]||"");
+  els.syncMsg.textContent=msg;
 }
 
-/* ════════ Load from Cloud ════════ */
 async function loadFromCloud(showLoader){
   if(isSyncing) return;
-  isSyncing = true; els.btnSync.disabled = true;
+  isSyncing=true; els.btnSync.disabled=true;
   if(showLoader) els.loadingOverlay.classList.add("active");
-  setSyncStatus("loading","⏳ جارٍ جلب البيانات من السحابة...");
+  setSyncStatus("loading","⏳ جارٍ جلب البيانات…");
   try{
-    var data = await jsonpCall(GS_URL+"?action=getAll", 15000);
-    if(!Array.isArray(data)) throw new Error("بيانات غير صحيحة (تأكد من doGet)");
-    cloudData = data;
-    renderTable(); updateStats();
+    var data=await jsonpCall(GS_URL+"?action=getAll",15000);
+    if(!Array.isArray(data)) throw new Error("بيانات غير صحيحة");
+    cloudData=data; renderTable(); updateStats();
     setSyncStatus("ok","✅ "+data.length+" سجل | "+new Date().toLocaleTimeString("ar-SA"));
     setStatus("تم تحميل "+data.length+" سجل");
-    var p = els.plate.value.trim().toUpperCase();
+    var p=els.plate.value.trim().toUpperCase();
     if(p) checkPlateExists(p);
   }catch(err){
     setSyncStatus("error","⚠️ "+err.message);
-    setStatus("❌ تعذّر الاتصال — تحقق من الرابط أو الإعداد");
+    setStatus("❌ تعذّر الاتصال");
     cloudData=[]; renderTable(); updateStats();
   }finally{
     isSyncing=false; els.btnSync.disabled=false;
@@ -952,350 +1240,213 @@ async function loadFromCloud(showLoader){
   }
 }
 
-/* ════════ Check plate ════════ */
 function checkPlateExists(plateVal){
   if(!plateVal){ els.plateFoundCard.classList.remove("show"); return; }
-  var target = plateVal.trim().toUpperCase().replace(/\s/g,"");
-  var matches = cloudData.filter(function(v){
-    var p = String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"")
-      .trim().toUpperCase().replace(/\s/g,"");
-    return p===target && p!=="";
+  var target=plateVal.trim().toUpperCase().replace(/\s/g,"");
+  var matches=cloudData.filter(function(v){
+    var p=String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
+    return p===target&&p!=="";
   });
   if(!matches.length){ els.plateFoundCard.classList.remove("show"); return; }
-  els.pfCount.textContent = matches.length+" مرة";
-  els.pfItems.innerHTML   = "";
+  els.pfCount.textContent=matches.length+" مرة";
+  els.pfItems.innerHTML="";
   matches.forEach(function(v,idx){
-    var plate = String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"");
-    var tower = String(getField(v,["البرج","🏢 البرج"])||v.tower||"");
-    var floor = String(getField(v,["الدور","🔢 الدور"])||v.floor||"");
-    var date  = fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"");
-    var time  = fixExcelTime(getField(v,["الوقت","⏰ الوقت"])||v.time||"");
-    var guard = String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||"");
+    var plate=String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"");
+    var tower=String(getField(v,["البرج","🏢 البرج"])||v.tower||"");
+    var floor=String(getField(v,["الدور","🔢 الدور"])||v.floor||"");
+    var date=fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"");
+    var time=fixExcelTime(getField(v,["الوقت","⏰ الوقت"])||v.time||"");
+    var guard=String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||"");
     if(idx===0){
-      els.pfItems.innerHTML += '<div class="pf-plate"><div class="pf-label">رقم اللوحة</div><div class="pf-val">'+plate+'</div></div>';
+      els.pfItems.innerHTML+='<div class="plate-hero"><div class="pai-label">رقم اللوحة</div><div class="pai-val">'+plate+'</div></div>';
     }
-    var h='<div class="pf-item">';
-    h+='<div class="pf-label">رصد #'+(idx+1)+'</div>';
-    h+='<div class="pf-val">📅 '+date+' &nbsp; ⏰ '+time+'</div>';
-    if(tower||floor) h+='<div style="margin-top:4px;font-size:12px;color:#475569;">🏢 برج '+tower+' — دور '+floor+'</div>';
-    if(guard)        h+='<div style="margin-top:3px;font-size:12px;color:#5b21b6;">👤 '+guard+'</div>';
+    var h='<div class="plate-alert-item">';
+    h+='<div class="pai-label">رصد #'+(idx+1)+'</div>';
+    h+='<div class="pai-val">📅 '+date+' — ⏰ '+time+'</div>';
+    if(tower||floor) h+='<div style="margin-top:4px;font-size:12px;color:var(--ink3);">🏢 برج '+tower+' — دور '+floor+'</div>';
+    if(guard) h+='<div style="margin-top:3px;font-size:12px;color:#5b21b6;">👤 '+guard+'</div>';
     h+='</div>';
-    els.pfItems.innerHTML += h;
+    els.pfItems.innerHTML+=h;
   });
   els.plateFoundCard.classList.add("show");
   if(navigator.vibrate) navigator.vibrate([200,100,200]);
-  setTimeout(function(){ els.plateFoundCard.scrollIntoView({behavior:"smooth",block:"nearest"}); },100);
 }
 
-/* ════════ Add to Cloud ════════ */
 async function addToCloud(v){
-  var params = [
-    "action=add",
-    "tower="+encodeURIComponent(v.tower),
-    "floor="+encodeURIComponent(v.floor),
-    "plate="+encodeURIComponent(v.plate),
-    "obsDate="+encodeURIComponent(v.obsDate),
-    "date="+encodeURIComponent(v.date),
-    "time="+encodeURIComponent(v.time),
-    "carStatus="+encodeURIComponent(v.carStatus||""),
-    "notes="+encodeURIComponent(v.notes||""),
-    "empName="+encodeURIComponent(report.guard.name),
-    "empId="+encodeURIComponent(report.guard.empId),
-    "hasImage="+encodeURIComponent(v.hasImage||"لا")
-  ].join("&");
-  return await jsonpCall(GS_URL+"?"+params, 20000);
+  var params=["action=add","tower="+encodeURIComponent(v.tower),"floor="+encodeURIComponent(v.floor),"plate="+encodeURIComponent(v.plate),"obsDate="+encodeURIComponent(v.obsDate),"date="+encodeURIComponent(v.date),"time="+encodeURIComponent(v.time),"carStatus="+encodeURIComponent(v.carStatus||""),"notes="+encodeURIComponent(v.notes||""),"empName="+encodeURIComponent(report.guard.name),"empId="+encodeURIComponent(report.guard.empId),"hasImage="+encodeURIComponent(v.hasImage||"لا")].join("&");
+  return await jsonpCall(GS_URL+"?"+params,20000);
 }
 
-async function uploadImageToDrive(v, imgB64){
-  setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
-  var imgUrl = null;
-
-  // ── محاولة 1: fetch POST (text/plain يتجنب CORS Preflight) ──
+async function uploadImageToDrive(v,imgB64){
+  setSyncStatus("loading","📤 جارٍ رفع الصورة…");
+  var imgUrl=null;
   try{
-    var small  = await compressImage(imgB64, 900, 0.75);
-    var base64 = (small.indexOf(",")>-1 ? small.split(",")[1] : small);
-
-    var resp = await fetch(GS_URL, {
-      method : "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body   : JSON.stringify({
-        action  : "uploadImage",
-        plate   : v.plate,
-        date    : v.date,
-        time    : v.time,
-        row     : v._row || 0,
-        imgData : base64
-      })
-    });
-
-    if(resp.ok){
-      var txt = await resp.text();
-      var result = null;
-      try{ result = JSON.parse(txt); }catch(e){}
-      // السكربت يرجع thumbUrl أو viewUrl
-      if(result && (result.thumbUrl || result.viewUrl || result.driveUrl)){
-        imgUrl = result.thumbUrl || result.viewUrl || result.driveUrl;
-      }
-    }
-  }catch(fetchErr){
-    console.warn("⚠️ fetch فشل:", fetchErr.message);
-  }
-
-  // ── محاولة 2: JSONP GET (صورة مضغوطة أكثر) إن فشل fetch ──
+    var small=await compressImage(imgB64,900,0.75);
+    var base64=(small.indexOf(",")>-1?small.split(",")[1]:small);
+    var resp=await fetch(GS_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"uploadImage",plate:v.plate,date:v.date,time:v.time,row:v._row||0,imgData:base64})});
+    if(resp.ok){var txt=await resp.text();try{var result=JSON.parse(txt);if(result&&(result.thumbUrl||result.viewUrl)){imgUrl=result.thumbUrl||result.viewUrl;}}catch(e){}}
+  }catch(fe){ console.warn("fetch فشل:",fe.message); }
   if(!imgUrl){
     try{
-      setSyncStatus("loading","📤 جارٍ الرفع عبر JSONP...");
-      var tiny   = await compressImage(imgB64, 400, 0.5);
-      var tinyB64= (tiny.indexOf(",")>-1 ? tiny.split(",")[1] : tiny);
-      var jpResult = await jsonpCall(
-        GS_URL
-        +"?action=uploadImage"
-        +"&plate=" +encodeURIComponent(v.plate)
-        +"&date="  +encodeURIComponent(v.date)
-        +"&time="  +encodeURIComponent(v.time)
-        +"&row="   +encodeURIComponent(v._row||0)
-        +"&imgData="+encodeURIComponent(tinyB64),
-        35000
-      );
-      if(jpResult && (jpResult.thumbUrl || jpResult.viewUrl || jpResult.driveUrl)){
-        imgUrl = jpResult.thumbUrl || jpResult.viewUrl || jpResult.driveUrl;
-      }
-    }catch(jpErr){
-      console.warn("❌ JSONP رفع الصورة فشل:", jpErr.message);
-    }
+      setSyncStatus("loading","📤 الرفع عبر JSONP…");
+      var tiny=await compressImage(imgB64,400,0.5);
+      var tinyB64=(tiny.indexOf(",")>-1?tiny.split(",")[1]:tiny);
+      var jpResult=await jsonpCall(GS_URL+"?action=uploadImage&plate="+encodeURIComponent(v.plate)+"&date="+encodeURIComponent(v.date)+"&time="+encodeURIComponent(v.time)+"&row="+encodeURIComponent(v._row||0)+"&imgData="+encodeURIComponent(tinyB64),35000);
+      if(jpResult&&(jpResult.thumbUrl||jpResult.viewUrl)) imgUrl=jpResult.thumbUrl||jpResult.viewUrl;
+    }catch(je){ console.warn("JSONP رفع الصورة فشل:",je.message); }
   }
-
-  // ── النتيجة ──
   if(imgUrl){
-    // حدّث المعاينة المحلية برابط Drive الحقيقي
-    localImages["plate_"+v.plate] = imgUrl;
-    try{ localStorage.setItem("img_plate_"+v.plate, imgUrl); }catch(e){}
-    setSyncStatus("ok","✅ تم رفع الصورة وتحديث الرابط في Google Sheets");
-    setTimeout(function(){ loadFromCloud(false); }, 800);
+    localImages["plate_"+v.plate]=imgUrl;
+    try{localStorage.setItem("img_plate_"+v.plate,imgUrl);}catch(e){}
+    setSyncStatus("ok","✅ تم رفع الصورة");
+    setTimeout(function(){loadFromCloud(false);},800);
   }else{
-    setSyncStatus("error","⚠️ الصورة محفوظة محلياً — تعذّر الرفع على Drive (تأكد من نشر السكربت)");
-    console.warn("Image upload failed for plate:", v.plate);
+    setSyncStatus("error","⚠️ الصورة محفوظة محلياً — تعذّر الرفع على Drive");
   }
 }
 
-function compressImage(base64, maxSize, quality){
-  return new Promise(function(resolve, reject){
-    var img = new Image();
-    img.onload = function(){
-      var w = img.width, h = img.height;
-      if(w > maxSize){ h = Math.round(h*maxSize/w); w = maxSize; }
-      if(h > maxSize){ w = Math.round(w*maxSize/h); h = maxSize; }
-      var canvas = document.createElement("canvas");
-      canvas.width = w; canvas.height = h;
+function compressImage(base64,maxSize,quality){
+  return new Promise(function(resolve,reject){
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width,h=img.height;
+      if(w>maxSize){h=Math.round(h*maxSize/w);w=maxSize;}
+      if(h>maxSize){w=Math.round(w*maxSize/h);h=maxSize;}
+      var canvas=document.createElement("canvas");
+      canvas.width=w;canvas.height=h;
       canvas.getContext("2d").drawImage(img,0,0,w,h);
-      resolve(canvas.toDataURL("image/jpeg", quality));
+      resolve(canvas.toDataURL("image/jpeg",quality));
     };
-    img.onerror = reject;
-    img.src = base64;
+    img.onerror=reject;
+    img.src=base64;
   });
 }
 
 async function addVehicle(){
-  var tower=els.tower.value.trim(), floor=els.floor.value.trim();
+  var tower=els.tower.value.trim(),floor=els.floor.value.trim();
   var plate=els.plate.value.trim().toUpperCase().replace(/\s/g,"");
-  var obsDate=els.obsDate.value;
-  var carStatus=els.carStatus.value;
-  if(!tower||!floor||!plate){ alert("أدخل البرج والدور ورقم اللوحة"); return; }
-  if(!report.guard.empId){ alert("أدخل الرقم الوظيفي أولاً"); return; }
-
+  var obsDate=els.obsDate.value,carStatus=els.carStatus.value;
+  if(!tower||!floor||!plate){alert("أدخل البرج والدور ورقم اللوحة");return;}
+  if(!report.guard.empId){alert("أدخل الرقم الوظيفي أولاً");return;}
   var n=new Date();
-  var v={tower,floor,plate,
-         obsDate:obsDate||n.toISOString().split("T")[0],
-         date:n.toISOString().split("T")[0],
-         time:n.toTimeString().slice(0,5),
-         carStatus, notes:els.notes.value.trim(),
-         hasImage: (currentImgBase64 ? "نعم" : "لا")};
-
-  els.btnAdd.disabled=true; els.btnAdd.textContent="⏳ جارٍ الحفظ...";
-  setSyncStatus("loading","⏳ جارٍ إضافة "+plate+"...");
-  var savedImg = currentImgBase64;
-  v.hasImage = savedImg ? "نعم" : "لا";
-
+  var v={tower,floor,plate,obsDate:obsDate||n.toISOString().split("T")[0],date:n.toISOString().split("T")[0],time:n.toTimeString().slice(0,5),carStatus,notes:els.notes.value.trim(),hasImage:(currentImgBase64?"نعم":"لا")};
+  els.btnAdd.disabled=true;els.btnAdd.innerHTML="<span style='opacity:.7'>⏳ جارٍ الحفظ…</span>";
+  setSyncStatus("loading","⏳ جارٍ إضافة "+plate+"…");
+  var savedImg=currentImgBase64;
   try{
-    var res = await addToCloud(v);
-    if(res && res.success){
-      v._row = res.row || 0; // رقم الصف في الشيت لتحديث رابط الصورة بدقة
+    var res=await addToCloud(v);
+    if(res&&res.success){
+      v._row=res.row||0;
       report.addedCount=(report.addedCount||0)+1;
       saveLocal();
-
-      if(savedImg){
-        localImages["plate_"+v.plate] = savedImg;
-        try{ localStorage.setItem("img_plate_"+v.plate, savedImg); }catch(e){}
-      }
-
-      clearForm();
-      setStatus("✅ تم حفظ "+plate);
-      renderTable();
-      setTimeout(function(){ loadFromCloud(false); }, 1500);
-
-      if(savedImg){
-        setTimeout(function(){ uploadImageToDrive(v, savedImg); }, 2500);
-      } else {
-        setSyncStatus("ok","✅ تم حفظ "+plate);
-      }
-    } else { throw new Error("لم يتأكد الحفظ من الخادم"); }
+      if(savedImg){localImages["plate_"+v.plate]=savedImg;try{localStorage.setItem("img_plate_"+v.plate,savedImg);}catch(e){}}
+      clearForm();setStatus("✅ تم حفظ "+plate);renderTable();
+      setTimeout(function(){loadFromCloud(false);},1500);
+      if(savedImg){setTimeout(function(){uploadImageToDrive(v,savedImg);},2500);}
+      else{setSyncStatus("ok","✅ تم حفظ "+plate);}
+    }else{throw new Error("لم يتأكد الحفظ من الخادم");}
   }catch(err){
-    setSyncStatus("error","❌ "+err.message);
-    setStatus("❌ فشل الحفظ");
-    alert("❌ تعذّر الحفظ\n"+err.message);
+    setSyncStatus("error","❌ "+err.message);setStatus("❌ فشل الحفظ");alert("❌ تعذّر الحفظ\n"+err.message);
   }finally{
-    els.btnAdd.disabled=false; els.btnAdd.textContent="➕ إضافة وحفظ"; updateStats();
+    els.btnAdd.disabled=false;els.btnAdd.innerHTML="➕ إضافة وحفظ";updateStats();
   }
 }
 
-/* ════════ Stats & Table ════════ */
 function updateStats(){
-  var list=cloudData, today=new Date().toISOString().split("T")[0];
-  els.statTotal.textContent = list.length;
-  els.statToday.textContent = list.filter(function(v){
-    return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===today;
-  }).length;
-  els.statWithPhotos.textContent = list.filter(function(v){
-    return (getField(v,["صورة","📷 صورة"])||v.hasImage||"")==="نعم";
-  }).length;
-  els.statApiCalls.textContent = report.addedCount||0;
-}
-
-function towerBadge(t){
-  t = String(t||"").trim().toUpperCase();
-  var styles = {
-    "A": "background:linear-gradient(135deg,#1e3a8a,#2563eb);box-shadow:0 2px 8px rgba(37,99,235,.4);",
-    "B": "background:linear-gradient(135deg,#166534,#16a34a);box-shadow:0 2px 8px rgba(22,163,74,.4);",
-    "C": "background:linear-gradient(135deg,#991b1b,#ef4444);box-shadow:0 2px 8px rgba(239,68,68,.4);"
-  };
-  var st = styles[t] || "background:#64748b;";
-  return '<span class="tower-badge" style="'+st+'">'+t+'</span>';
+  var list=cloudData,today=new Date().toISOString().split("T")[0];
+  els.statTotal.textContent=list.length;
+  els.statToday.textContent=list.filter(function(v){return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===today;}).length;
+  els.statWithPhotos.textContent=list.filter(function(v){return (getField(v,["صورة","📷 صورة"])||v.hasImage||"")==="نعم";}).length;
+  els.statApiCalls.textContent=report.addedCount||0;
 }
 
 function normalizeDriveUrl(u){
-  u = String(u||"").trim();
-  if(!u) return "";
-  if(u.indexOf("drive.google.com/uc?export=view&id=") >= 0) return u;
-
-  var id = "";
-  var m = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if(m) id = m[1];
-  if(!id){
-    m = u.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if(m) id = m[1];
-  }
-  if(!id){
-    m = u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if(m) id = m[1];
-  }
-  if(id) return "https://drive.google.com/uc?export=view&id=" + id;
+  u=String(u||"").trim();if(!u)return "";
+  if(u.indexOf("drive.google.com/uc?export=view&id=")>=0)return u;
+  var id="",m=u.match(/\/d\/([a-zA-Z0-9_-]+)/);if(m)id=m[1];
+  if(!id){m=u.match(/[?&]id=([a-zA-Z0-9_-]+)/);if(m)id=m[1];}
+  if(id)return "https://drive.google.com/uc?export=view&id="+id;
   return u;
 }
 
 function renderTable(){
   els.tableBody.innerHTML="";
   if(!cloudData.length){
-    els.tableBody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">🚗</div><p><b>لا توجد بيانات بعد</b></p><p style="font-size:12px;">أضف سجلاً أو اضغط "🔄 تحديث"</p></div></td></tr>';
-    els.tableFooter.style.display="none"; return;
+    els.tableBody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🚗</div><div class="empty-title">لا توجد بيانات بعد</div><div class="empty-sub">أضف سجلاً أو اضغط "تحديث"</div></div></td></tr>';
+    els.footerCount.textContent="0 سجل";return;
   }
-  var rows = cloudData.map(function(v){
+  var rows=cloudData.map(function(v){
     var rawDate=getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
     var rawTime=getField(v,["الوقت","⏰ الوقت"])||v.time||"";
     return {
-      tower:  String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
-      floor:  String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
-      plate:  String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
-      date:   fixExcelDate(rawDate),
-      time:   fixExcelTime(rawTime),
+      tower:String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
+      floor:String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
+      plate:String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
+      date:fixExcelDate(rawDate),
+      time:fixExcelTime(rawTime),
       carStatus:String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||""),
-      notes:  String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||""),
-      guard:  String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""),
-      hasImg: String(getField(v,["صورة","📷 صورة"])||v.hasImage||""),
-      driveUrlRaw:String(getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"])||v.driveUrl||v["رابط الصورة"]||"")
+      notes:String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||""),
+      guard:String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""),
+      hasImg:String(getField(v,["صورة","📷 صورة"])||v.hasImage||""),
+      driveUrlRaw:String(getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl"])||v.driveUrl||v["رابط الصورة"]||"")
     };
   }).reverse();
 
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
+    var driveUrl=normalizeDriveUrl(v.driveUrlRaw);
+    var localImg=(driveUrl&&driveUrl.startsWith("http"))?driveUrl:(localImages["plate_"+v.plate]||localImages[v.plate+"_"+v.date]||null);
 
-    var driveUrlRaw = (v.driveUrlRaw !== undefined ? v.driveUrlRaw : (getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"]) || v.driveUrl || v["رابط الصورة"] || ""));
-var driveUrl = normalizeDriveUrl(driveUrlRaw);
+    var imgCell=localImg
+      ?'<div class="img-thumb-wrap"><img class="img-thumb" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\'">'+(driveUrl?'<a class="img-drive-link" href="'+driveUrl+'" target="_blank">↗</a>':'')+' </div>'
+      :'<span style="color:var(--border);">—</span>';
 
-// إن لم يوجد رابط من الشيت، جرّب المحلي (جلسة نفس الجهاز فقط)
-var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
-             : (localImages["plate_" + v.plate]
-                || localImages[v.plate + "_" + v.date + "_" + v.time.replace(":","")]
-                || localImages[v.plate + "_" + v.date]
-                || null);
+    var towerClass="tower-badge tower-"+(["A","B","C"].includes(v.tower)?v.tower:"");
+    var statusHtml='<span style="color:var(--border);">—</span>';
+    if(v.carStatus==="حديثة") statusHtml='<span class="status-new">🟢 حديثة</span>';
+    else if(v.carStatus==="متوسطة الغبار") statusHtml='<span class="status-mid">🟡 متوسطة</span>';
+    else if(v.carStatus==="مغبرة") statusHtml='<span class="status-dust">🔴 مغبرة</span>';
+    else if(v.carStatus) statusHtml='<span style="font-size:12px;">'+v.carStatus+'</span>';
 
-    var imgCell = localImg
-      ? '<div class="img-wrapper">'+
-          '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'+
-          (driveUrl ? '<a class="img-link-btn" href="'+driveUrl+'" target="_blank" title="فتح الصورة من Google Drive">📷</a>' : '')+
-        '</div>'
-      : '<span style="color:#cbd5e1;">—</span>';
+    var notesCell=v.notes?'<span class="notes-text" title="'+v.notes+'">'+(v.notes.length>22?v.notes.slice(0,22)+"…":v.notes)+'</span>':'<span style="color:var(--border);">—</span>';
 
-    var notesCell = v.notes
-      ? '<span class="notes-cell" title="'+v.notes+'">'+(v.notes.length>20?v.notes.slice(0,20)+"…":v.notes)+'</span>'
-      : '<span style="color:#e2e8f0;">—</span>';
-
-    var statusHtml='<span style="color:#cbd5e1;">—</span>';
-    if(v.carStatus==="حديثة")                statusHtml='<span class="status-badge-new">🟢 '+v.carStatus+'</span>';
-    else if(v.carStatus==="متوسطة الغبار")   statusHtml='<span class="status-badge-mid">🟡 '+v.carStatus+'</span>';
-    else if(v.carStatus==="مغبرة")           statusHtml='<span class="status-badge-dust">🔴 '+v.carStatus+'</span>';
-    else if(v.carStatus)                     statusHtml='<span style="font-size:12px;">'+v.carStatus+'</span>';
-
-    tr.innerHTML =
+    tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
       '<td>'+imgCell+'</td>'+
-      '<td>'+towerBadge(v.tower)+'</td>'+
+      '<td><span class="'+towerClass+'">'+v.tower+'</span></td>'+
       '<td><span class="floor-badge">'+v.floor+'</span></td>'+
-      '<td><span class="plate-badge">🚗 '+v.plate+'</span></td>'+
-      '<td><span class="date-badge">'+v.date+'</span></td>'+
-      '<td><span class="time-cell">'+v.time+'</span></td>'+
+      '<td><span class="plate-badge">'+v.plate+'</span></td>'+
+      '<td><span class="date-pill">'+v.date+'</span></td>'+
+      '<td><span class="time-pill">'+v.time+'</span></td>'+
       '<td>'+statusHtml+'</td>'+
       '<td>'+notesCell+'</td>'+
-      '<td>'+(v.guard?'<span class="guard-badge">👤 '+v.guard+'</span>':'<span style="color:#cbd5e1;">—</span>')+'</td>';
+      '<td>'+(v.guard?'<span class="guard-pill">'+v.guard+'</span>':'<span style="color:var(--border);">—</span>')+'</td>';
 
     els.tableBody.appendChild(tr);
   });
 
-  els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
-    img.addEventListener("click",function(){ viewImage(img.getAttribute("data-src")||img.src); });
+  els.tableBody.querySelectorAll("img.img-thumb").forEach(function(img){
+    img.addEventListener("click",function(){viewImage(img.getAttribute("data-src")||img.src);});
   });
 
-  els.tableFooter.style.display="block";
-  els.footerCount.textContent = cloudData.length;
+  els.footerCount.textContent=cloudData.length+" سجل";
 }
 
 function viewImage(src){ els.fullImage.src=src; els.imageModal.classList.add("active"); }
 
-/* ════════ Local Storage ════════ */
-function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(report)); }
+function saveLocal(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(report)); }
 function loadLocal(){
-  try{
-    var d=localStorage.getItem(STORAGE_KEY);
-    if(d){ report=JSON.parse(d); return true; }
-  }catch(e){}
+  try{var d=localStorage.getItem(STORAGE_KEY);if(d){report=JSON.parse(d);return true;}}catch(e){}
   return false;
 }
 
-/* ════════ Export ════════ */
 function exportCSV(){
-  if(!cloudData.length){ alert("لا توجد بيانات"); return; }
+  if(!cloudData.length){alert("لا توجد بيانات");return;}
   var csv="البرج,الدور,رقم اللوحة,تاريخ الرصد,الوقت,حالة المركبة,ملاحظات,رجل الأمن\n";
   cloudData.forEach(function(v){
     var rawDate=getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
     var rawTime=getField(v,["الوقت","⏰ الوقت"])||v.time||"";
-    csv+=[
-      getField(v,["البرج","🏢 البرج"])||v.tower||"",
-      getField(v,["الدور","🔢 الدور"])||v.floor||"",
-      getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"",
-      fixExcelDate(rawDate), fixExcelTime(rawTime),
-      '"'+(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"")+'"',
-      '"'+(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||"")+'"',
-      getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""
-    ].join(",")+"\n";
+    csv+=[getField(v,["البرج","🏢 البرج"])||v.tower||"",getField(v,["الدور","🔢 الدور"])||v.floor||"",getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"",fixExcelDate(rawDate),fixExcelTime(rawTime),'"'+(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"")+'"','"'+(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||"")+'"',getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""].join(",")+"\n";
   });
   var a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"}));
@@ -1304,81 +1455,64 @@ function exportCSV(){
 }
 
 async function testConnection(el){
-  el.innerHTML="⏳ جارٍ الاختبار...";
+  el.innerHTML="⏳ جارٍ الاختبار…";
   try{
     var data=await jsonpCall(GS_URL+"?action=getAll",8000);
-    el.innerHTML=Array.isArray(data)
-      ? '<span style="color:#16a34a;font-weight:700;">✅ نجح! '+data.length+' سجل. اضغط 🔄 تحديث</span>'
-      : '<span style="color:#ca8a04;">⚠️ تأكد من doGet.</span>';
-  }catch(e){ el.innerHTML='<span style="color:#dc2626;">❌ '+e.message+'</span>'; }
+    el.innerHTML=Array.isArray(data)?'<span style="color:var(--green);font-weight:700;">✅ نجح! '+data.length+' سجل</span>':'<span style="color:var(--amber);">⚠️ تأكد من doGet</span>';
+  }catch(e){el.innerHTML='<span style="color:var(--red);">❌ '+e.message+'</span>';}
 }
 
 async function testGuardLookup(el){
-  var id = els.empId.value.trim() || "88840";
-  el.innerHTML = "⏳ اختبار البحث عن: "+id+"...";
+  var id=els.empId.value.trim()||"88840";
+  el.innerHTML="⏳ اختبار: "+id+"…";
   try{
-    var data = await jsonpCall(GS_URL+"?action=getGuard&empId="+encodeURIComponent(id),8000);
-    if(data && data.success){
-      el.innerHTML='<span style="color:#16a34a;font-weight:700;">✅ موظف وُجد: '+data.name+(data.dept?" — "+data.dept:"")+'</span>';
-    } else if(data && data.error==="no_sheet"){
-      el.innerHTML='<span style="color:#dc2626;">❌ ورقة الموظفون غير موجودة — أنشئها أولاً</span>';
-    } else {
-      el.innerHTML='<span style="color:#ca8a04;">⚠️ الرقم '+id+' غير موجود في الورقة</span>';
-    }
-  }catch(e){
-    el.innerHTML='<span style="color:#dc2626;">❌ '+e.message+'</span>';
-  }
+    var data=await jsonpCall(GS_URL+"?action=getGuard&empId="+encodeURIComponent(id),8000);
+    if(data&&data.success) el.innerHTML='<span style="color:var(--green);font-weight:700;">✅ '+data.name+(data.dept?" — "+data.dept:"")+'</span>';
+    else if(data&&data.error==="no_sheet") el.innerHTML='<span style="color:var(--red);">❌ ورقة الموظفون غير موجودة</span>';
+    else el.innerHTML='<span style="color:var(--amber);">⚠️ الرقم '+id+' غير موجود</span>';
+  }catch(e){el.innerHTML='<span style="color:var(--red);">❌ '+e.message+'</span>';}
 }
 
-/* ════════════════════════════════════════════════
-   📷 OCR Camera (كما هو)
-   ════════════════════════════════════════════════ */
-var PLATE_API_URL = "https://api.platerecognizer.com/v1/plate-reader/";
-var plateApiKey   = atob("NjJmYzhmZTRhY2Q3ZmNkOTM5OWZjODFiN2I5ZjIyODkxZDBhODEyMA==");
+/* OCR */
+var PLATE_API_URL="https://api.platerecognizer.com/v1/plate-reader/";
+var plateApiKey=atob("NjJmYzhmZTRhY2Q3ZmNkOTM5OWZjODFiN2I5ZjIyODkxZDBhODEyMA==");
 
-function setOcrStatus(type, msg){
-  var el = $("ocrStatus");
-  el.style.display = "block";
-  var styles = {
-    loading:"background:#fefce8;border:2px solid #fde68a;color:#92400e;",
-    error:  "background:#fee2e2;border:2px solid #fca5a5;color:#991b1b;",
-    info:   "background:#eff6ff;border:2px solid #bfdbfe;color:#1e40af;"
-  };
-  el.style.cssText = (styles[type]||styles.info)+"padding:14px;border-radius:12px;font-size:14px;text-align:center;margin-top:12px;";
-  el.innerHTML = msg;
+function setOcrStatus(type,msg){
+  var el=$("ocrStatus");
+  el.className="ocr-status "+type;
+  el.style.display="block";
+  el.textContent=msg;
 }
 
 async function recognizePlate(imageBase64){
-  if(!plateApiKey){ setOcrStatus("error","❌ مفتاح API غير موجود"); return null; }
-  setOcrStatus("loading","🔄 جارٍ قراءة اللوحة...");
+  if(!plateApiKey){setOcrStatus("error","❌ مفتاح API غير موجود");return null;}
+  setOcrStatus("loading","🔄 جارٍ قراءة اللوحة…");
   $("ocrResult").style.display="none";
   try{
     var byteStr=atob(imageBase64.split(",")[1]);
     var arr=new Uint8Array(byteStr.length);
     for(var i=0;i<byteStr.length;i++) arr[i]=byteStr.charCodeAt(i);
     var blob=new Blob([arr],{type:"image/jpeg"});
-    var fd=new FormData();
-    fd.append("upload",blob,"plate.jpg"); fd.append("regions","sa");
+    var fd=new FormData();fd.append("upload",blob,"plate.jpg");fd.append("regions","sa");
     var resp=await fetch(PLATE_API_URL,{method:"POST",headers:{"Authorization":"Token "+plateApiKey},body:fd});
-    if(resp.status===401){ setOcrStatus("error","❌ مفتاح API منتهي"); return null; }
-    if(resp.status===429){ setOcrStatus("error","⚠️ تجاوزت الحد اليومي"); return null; }
-    if(!resp.ok){ setOcrStatus("error","❌ خطأ: "+resp.status); return null; }
+    if(resp.status===401){setOcrStatus("error","❌ مفتاح API منتهي");return null;}
+    if(resp.status===429){setOcrStatus("error","⚠️ تجاوزت الحد اليومي");return null;}
+    if(!resp.ok){setOcrStatus("error","❌ خطأ: "+resp.status);return null;}
     var data=await resp.json();
-    if(!data.results||!data.results.length){ setOcrStatus("error","⚠️ لم يتم اكتشاف لوحة — جرب صورة أوضح"); return null; }
+    if(!data.results||!data.results.length){setOcrStatus("error","⚠️ لم يتم اكتشاف لوحة — جرب صورة أوضح");return null;}
     var best=data.results[0];
     var plate=best.plate.toUpperCase();
-    var conf=Math.round((best.score||0)*100)+"%";
     $("ocrStatus").style.display="none";
     $("ocrPlateText").textContent=plate;
-    $("ocrConfidence").textContent=conf;
+    $("ocrConfidence").textContent=Math.round((best.score||0)*100)+"%";
     $("ocrResult").style.display="block";
     if(data.results.length>1){
       var alt="بدائل: ";
-      data.results.slice(1).forEach(function(r){ alt+='<span style="background:#f1f5f9;padding:2px 8px;border-radius:6px;margin:0 3px;font-family:monospace;font-weight:700;">'+r.plate.toUpperCase()+'</span>'; });
+      data.results.slice(1).forEach(function(r){alt+='<span style="background:var(--paper);padding:2px 8px;border-radius:5px;margin:0 3px;font-family:JetBrains Mono,monospace;font-weight:700;font-size:11px;">'+r.plate.toUpperCase()+'</span>';});
       $("ocrAlternatives").innerHTML=alt;
-    } else { $("ocrAlternatives").innerHTML=""; }
+    }else{$("ocrAlternatives").innerHTML="";}
     return plate;
-  }catch(err){ setOcrStatus("error","❌ خطأ في PlateRecognizer: "+err.message); return null; }
+  }catch(err){setOcrStatus("error","❌ خطأ: "+err.message);return null;}
 }
 
 async function openOcrCamera(){
@@ -1390,185 +1524,134 @@ async function openOcrCamera(){
     $("ocrStatus").style.display="none";
     $("ocrResult").style.display="none";
     $("retakeBtn").style.display="none";
-    els.captureBtn.style.display="inline-block";
+    els.captureBtn.style.display="inline-flex";
     els.cameraModal.classList.add("active");
-  }catch(e){ alert("لا يمكن فتح الكاميرا: "+e.message); }
+  }catch(e){alert("لا يمكن فتح الكاميرا: "+e.message);}
 }
 
 function closeCamera(){
-  if(cameraStream){ cameraStream.getTracks().forEach(function(t){t.stop();}); cameraStream=null; }
+  if(cameraStream){cameraStream.getTracks().forEach(function(t){t.stop();});cameraStream=null;}
   els.cameraModal.classList.remove("active");
 }
 
-els.captureBtn.addEventListener("click", async function(){
-  var video=els.cameraVideo, canvas=els.cameraCanvas;
-  canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+els.captureBtn.addEventListener("click",async function(){
+  var video=els.cameraVideo,canvas=els.cameraCanvas;
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
   canvas.getContext("2d").drawImage(video,0,0);
   var dataUrl=canvas.toDataURL("image/jpeg",0.9);
-  if(cameraStream){ cameraStream.getTracks().forEach(function(t){t.stop();}); cameraStream=null; }
+  if(cameraStream){cameraStream.getTracks().forEach(function(t){t.stop();});cameraStream=null;}
   video.style.display="none";
-  $("capturedImg").src=dataUrl;
-  $("capturedPreview").style.display="block";
-  els.captureBtn.style.display="none";
-  $("retakeBtn").style.display="inline-block";
+  $("capturedImg").src=dataUrl;$("capturedPreview").style.display="block";
+  els.captureBtn.style.display="none";$("retakeBtn").style.display="inline-flex";
   var plate=await recognizePlate(dataUrl);
-  if(plate){
-    $("btnUseOcrPlate").onclick=function(){
-      els.plate.value=plate; setImage(dataUrl); closeCamera(); checkPlateExists(plate);
-    };
-  }
+  if(plate){$("btnUseOcrPlate").onclick=function(){els.plate.value=plate;setImage(dataUrl);closeCamera();checkPlateExists(plate);};}
 });
 
-$("retakeBtn").addEventListener("click", async function(){
-  $("capturedPreview").style.display="none";
-  $("ocrStatus").style.display="none";
-  $("ocrResult").style.display="none";
-  $("retakeBtn").style.display="none";
-  els.captureBtn.style.display="inline-block";
-  els.cameraVideo.style.display="block";
-  try{
-    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1920},height:{ideal:1080}}});
-    els.cameraVideo.srcObject=cameraStream;
-  }catch(e){ alert("لا يمكن فتح الكاميرا"); }
+$("retakeBtn").addEventListener("click",async function(){
+  $("capturedPreview").style.display="none";$("ocrStatus").style.display="none";$("ocrResult").style.display="none";
+  $("retakeBtn").style.display="none";els.captureBtn.style.display="inline-flex";els.cameraVideo.style.display="block";
+  try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});els.cameraVideo.srcObject=cameraStream;}catch(e){alert("لا يمكن فتح الكاميرا");}
 });
 
-$("btnOcrCamera").addEventListener("click", function(){
-  if(confirm("اختر طريقة قراءة اللوحة:\n\nموافق = كاميرا\nإلغاء = رفع صورة")){
-    openOcrCamera();
-  } else { $("ocrFileInput").click(); }
+$("btnOcrCamera").addEventListener("click",function(){
+  if(confirm("اختر طريقة:\n\nموافق = كاميرا\nإلغاء = رفع صورة")){openOcrCamera();}
+  else{$("ocrFileInput").click();}
 });
 
-$("ocrFileInput").addEventListener("change", async function(e){
-  var file=e.target.files&&e.target.files[0]; if(!file) return;
-  e.target.value="";
+$("ocrFileInput").addEventListener("change",async function(e){
+  var file=e.target.files&&e.target.files[0];if(!file)return;e.target.value="";
   var reader=new FileReader();
   reader.onload=async function(ev){
-    var raw=ev.target.result;
-    var img=new Image();
+    var raw=ev.target.result;var img=new Image();
     img.onload=async function(){
-      var canvas=document.createElement("canvas");
-      var MAX=1200, w=img.width, h=img.height;
+      var canvas=document.createElement("canvas");var MAX=1200,w=img.width,h=img.height;
       if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
-      canvas.width=w; canvas.height=h;
-      canvas.getContext("2d").drawImage(img,0,0,w,h);
+      canvas.width=w;canvas.height=h;canvas.getContext("2d").drawImage(img,0,0,w,h);
       var compressed=canvas.toDataURL("image/jpeg",0.85);
-      $("capturedPreview").style.display="block";
-      $("capturedImg").src=compressed;
-      els.cameraVideo.style.display="none";
-      els.captureBtn.style.display="none";
-      $("retakeBtn").style.display="inline-block";
-      $("ocrStatus").style.display="none";
-      $("ocrResult").style.display="none";
+      $("capturedPreview").style.display="block";$("capturedImg").src=compressed;
+      els.cameraVideo.style.display="none";els.captureBtn.style.display="none";
+      $("retakeBtn").style.display="inline-flex";$("ocrStatus").style.display="none";$("ocrResult").style.display="none";
       els.cameraModal.classList.add("active");
       var plate=await recognizePlate(compressed);
-      if(plate){
-        $("btnUseOcrPlate").onclick=function(){
-          els.plate.value=plate; setImage(compressed); closeCamera(); checkPlateExists(plate);
-        };
-      }
-    };
-    img.src=raw;
-  };
-  reader.readAsDataURL(file);
+      if(plate){$("btnUseOcrPlate").onclick=function(){els.plate.value=plate;setImage(compressed);closeCamera();checkPlateExists(plate);};}
+    };img.src=raw;
+  };reader.readAsDataURL(file);
 });
 
 window.copyScript=function(){
   var code=$("scriptCode").textContent;
-  navigator.clipboard.writeText(code)
-    .then(function(){ alert("✅ تم النسخ!"); })
-    .catch(function(){ alert("انسخ الكود يدوياً."); });
+  navigator.clipboard.writeText(code).then(function(){alert("✅ تم النسخ!");}).catch(function(){alert("انسخ الكود يدوياً.");});
 };
 
-/* ════════ Image Upload Handlers (مزامنة الصورة محلياً) ════════ */
-els.imgUploadArea.addEventListener("click", function(){ els.vehicleImg.click(); });
-els.vehicleImg.addEventListener("change", function(e){
-  var file=e.target.files&&e.target.files[0]; if(!file) return;
-  e.target.value="";
+els.imgUploadArea.addEventListener("click",function(){els.vehicleImg.click();});
+els.vehicleImg.addEventListener("change",function(e){
+  var file=e.target.files&&e.target.files[0];if(!file)return;e.target.value="";
   var reader=new FileReader();
-  reader.onload=function(ev){ setImage(ev.target.result); setStatus("✅ تم اختيار صورة"); };
+  reader.onload=function(ev){setImage(ev.target.result);setStatus("✅ تم اختيار صورة");};
   reader.readAsDataURL(file);
 });
-els.btnClearImg.addEventListener("click", function(){ setImage(null); });
+els.btnClearImg.addEventListener("click",function(){setImage(null);});
+els.btnLookup.addEventListener("click",lookupGuard);
+els.empId.addEventListener("keydown",function(e){if(e.key==="Enter")lookupGuard();});
 
-/* ════════ Event Listeners ════════ */
-els.btnLookup.addEventListener("click", lookupGuard);
-els.empId.addEventListener("keydown", function(e){ if(e.key==="Enter") lookupGuard(); });
-
-var guardTypingTimer = null;
-els.empId.addEventListener("input", function(){
+var guardTypingTimer=null;
+els.empId.addEventListener("input",function(){
   clearTimeout(guardTypingTimer);
-  els.guardInfoCard.classList.remove("show");
-  els.empName.value = "";
-  var id = els.empId.value.trim();
-  if(id.length >= 4){
-    guardTypingTimer = setTimeout(function(){ lookupGuard(true); }, 600);
-  }
+  els.guardInfoCard.classList.remove("show");els.empName.value="";
+  var id=els.empId.value.trim();
+  if(id.length>=4){guardTypingTimer=setTimeout(function(){lookupGuard(true);},600);}
 });
 
-els.btnAdd.addEventListener("click", addVehicle);
-els.btnExportCSV.addEventListener("click", exportCSV);
-els.btnPrint.addEventListener("click", function(){ window.print(); });
-els.btnCamera.addEventListener("click", function(){ els.vehicleImg.click(); }); // تصوير مركبة بسرعة
-
-els.btnClearLocal.addEventListener("click", function(){
+els.btnAdd.addEventListener("click",addVehicle);
+els.btnExportCSV.addEventListener("click",exportCSV);
+els.btnPrint.addEventListener("click",function(){window.print();});
+els.btnCamera.addEventListener("click",function(){els.vehicleImg.click();});
+els.btnClearLocal.addEventListener("click",function(){
   if(confirm("مسح البيانات المحلية فقط؟")){
     localStorage.removeItem(STORAGE_KEY);
     report={guard:{empId:"",name:"",dept:""},addedCount:0};
-    els.empId.value=""; els.empName.value="";
-    els.guardInfoCard.classList.remove("show");
-    setStatus("تم المسح المحلي");
+    els.empId.value="";els.empName.value="";
+    els.guardInfoCard.classList.remove("show");setStatus("تم المسح المحلي");
   }
 });
+els.btnSync.addEventListener("click",function(){loadFromCloud(false);});
+els.btnShowSetup.addEventListener("click",function(){els.setupModal.classList.add("active");});
+els.closeSetup.addEventListener("click",function(){els.setupModal.classList.remove("active");});
+els.btnTestInModal.addEventListener("click",function(){testConnection(els.testResultModal);});
+els.btnTestGuard.addEventListener("click",function(){testGuardLookup(els.testResultModal);});
+els.closeCamera.addEventListener("click",closeCamera);
+els.cancelCamera.addEventListener("click",closeCamera);
+els.closeImage.addEventListener("click",function(){els.imageModal.classList.remove("active");});
+els.imageModal.addEventListener("click",function(e){if(e.target===els.imageModal)els.imageModal.classList.remove("active");});
+els.plate.addEventListener("input",function(){checkPlateExists(els.plate.value.trim().toUpperCase());});
 
-els.btnSync.addEventListener("click", function(){ loadFromCloud(false); });
-els.btnShowSetup.addEventListener("click", function(){ els.setupModal.classList.add("active"); });
-els.closeSetup.addEventListener("click", function(){ els.setupModal.classList.remove("active"); });
-els.btnTestInModal.addEventListener("click", function(){ testConnection(els.testResultModal); });
-els.btnTestGuard.addEventListener("click", function(){ testGuardLookup(els.testResultModal); });
-els.closeCamera.addEventListener("click", closeCamera);
-els.cancelCamera.addEventListener("click", closeCamera);
-els.closeImage.addEventListener("click", function(){ els.imageModal.classList.remove("active"); });
-els.imageModal.addEventListener("click", function(e){ if(e.target===els.imageModal) els.imageModal.classList.remove("active"); });
-els.plate.addEventListener("input", function(){ checkPlateExists(els.plate.value.trim().toUpperCase()); });
-
-document.addEventListener("keydown", function(e){
-  if(e.ctrlKey&&e.key==="Enter"){ e.preventDefault(); addVehicle(); }
-  if(e.key==="Escape"){ closeCamera(); els.imageModal.classList.remove("active"); els.setupModal.classList.remove("active"); }
+document.addEventListener("keydown",function(e){
+  if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();addVehicle();}
+  if(e.key==="Escape"){closeCamera();els.imageModal.classList.remove("active");els.setupModal.classList.remove("active");}
 });
 
-/* ════════ Init ════════ */
-setNow();
-loadLocal();
+setNow();loadLocal();
 
-// استعادة الصور المحفوظة محلياً
 try{
   for(var k in localStorage){
-    if(k.indexOf("img_")===0){
-      var imgKey2 = k.slice(4);
-      localImages[imgKey2] = localStorage.getItem(k);
-    }
+    if(k.indexOf("img_")===0){localImages[k.slice(4)]=localStorage.getItem(k);}
   }
 }catch(e){}
 
-if(report.guard && report.guard.empId){
-  els.empId.value  = report.guard.empId;
-  els.empName.value= report.guard.name;
+if(report.guard&&report.guard.empId){
+  els.empId.value=report.guard.empId;els.empName.value=report.guard.name;
   if(report.guard.name){
-    els.guardNameDisplay.textContent = report.guard.name;
-    els.guardIdDisplay.textContent   = "الرقم الوظيفي: "+report.guard.empId;
-    if(report.guard.dept){
-      els.guardDeptDisplay.textContent     = report.guard.dept;
-      els.guardDeptDisplay.style.display   = "inline-block";
-    }
+    els.guardNameDisplay.textContent=report.guard.name;
+    els.guardIdDisplay.textContent="الرقم الوظيفي: "+report.guard.empId;
+    if(report.guard.dept){els.guardDeptDisplay.textContent=report.guard.dept;els.guardDeptDisplay.style.display="inline-block";}
     els.guardInfoCard.classList.add("show");
   }
 }
 
-window.addEventListener("load", function(){ loadFromCloud(true); });
-setInterval(function(){ loadFromCloud(false); }, 60000);
+window.addEventListener("load",function(){loadFromCloud(true);});
+setInterval(function(){loadFromCloud(false);},60000);
 
 })();
 </script>
-
 </body>
 </html>
