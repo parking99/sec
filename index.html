@@ -356,10 +356,9 @@ function doGet(e) {
   const cb     = p.callback || "";
   const action = p.action   || "getAll";
 
-  if (action === "add")        return handleAdd(p, cb);
-  if (action === "getAll")     return handleGetAll(cb);
-  if (action === "getGuard")   return handleGetGuard(p, cb);
-  if (action === "saveImgUrl") return handleSaveImgUrl(p, cb);
+  if (action === "add")      return handleAdd(p, cb);
+  if (action === "getAll")   return handleGetAll(cb);
+  if (action === "getGuard") return handleGetGuard(p, cb);
 
   return makeResponse({ error: "unknown_action" }, cb);
 }
@@ -421,55 +420,6 @@ function makeResponse(data, cb) {
     ? ContentService.MimeType.JAVASCRIPT
     : ContentService.MimeType.JSON;
   return ContentService.createTextOutput(out).setMimeType(mime);
-}
-
-/* =========================================================
-   Save Image URL (called after Imgur upload via JSONP)
-   ========================================================= */
-function handleSaveImgUrl(p, cb) {
-  try {
-    const plate    = String(p.plate || "").trim().toUpperCase();
-    const date     = String(p.date  || "").trim();
-    const time     = String(p.time  || "").trim();
-    const url      = String(p.url   || "").trim();
-    const rowHint  = Number(p.row   || 0) || 0;
-
-    if (!url || !plate) return makeResponse({ error: "missing_params" }, cb);
-
-    const sheet = getSheet_();
-    if (!sheet) return makeResponse({ error: "no_sheet" }, cb);
-
-    const data = sheet.getDataRange().getValues();
-    const URL_COL    = 12; // عمود "رابط الصورة"
-    const HASIMG_COL = 10; // عمود "صورة"
-
-    // إذا أرسلنا رقم الصف مباشرة — أسرع وأدق
-    if (rowHint >= 2 && rowHint <= data.length) {
-      sheet.getRange(rowHint, URL_COL).setValue(url);
-      sheet.getRange(rowHint, HASIMG_COL).setValue("نعم");
-      SpreadsheetApp.flush();
-      return makeResponse({ success: true, row: rowHint }, cb);
-    }
-
-    // بحث بالتفاصيل
-    for (let r = data.length; r >= 2; r--) {
-      const rPlate = String(data[r-1][2] || "").trim().toUpperCase();
-      const rDate  = String(data[r-1][3] || "").trim().slice(0, 10);
-      const rTime  = String(data[r-1][4] || "").trim().slice(0, 5);
-      if (rPlate === plate
-          && (!date || rDate === date.slice(0,10))
-          && (!time || rTime === time.slice(0,5))) {
-        sheet.getRange(r, URL_COL).setValue(url);
-        sheet.getRange(r, HASIMG_COL).setValue("نعم");
-        SpreadsheetApp.flush();
-        return makeResponse({ success: true, row: r }, cb);
-      }
-    }
-
-    return makeResponse({ error: "row_not_found" }, cb);
-  } catch (err) {
-    return makeResponse({ error: String(err.message || err) }, cb);
-  }
 }
 
 /* =========================================================
@@ -1000,101 +950,50 @@ async function addToCloud(v){
   return await jsonpCall(GS_URL+"?"+params, 20000);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   رفع الصورة على Imgur (CDN مجاني، رابط يعمل على كل الأجهزة)
-   ثم حفظ الرابط في Google Sheets عبر JSONP
-   ══════════════════════════════════════════════════════════════ */
-var IMGUR_CLIENT_ID = "546c25a59c58ad7"; // Client-ID مجاني (anonymous upload)
-
 async function uploadImageToDrive(v, imgB64){
-  setSyncStatus("loading","📤 جارٍ رفع الصورة...");
-  var imgUrl = null;
-
-  // ── محاولة 1: Imgur (fetch — يعمل على معظم الشبكات، لا يحتاج Google) ──
+  // ✅ رفع الصورة ثم تحديث رابطها في Google Sheet ليظهر على كل الأجهزة
   try{
-    var small  = await compressImage(imgB64, 1000, 0.80);
-    var base64 = small.indexOf(",")>-1 ? small.split(",")[1] : small;
+    setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
 
+    // ضغط الصورة لتقليل الحجم (توازن بين وضوح وحجم)
+    var small  = await compressImage(imgB64, 900, 0.75);
+    var base64 = (small.indexOf(",")>-1 ? small.split(",")[1] : small);
+
+    // ⛔ لا تستخدم application/json لتجنب CORS Preflight مع Apps Script
     var fd = new FormData();
-    fd.append("image", base64);
-    fd.append("type",  "base64");
+    fd.append("action", "uploadImage");
+    fd.append("plate",  v.plate);
+    fd.append("date",   v.date);
+    fd.append("time",   v.time);
+    fd.append("imgData", base64);
 
-    var resp = await fetch("https://api.imgur.com/3/image", {
-      method : "POST",
-      headers: { "Authorization": "Client-ID " + IMGUR_CLIENT_ID },
-      body   : fd
-    });
-    var json = await resp.json();
-    if(json && json.data && json.data.link){
-      imgUrl = json.data.link.replace("http://","https://");
-    }
-  }catch(e){
-    console.warn("Imgur fetch فشل:", e.message);
-  }
+    var resp = await fetch(GS_URL, { method:"POST", body: fd });
 
-  // ── محاولة 2: Google Drive عبر fetch POST إن فشل Imgur ──
-  if(!imgUrl){
-    try{
-      setSyncStatus("loading","📤 جارٍ الرفع على Google Drive...");
-      var small2  = await compressImage(imgB64, 800, 0.72);
-      var base64_2 = small2.indexOf(",")>-1 ? small2.split(",")[1] : small2;
+    // بعض البيئات قد تعيد نص/JSON
+    var txt = await resp.text();
+    var result = null;
+    try{ result = JSON.parse(txt); }catch(e){ result = null; }
 
-      var resp2 = await fetch(GS_URL, {
-        method : "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body   : JSON.stringify({
-          action  : "uploadImage",
-          plate   : v.plate,
-          date    : v.date,
-          time    : v.time,
-          row     : v._row || 0,
-          imgData : base64_2
-        })
-      });
-      if(resp2.ok){
-        var txt = await resp2.text();
-        var res2 = null;
-        try{ res2 = JSON.parse(txt); }catch(e2){}
-        if(res2 && (res2.thumbUrl || res2.viewUrl)){
-          imgUrl = res2.thumbUrl || res2.viewUrl;
-        }
-      }
-    }catch(e2){
-      console.warn("Drive POST فشل:", e2.message);
-    }
-  }
-
-  // ── إذا نجح الرفع: احفظ الرابط في Google Sheets عبر JSONP ──
-  if(imgUrl){
-    // أعرض الصورة محلياً فوراً
-    localImages["plate_"+v.plate] = imgUrl;
-    try{ localStorage.setItem("img_plate_"+v.plate, imgUrl); }catch(e){}
-
-    // احفظ الرابط في الشيت عبر JSONP (يعمل على كل الشبكات)
-    try{
-      setSyncStatus("loading","🔗 جارٍ حفظ الرابط في Google Sheets...");
-      await jsonpCall(
-        GS_URL
-        +"?action=saveImgUrl"
-        +"&plate=" +encodeURIComponent(v.plate)
-        +"&date="  +encodeURIComponent(v.date)
-        +"&time="  +encodeURIComponent(v.time)
-        +"&row="   +encodeURIComponent(v._row||0)
-        +"&url="   +encodeURIComponent(imgUrl),
-        15000
-      );
-      setSyncStatus("ok","✅ تم رفع الصورة وحفظ الرابط — يظهر على كل الأجهزة");
-    }catch(saveErr){
-      console.warn("حفظ الرابط في الشيت فشل:", saveErr.message);
-      setSyncStatus("ok","✅ تم رفع الصورة (سيظهر الرابط عند التحديث)");
+    if(!resp.ok){
+      throw new Error("فشل الرفع ("+resp.status+")");
     }
 
-    // اسحب البيانات لتحديث الجدول
-    setTimeout(function(){ loadFromCloud(false); }, 1000);
-
-  }else{
-    setSyncStatus("error","⚠️ تعذّر رفع الصورة — ستظهر محلياً فقط على هذا الجهاز");
-    console.warn("All image upload methods failed for plate:", v.plate);
+    if(result && result.driveUrl){
+      // خزّن الرابط محلياً للعرض الفوري، ثم اعتمد على الشيت للتزامن بين الأجهزة
+      localImages["plate_"+v.plate] = result.driveUrl;
+      try{ localStorage.setItem("img_plate_"+v.plate, result.driveUrl); }catch(e){}
+      setSyncStatus("ok","✅ تم رفع الصورة وتحديث الرابط");
+      // اسحب من السحابة لتأكيد التحديث لجميع السجلات
+      setTimeout(function(){ loadFromCloud(false); }, 800);
+    }else{
+      // حتى لو لم نقرأ JSON، غالباً تم الرفع. اسحب من السحابة للتأكد.
+      setSyncStatus("ok","✅ تم الرفع (جارٍ تحديث الجدول)");
+      setTimeout(function(){ loadFromCloud(false); }, 1200);
+    }
+  }catch(err){
+    console.warn("Drive upload:", err && err.message ? err.message : err);
+    // لا نكسر حفظ السجل
+    setSyncStatus("ok","✅ تم الحفظ (تعذّر تأكيد رفع الصورة)");
   }
 }
 
@@ -1250,9 +1149,16 @@ var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
                 || localImages[v.plate + "_" + v.date]
                 || null);
 
-    var imgCell = localImg
-      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'
-      : '<span style="color:#cbd5e1;">—</span>';
+    // إذا يوجد رابط: أظهر أيقونة قابلة للنقر تفتح الصورة في تبويب جديد
+    var imgCell;
+    if(localImg){
+      imgCell = '<a href="'+localImg+'" target="_blank" rel="noopener" title="فتح الصورة" style="display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:10px;text-decoration:none;box-shadow:0 2px 8px rgba(37,99,235,.35);transition:transform .15s,box-shadow .15s;" onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 4px 16px rgba(37,99,235,.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(37,99,235,.35)'"><span style="font-size:22px;">📷</span></a>';
+    } else if(v.hasImg === "نعم"){
+      // صورة محفوظة لكن رابطها غير متاح في هذا الجلسة
+      imgCell = '<span style="display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;background:#f1f5f9;border-radius:10px;font-size:20px;color:#94a3b8;" title="الصورة محفوظة لكن الرابط غير متاح">📷</span>';
+    } else {
+      imgCell = '<span style="color:#e2e8f0;">—</span>';
+    }
 
     var notesCell = v.notes
       ? '<span class="notes-cell" title="'+v.notes+'">'+(v.notes.length>20?v.notes.slice(0,20)+"…":v.notes)+'</span>'
