@@ -344,60 +344,50 @@
     <div class="setup-step">
       <h4><span class="badge-num">1</span> الصق الكود الكامل:</h4>
       <button class="copy-btn" onclick="copyScript()">📋 نسخ</button>
-      <div class="script-box"><pre id="scriptCode">// ====== إعدادات عامة ======
-var SHEET_NAME   = "رصد السيارات";
-var GUARDS_SHEET = "الموظفون";
-var DRIVE_FOLDER = "صور مركبات الرصد";
+      <div class="script-box"><pre id="scriptCode">const SHEET_NAME   = "رصد السيارات";
+const GUARDS_SHEET = "الموظفون";
+const DRIVE_FOLDER = "صور مركبات الرصد";
 
-// ====== Web App Entrypoints ======
-function doGet(e){
-  var p = (e && e.parameter) ? e.parameter : {};
-  var cb = p.callback || "";
-  var action = p.action || "getAll";
+/* =========================================================
+   Entry points
+   ========================================================= */
+function doGet(e) {
+  const p      = (e && e.parameter) ? e.parameter : {};
+  const cb     = p.callback || "";
+  const action = p.action   || "getAll";
 
   if (action === "add")      return handleAdd(p, cb);
   if (action === "getAll")   return handleGetAll(cb);
   if (action === "getGuard") return handleGetGuard(p, cb);
 
-  return makeResponse({success:false, error:"unknown_action", action:action}, cb);
+  return makeResponse({ error: "unknown_action" }, cb);
 }
 
-function doPost(e){
-  try{
-    var p = {};
-    // 1) JSON body
-    if (e && e.postData && e.postData.contents && String(e.postData.type||"").indexOf("application/json") === 0){
-      p = JSON.parse(e.postData.contents || "{}");
-    } else {
-      // 2) form-data / x-www-form-urlencoded
-      p = (e && e.parameter) ? e.parameter : {};
-    }
-
-    var action = p.action || "add";
-    if (action === "uploadImage") return handleImageUpload(p);
-    // افتراضي: إضافة سجل
-    return handleAdd(p, "");
-  }catch(err){
-    return makeResponse({success:false, error: String(err && err.message ? err.message : err)}, "");
+function doPost(e) {
+  try {
+    const body = JSON.parse((e && e.postData && e.postData.contents) ? e.postData.contents : "{}");
+    if (body.action === "uploadImage") return handleImageUpload(body); // JSON response
+    return handleAdd(body, ""); // JSON response
+  } catch (err) {
+    return makeResponse({ error: String(err && err.message ? err.message : err) }, "");
   }
 }
 
-// ====== Helpers ======
-function getOrCreateSheet(){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName(SHEET_NAME);
-  if (!sh) sh = ss.insertSheet(SHEET_NAME);
-  if (sh.getLastRow() === 0) setupHeaders(sh);
-  return sh;
+/* =========================================================
+   Helpers
+   ========================================================= */
+function getSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  return ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
 }
 
-function setupHeaders(sheet){
-  var h = [
-    "البرج","الدور","رقم اللوحة","تاريخ الرصد","الوقت",
-    "حالة المركبة","ملاحظات","رجل الأمن","الرقم الوظيفي",
-    "صورة","وقت الإضافة","رابط الصورة"
+function setupHeaders_(sheet) {
+  const h = [
+    "البرج", "الدور", "رقم اللوحة", "تاريخ الرصد", "الوقت",
+    "حالة المركبة", "ملاحظات", "رجل الأمن", "الرقم الوظيفي",
+    "صورة", "وقت الإضافة", "رابط الصورة"
   ];
-  sheet.getRange(1,1,1,h.length).setValues([h])
+  sheet.getRange(1, 1, 1, h.length).setValues([h])
     .setBackground("#1e3a8a").setFontColor("#ffffff")
     .setFontWeight("bold").setFontSize(11)
     .setHorizontalAlignment("center");
@@ -406,69 +396,86 @@ function setupHeaders(sheet){
   sheet.setRightToLeft(true);
 }
 
-function makeResponse(data, cb){
-  var json = JSON.stringify(data);
-  var out  = (cb && cb !== "") ? (cb + "(" + json + ");") : json;
-  var mime = (cb && cb !== "") ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON;
+function formatRow_(sheet, row) {
+  sheet.getRange(row, 1, 1, 12)
+    .setBackground(row % 2 === 0 ? "#f0f4ff" : "#ffffff")
+    .setFontSize(10)
+    .setVerticalAlignment("middle");
+  sheet.setRowHeight(row, 30);
+
+  const sv = String(sheet.getRange(row, 6).getValue() || "").trim();
+  if (sv === "مغبرة") {
+    sheet.getRange(row, 6).setBackground("#fee2e2").setFontColor("#991b1b").setFontWeight("bold");
+  } else if (sv === "متوسطة الغبار") {
+    sheet.getRange(row, 6).setBackground("#fef9c3").setFontColor("#854d0e").setFontWeight("bold");
+  } else if (sv === "حديثة") {
+    sheet.getRange(row, 6).setBackground("#dcfce7").setFontColor("#166534").setFontWeight("bold");
+  }
+}
+
+function makeResponse(data, cb) {
+  const json = JSON.stringify(data);
+  const out  = (cb && cb !== "") ? (cb + "(" + json + ");") : json;
+  const mime = (cb && cb !== "")
+    ? ContentService.MimeType.JAVASCRIPT
+    : ContentService.MimeType.JSON;
   return ContentService.createTextOutput(out).setMimeType(mime);
 }
 
-function asText(v){ return (v === null || v === undefined) ? "" : String(v); }
-function normPlate(p){ return asText(p).trim().toUpperCase().replace(/[^A-Z0-9]/g,""); }
+/* =========================================================
+   Add / GetAll
+   ========================================================= */
+function handleAdd(p, cb) {
+  const sheet = getSheet_();
+  if (sheet.getLastRow() === 0) setupHeaders_(sheet);
 
-// ====== Actions ======
-function handleAdd(p, cb){
-  var sh = getOrCreateSheet();
+  const nextRow = sheet.getLastRow() + 1;
 
-  var tower     = asText(p.tower || "");
-  var floor     = asText(p.floor || "");
-  var plateRaw  = asText(p.plate || "");
-  var plate     = plateRaw.trim().toUpperCase();
-  var obsDate   = asText(p.obsDate || p.date || "");
-  var time      = asText(p.time || "");
-  var carStatus = asText(p.carStatus || "");
-  var notes     = asText(p.notes || "");
-  var empName   = asText(p.empName || "");
-  var empId     = asText(p.empId || "");
-  var hasImage  = asText(p.hasImage || "لا");
+  const tower     = p.tower     || "";
+  const floor     = p.floor     || "";
+  const plate     = p.plate     || "";
+  const obsDate   = p.obsDate   || p.date || "";
+  const time      = p.time      || "";
+  const carStatus = p.carStatus || "";
+  const notes     = p.notes     || "";
+  const empName   = p.empName   || "";
+  const empId     = p.empId     || "";
+  const hasImage  = p.hasImage  || "لا";
 
-  var nextRow = sh.getLastRow() + 1;
-  sh.getRange(nextRow, 1, 1, 12).setValues([[
+  sheet.getRange(nextRow, 1, 1, 12).setValues([[
     tower, floor, plate, obsDate, time,
     carStatus, notes, empName, empId,
-    hasImage, new Date(), ""   // رابط الصورة لاحقاً
+    hasImage,
+    new Date().toLocaleString("ar-SA"),
+    "" // رابط الصورة
   ]]);
 
-  // تنسيق بسيط
-  sh.setRowHeight(nextRow, 30);
-  sh.getRange(nextRow, 1, 1, 12).setFontSize(10).setVerticalAlignment("middle");
-
+  formatRow_(sheet, nextRow);
   SpreadsheetApp.flush();
-  return makeResponse({success:true, row: nextRow}, cb);
+
+  return makeResponse({ success: true, row: nextRow }, cb);
 }
 
-function handleGetAll(cb){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName(SHEET_NAME);
-  if (!sh) return makeResponse([], cb);
+function handleGetAll(cb) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  if (!sheet) return makeResponse([], cb);
 
-  var values = sh.getDataRange().getValues();
-  if (values.length <= 1) return makeResponse([], cb);
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return makeResponse([], cb);
 
-  var headers = values[0];
-  var tz = Session.getScriptTimeZone();
+  const headers = data[0];
+  const tz      = Session.getScriptTimeZone();
 
-  var rows = values.slice(1).map(function(r){
-    var obj = {};
-    headers.forEach(function(h, i){
-      var val = r[i];
-
-      if (val instanceof Date){
-        // عمود "وقت الإضافة" تاريخ/وقت
-        if (String(h) === "وقت الإضافة"){
-          val = Utilities.formatDate(val, tz, "yyyy-MM-dd HH:mm:ss");
+  const rows = data.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h, i) => {
+      let val = r[i];
+      if (val instanceof Date) {
+        // وقت (أحياناً يجي كتاريخ 1899)
+        if (val.getFullYear() <= 1900) {
+          const hh = val.getHours(), mm = val.getMinutes();
+          val = (hh < 10 ? "0" : "") + hh + ":" + (mm < 10 ? "0" : "") + mm;
         } else {
-          // عمود تاريخ الرصد أحياناً يأتي Date
           val = Utilities.formatDate(val, tz, "yyyy-MM-dd");
         }
       }
@@ -480,87 +487,104 @@ function handleGetAll(cb){
   return makeResponse(rows, cb);
 }
 
-function handleGetGuard(p, cb){
-  var id = asText(p.empId || "").trim();
-  if (!id) return makeResponse({success:false, error:"no_id"}, cb);
+/* =========================================================
+   Guards sheet
+   ========================================================= */
+function handleGetGuard(p, cb) {
+  const id = String(p.empId || "").trim();
+  if (!id) return makeResponse({ error: "no_id" }, cb);
 
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName(GUARDS_SHEET);
-  if (!sh) return makeResponse({success:false, error:"no_sheet", msg:"أنشئ ورقة باسم: "+GUARDS_SHEET}, cb);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GUARDS_SHEET);
+  if (!sheet) return makeResponse({ error: "no_sheet", msg: "أنشئ ورقة: " + GUARDS_SHEET }, cb);
 
-  var values = sh.getDataRange().getValues();
-  for (var i = 1; i < values.length; i++){
-    if (asText(values[i][0]).trim() === id){
-      return makeResponse({success:true, empId:id, name: asText(values[i][1]), dept: asText(values[i][2])}, cb);
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]).trim() === id) {
+      return makeResponse({
+        success: true,
+        empId: id,
+        name: String(rows[i][1] || ""),
+        dept: String(rows[i][2] || "")
+      }, cb);
     }
   }
-  return makeResponse({success:false, error:"not_found"}, cb);
+  return makeResponse({ error: "not_found" }, cb);
 }
 
-// ====== Image Upload ======
-function handleImageUpload(p){
-  var plate = normPlate(p.plate || "unknown");
-  var date  = asText(p.date || "");
-  var time  = asText(p.time || "").trim();
-  var row   = parseInt(asText(p.row || ""), 10);
+/* =========================================================
+   Image upload (Drive) + update sheet
+   ========================================================= */
+function handleImageUpload(p) {
+  try {
+    const plate   = String(p.plate || "unknown").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+    const date    = String(p.date  || "").trim();     // yyyy-mm-dd
+    const time    = String(p.time  || "").trim();     // HH:MM
+    const imgData = String(p.imgData || "");
+    const rowHint = Number(p.row || 0) || 0;
 
-  var imgData = asText(p.imgData || "");
-  if (!imgData) return makeResponse({success:false, error:"no_image"}, "");
+    if (!imgData) return makeResponse({ error: "no_image" }, "");
 
-  // لو جاء DataURL خذ الجزء بعد الفاصلة
-  var base64 = (imgData.indexOf(",") > -1) ? imgData.split(",")[1] : imgData;
+    const base64 = imgData.indexOf(",") > -1 ? imgData.split(",")[1] : imgData;
 
-  var blob = Utilities.newBlob(
-    Utilities.base64Decode(base64),
-    "image/jpeg",
-    plate + "_" + date + "_" + time.replace(":","") + ".jpg"
-  );
+    const safeTime = time ? time.replace(":", "") : "";
+    const filename = [plate, date, safeTime].filter(Boolean).join("_") + ".jpg";
 
-  // Folder
-  var folders = DriveApp.getFoldersByName(DRIVE_FOLDER);
-  var folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder(DRIVE_FOLDER);
+    const blob = Utilities.newBlob(
+      Utilities.base64Decode(base64),
+      "image/jpeg",
+      filename
+    );
 
-  var file = folder.createFile(blob);
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    const folders = DriveApp.getFoldersByName(DRIVE_FOLDER);
+    const folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder(DRIVE_FOLDER);
+    const file    = folder.createFile(blob);
 
-  var driveUrl = "https://drive.google.com/uc?export=view&id=" + file.getId();
+    // مشاركة: أي شخص معه الرابط
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-  updateImageUrl(plate, date, time, row, driveUrl);
+    const fileId   = file.getId();
+    const viewUrl  = "https://drive.google.com/uc?export=view&id=" + fileId;
+    const thumbUrl = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w800";
 
-  return makeResponse({success:true, driveUrl: driveUrl}, "");
+    // اكتب الرابط في الشيت (نستخدم thumbUrl للعرض داخل <img>)
+    updateImageUrl_(plate, date, time, thumbUrl, rowHint);
+
+    return makeResponse({ success: true, viewUrl: viewUrl, thumbUrl: thumbUrl, fileId: fileId }, "");
+  } catch (err) {
+    return makeResponse({ error: String(err && err.message ? err.message : err) }, "");
+  }
 }
 
-function updateImageUrl(plate, date, time, row, url){
-  var sh = getOrCreateSheet();
-  var last = sh.getLastRow();
-  if (last < 2) return;
+function updateImageUrl_(plate, date, time, url, rowHint) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  if (!sheet) return;
 
-  // لو العميل أرسل رقم الصف، استخدمه مباشرة
-  if (row && row >= 2 && row <= last){
-    var sheetPlate = normPlate(sh.getRange(row, 3).getValue());
-    if (sheetPlate === normPlate(plate)){
-      sh.getRange(row, 12).setValue(url); // رابط الصورة
-      sh.getRange(row, 10).setValue("نعم"); // صورة
+  const data = sheet.getDataRange().getValues(); // includes header row
+  // columns:
+  // 1 برج, 2 دور, 3 لوحة, 4 تاريخ الرصد, 5 الوقت, ... 10 صورة, 12 رابط الصورة
+  const PLATE_COL = 3; // 1-based
+  const DATE_COL  = 4;
+  const TIME_COL  = 5;
+  const HASIMG_COL= 10;
+  const URL_COL   = 12;
+
+  // إذا أرسلنا row من handleAdd، نحدثه مباشرة (أسرع وأدق)
+  if (rowHint && rowHint >= 2 && rowHint <= data.length) {
+    sheet.getRange(rowHint, URL_COL).setValue(url);
+    sheet.getRange(rowHint, HASIMG_COL).setValue("نعم");
+    return;
+  }
+
+  // otherwise: ابحث من آخر الصفوف عن نفس اللوحة + التاريخ + الوقت
+  for (let r = data.length; r >= 2; r--) {
+    const p = String(data[r-1][PLATE_COL-1] || "").trim().toUpperCase();
+    const d = String(data[r-1][DATE_COL-1]  || "").trim();
+    const t = String(data[r-1][TIME_COL-1]  || "").trim();
+
+    if (p === plate && (!date || d === date) && (!time || t === time)) {
+      sheet.getRange(r, URL_COL).setValue(url);
+      sheet.getRange(r, HASIMG_COL).setValue("نعم");
       return;
-    }
-  }
-
-  // وإلا ابحث من الأسفل (آخر سجل مطابق)
-  var data = sh.getRange(2,1,last-1,12).getValues();
-  for (var i = data.length - 1; i >= 0; i--){
-    var p = normPlate(data[i][2]);
-    var d = asText(data[i][3]);
-    var t = asText(data[i][4]);
-    if (p === normPlate(plate)){
-      // لو توفرت date/time حاول تطابق
-      var dateOk = date ? (String(d).indexOf(date) === 0) : true;
-      var timeOk = time ? (String(t).indexOf(time) === 0) : true;
-      if (dateOk && timeOk){
-        var r = i + 2;
-        sh.getRange(r, 12).setValue(url);
-        sh.getRange(r, 10).setValue("نعم");
-        return;
-      }
     }
   }
 }
@@ -1126,9 +1150,7 @@ var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
                 || null);
 
     var imgCell = localImg
-      ? '<a class="imgLink" href="'+localImg+'" target="_blank" rel="noopener" title="فتح الصورة في تبويب جديد">'
-        + '<span style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:800;">📷 صورة</span>'
-        + '</a>'
+      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'
       : '<span style="color:#cbd5e1;">—</span>';
 
     var notesCell = v.notes
@@ -1155,7 +1177,9 @@ var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
 
     els.tableBody.appendChild(tr);
   });
-});
+
+  els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
+    img.addEventListener("click",function(){ viewImage(img.getAttribute("data-src")||img.src); });
   });
 
   els.tableFooter.style.display="block";
