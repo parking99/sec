@@ -126,7 +126,7 @@
       text-transform: uppercase;
       letter-spacing: .7px;
     }
-    .login-input-wrap { position: relative; }
+    .login-input-wrap { position: relative; direction: ltr; }
     .login-input {
       font-family: 'IBM Plex Sans Arabic', sans-serif;
       font-size: 15px;
@@ -138,6 +138,8 @@
       width: 100%;
       transition: all .2s;
       letter-spacing: 0.3px;
+      direction: rtl;
+      text-align: right;
     }
     .login-input::placeholder { color: rgba(255,255,255,.25); }
     .login-input:focus {
@@ -151,6 +153,8 @@
       font-size: 18px;
       font-weight: 700;
       letter-spacing: 2px;
+      direction: ltr;
+      text-align: center;
     }
     .password-toggle {
       position: absolute;
@@ -164,6 +168,7 @@
       font-size: 16px;
       padding: 4px;
       transition: color .2s;
+      z-index: 2;
     }
     .password-toggle:hover { color: rgba(255,255,255,.7); }
     .login-input.has-toggle { padding-left: 44px; }
@@ -1373,20 +1378,35 @@ async function doLogin(){
       GS_URL + "?action=login&empId=" + encodeURIComponent(id) + "&password=" + encodeURIComponent(pwd),
       15000
     );
-    if(data && data.success){
+
+    // Debug: log raw response
+    console.log("Login response:", JSON.stringify(data));
+
+    if(!data){
+      showLoginError("❌ لم يصل رد من الخادم — تأكد من نشر Apps Script");
+      return;
+    }
+
+    if(data.success){
       saveSession({empId: data.empId, name: data.name, dept: data.dept||"", role: data.role||"guard"});
       onLoginSuccess();
-    } else if(data && data.error === "no_sheet"){
-      showLoginError("⚠️ " + (data.msg||"ورقة الموظفون غير موجودة في Google Sheets"));
-    } else if(data && data.error === "wrong_password"){
+    } else if(data.error === "no_sheet"){
+      showLoginError("⚠️ ورقة 'الموظفون' غير موجودة في Google Sheets");
+    } else if(data.error === "wrong_password"){
       showLoginError("❌ كلمة السر غير صحيحة");
-    } else if(data && data.error === "not_found"){
-      showLoginError("❌ الرقم الوظيفي غير موجود");
+    } else if(data.error === "not_found"){
+      showLoginError("❌ الرقم الوظيفي غير موجود في قاعدة البيانات");
+    } else if(data.error === "unknown_action"){
+      showLoginError("⚠️ الكود القديم — يجب تحديث Apps Script ليدعم تسجيل الدخول");
+    } else if(data.error === "missing_fields"){
+      showLoginError("❌ أدخل الرقم الوظيفي وكلمة السر");
     } else {
-      showLoginError("❌ خطأ غير متوقع — حاول مجدداً");
+      var errMsg = data.error || data.message || JSON.stringify(data);
+      showLoginError("❌ خطأ: " + errMsg);
     }
   }catch(err){
-    showLoginError("❌ تعذّر الاتصال: " + err.message);
+    console.error("Login error:", err);
+    showLoginError("❌ تعذّر الاتصال بـ Google Sheets\n" + err.message + "\n\nتأكد من:\n• نشر Script كـ 'Anyone'\n• تحديث الكود الجديد");
   }finally{
     loginBtn.disabled = false;
     loginBtn.textContent = "🔐 تسجيل الدخول";
@@ -1394,7 +1414,7 @@ async function doLogin(){
 }
 
 function showLoginError(msg){
-  loginError.textContent = msg;
+  loginError.innerHTML = msg.replace(/\n/g, "<br>");
   loginError.classList.add("show");
   loginPassword.value = "";
   loginPassword.focus();
