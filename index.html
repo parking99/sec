@@ -922,6 +922,10 @@
   </div>
 </header>
 
+<!-- FALLBACK WARNING BANNER -->
+<div id="fallbackBanner" style="display:none;background:linear-gradient(90deg,#92400e,#b45309);color:#fff;text-align:center;padding:8px 16px;font-size:12px;font-weight:700;">
+  ⚠️ وضع احتياطي: تسجيل دخول بدون كلمة سر — يُرجى تحديث Apps Script من ⚙️ الإعداد لتفعيل الأمان الكامل
+</div>
 <!-- SYNC BAR -->
 <div class="sync-bar no-print">
   <div class="sync-dot" id="syncDot"></div>
@@ -1397,7 +1401,8 @@ async function doLogin(){
     } else if(data.error === "not_found"){
       showLoginError("❌ الرقم الوظيفي غير موجود في قاعدة البيانات");
     } else if(data.error === "unknown_action"){
-      showLoginError("⚠️ الكود القديم — يجب تحديث Apps Script ليدعم تسجيل الدخول");
+      // الوضع الاحتياطي: الكود القديم لا يدعم login — ندخل بالرقم الوظيفي فقط
+      await fallbackLogin(id);
     } else if(data.error === "missing_fields"){
       showLoginError("❌ أدخل الرقم الوظيفي وكلمة السر");
     } else {
@@ -1407,6 +1412,38 @@ async function doLogin(){
   }catch(err){
     console.error("Login error:", err);
     showLoginError("❌ تعذّر الاتصال بـ Google Sheets\n" + err.message + "\n\nتأكد من:\n• نشر Script كـ 'Anyone'\n• تحديث الكود الجديد");
+  }finally{
+    loginBtn.disabled = false;
+    loginBtn.textContent = "🔐 تسجيل الدخول";
+  }
+}
+
+
+// ── وضع احتياطي: إذا كان الكود القديم لا يدعم login ──
+// يتحقق من الرقم الوظيفي فقط عبر getGuard (بدون كلمة سر)
+async function fallbackLogin(id){
+  loginBtn.innerHTML = "⏳ جارٍ التحقق (وضع احتياطي)…";
+  try{
+    var data = await jsonpCall(GS_URL + "?action=getGuard&empId=" + encodeURIComponent(id), 12000);
+    if(data && data.success){
+      // نجح — دخل بدون كلمة سر مع تحذير
+      saveSession({empId: id, name: data.name, dept: data.dept||"", role: "guard", fallback: true});
+      // أضف شارة تحذير في اسم المستخدم
+      currentUser.fallback = true;
+      onLoginSuccess();
+      // تحذير بعد الدخول
+      setTimeout(function(){
+        setSyncStatus("error", "⚠️ وضع احتياطي — يُرجى تحديث Apps Script لتفعيل كلمة السر");
+      }, 2000);
+    } else if(data && data.error === "not_found"){
+      showLoginError("❌ الرقم الوظيفي غير موجود في قاعدة البيانات");
+    } else if(data && data.error === "no_sheet"){
+      showLoginError("⚠️ ورقة 'الموظفون' غير موجودة في Google Sheets");
+    } else {
+      showLoginError("⚠️ الكود القديم لا يدعم تسجيل الدخول<br>يجب تحديث Apps Script من إعدادات ⚙️");
+    }
+  }catch(err){
+    showLoginError("❌ تعذّر الاتصال: " + err.message);
   }finally{
     loginBtn.disabled = false;
     loginBtn.textContent = "🔐 تسجيل الدخول";
@@ -1433,6 +1470,12 @@ function onLoginSuccess(){
   // Update report object
   report.guard = {empId: currentUser.empId, name: currentUser.name, dept: currentUser.dept||""};
   saveLocal();
+
+  // Show fallback warning banner if needed
+  if(currentUser && currentUser.fallback){
+    var banner = $("fallbackBanner");
+    if(banner) banner.style.display = "block";
+  }
 
   // Animate login screen out, show app
   loginScreen.classList.add("hidden");
