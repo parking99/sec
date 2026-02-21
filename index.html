@@ -945,31 +945,23 @@
 
       /* ═══ أيقونة الرابط في الطباعة ═══ */
       .print-link-icon-btn {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 28px !important;
-        height: 28px !important;
-        border-radius: 6px !important;
+        display: inline-block !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
         background: #1a56db !important;
         color: #fff !important;
         text-decoration: none !important;
-        font-size: 14px !important;
+        font-size: 8px !important;
         font-weight: 700 !important;
+        font-family: Arial, sans-serif !important;
+        letter-spacing: 0.3px !important;
+        line-height: 1.6 !important;
         border: none !important;
-        box-shadow: 0 1px 4px rgba(26,86,219,.4) !important;
       }
 
       .print-no-link {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 28px !important;
-        height: 28px !important;
-        border-radius: 6px !important;
-        background: #f1f5f9 !important;
         color: #cbd5e1 !important;
-        font-size: 14px !important;
+        font-size: 9px !important;
       }
 
       /* ═══ الجدول ═══ */
@@ -2105,7 +2097,7 @@ function renderTable(){
 
     // ═══ خلية الأيقونة — للطباعة فقط (أيقونة زر قابلة للنقر) ═══
     var linkCellPrint = driveUrl
-      ? '<td class="col-link-print"><a class="print-link-icon-btn" href="'+driveUrl+'" target="_blank">🔗</a></td>'
+      ? '<td class="col-link-print"><a class="print-link-icon-btn" href="'+driveUrl+'" target="_blank">&#x1F517; عرض</a></td>'
       : '<td class="col-link-print"><span class="print-no-link">—</span></td>';
 
     var towerClass="tower-badge tower-"+(["A","B","C"].includes(v.tower)?v.tower:"");
