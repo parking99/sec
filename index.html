@@ -865,8 +865,17 @@ function checkPlateExists(plateVal){
 
 /* ════════ Add to Cloud ════════ */
 async function addToCloud(v, imgB64){
-  // ═══ خطوة 1: أضف السجل بدون صورة أولاً ═══
   var hasImg = imgB64 ? "نعم" : "لا";
+
+  // ═══ ضغط الصورة لـ 400px كحد أقصى قبل الإرسال ═══
+  var smallImg = null;
+  if(imgB64){
+    try{
+      smallImg = await compressImage(imgB64, 400, 0.5);
+    }catch(e){ smallImg = null; }
+  }
+
+  // ═══ أرسل كل شيء في طلب واحد عبر JSONP ═══
   var params = [
     "action=add",
     "tower="+encodeURIComponent(v.tower),
@@ -879,92 +888,31 @@ async function addToCloud(v, imgB64){
     "notes="+encodeURIComponent(v.notes||""),
     "empName="+encodeURIComponent(report.guard.name),
     "empId="+encodeURIComponent(report.guard.empId),
-    "hasImage="+encodeURIComponent(hasImg)
+    "hasImage="+encodeURIComponent(hasImg),
+    "imgData="+encodeURIComponent(smallImg||"")
   ].join("&");
-  var res = await jsonpCall(GS_URL+"?"+params, 15000);
-  if(!res || !res.success) return res;
-
-  // ═══ خطوة 2: ارفع الصورة على Drive إذا وجدت ═══
-  if(imgB64){
-    try{
-      setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
-      var resp = await fetch(GS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action:  "uploadImage",
-          plate:   v.plate,
-          date:    v.date,
-          time:    v.time,
-          imgData: imgB64
-        })
-      });
-      var imgRes = await resp.json();
-      if(imgRes && imgRes.driveUrl){
-        // احفظ الرابط محلياً للعرض الفوري
-        localImages["plate_"+v.plate] = imgRes.driveUrl;
-      }
-    }catch(e){
-      console.warn("Image upload failed:", e.message);
-      // السجل محفوظ، فقط الصورة لم ترفع
-    }
-  }
-  return res;
+  return await jsonpCall(GS_URL+"?"+params, 30000);
 }
 
-/* ════════ Helpers ════════ */
-function setNow(){
-  var n = new Date();
-  els.reportDate.value = n.toISOString().split("T")[0];
-  els.reportTime.value = n.toTimeString().slice(0,5);
-  els.obsDate.value    = n.toISOString().split("T")[0];
-}
-setInterval(function(){ els.reportTime.value = new Date().toTimeString().slice(0,5); },1000);
-function setStatus(m){ els.status.textContent = m; }
-function clearForm(){
-  els.tower.value=""; els.floor.value=""; els.plate.value="";
-  els.notes.value=""; els.carStatus.value="";
-  els.obsDate.value = new Date().toISOString().split("T")[0];
-  clearImage();
-  els.plateFoundCard.classList.remove("show");
-}
-
-/* ════════ Image ════════ */
-function setImage(src){
-  currentImgBase64 = src;
-  els.imgUploadArea.classList.add("has-img");
-  els.imgUploadArea.innerHTML = '<img src="'+src+'" alt="صورة المركبة"/>';
-  els.btnClearImg.style.display = "block";
-}
-function clearImage(){
-  currentImgBase64 = null;
-  els.imgUploadArea.classList.remove("has-img");
-  els.imgUploadArea.innerHTML = '<div class="upload-icon">📷</div><div class="upload-hint">اضغط لرفع صورة أو التقاط بالكاميرا</div>';
-  els.btnClearImg.style.display = "none";
-}
-els.vehicleImg.addEventListener("change", function(e){
-  var file = e.target.files && e.target.files[0];
-  if(!file) return;
-  var reader = new FileReader();
-  reader.onload = function(ev){
+// ضغط الصورة
+function compressImage(base64, maxSize, quality){
+  return new Promise(function(resolve, reject){
     var img = new Image();
     img.onload = function(){
+      var w = img.width, h = img.height;
+      if(w > maxSize){ h = Math.round(h*maxSize/w); w = maxSize; }
+      if(h > maxSize){ w = Math.round(w*maxSize/h); h = maxSize; }
       var canvas = document.createElement("canvas");
-      var MAX=800, w=img.width, h=img.height;
-      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
-      if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
-      canvas.width=w; canvas.height=h;
-      canvas.getContext("2d").drawImage(img,0,0,w,h);
-      setImage(canvas.toDataURL("image/jpeg",0.75));
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
     };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-  e.target.value="";
-});
-els.btnClearImg.addEventListener("click", clearImage);
+    img.onerror = reject;
+    img.src = base64;
+  });
+}
 
-/* ════════ Add Vehicle ════════ */
+
 async function addVehicle(){
   var tower=els.tower.value.trim(), floor=els.floor.value.trim();
   var plate=els.plate.value.trim().toUpperCase();
