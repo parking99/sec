@@ -951,6 +951,7 @@ async function addVehicle(){
   els.btnAdd.disabled=true; els.btnAdd.textContent="⏳ جارٍ الحفظ...";
   setSyncStatus("loading","⏳ جارٍ إضافة "+plate+"...");
   var savedImg = currentImgBase64;
+  v.hasImage = savedImg ? "نعم" : "لا";
 
   try{
     var res = await addToCloud(v);
