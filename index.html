@@ -1170,17 +1170,15 @@ function renderTable(){
       carStatus:String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||""),
       notes:  String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||""),
       guard:  String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""),
-      hasImg: String(getField(v,["صورة","📷 صورة"])||v.hasImage||"")
+      hasImg: String(getField(v,["صورة","📷 صورة"])||v.hasImage||""),
+      driveUrlRaw:String(getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"])||v.driveUrl||v["رابط الصورة"]||"")
     };
   }).reverse();
 
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
 
-    var driveUrlRaw = (
-  getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"])
-  || v.driveUrl || v["رابط الصورة"] || ""
-);
+    var driveUrlRaw = (v.driveUrlRaw !== undefined ? v.driveUrlRaw : (getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"]) || v.driveUrl || v["رابط الصورة"] || ""));
 var driveUrl = normalizeDriveUrl(driveUrlRaw);
 
 // إن لم يوجد رابط من الشيت، جرّب المحلي (جلسة نفس الجهاز فقط)
