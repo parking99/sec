@@ -1045,6 +1045,20 @@ function normalizeDriveUrl(u){
   return u;
 }
 
+function findImageUrlFromRow(v){
+  // حاول العثور على رابط الصورة حتى لو تغيّر اسم العمود أو احتوى على رموز/إيموجي
+  for(var k in v){
+    var nk = String(k||"").replace(/\s+/g," ").trim();
+    if(/رابط/.test(nk) && /صورة|الصورة|صور/.test(nk)){
+      var val = String(v[k]||"").trim();
+      if(val) return val;
+    }
+  }
+  // مفاتيح شائعة
+  return v.driveUrl || v["رابط الصورة"] || v["🔗 رابط الصورة"] || v["Image URL"] || "";
+}
+
+
 function renderTable(){
   els.tableBody.innerHTML="";
   if(!cloudData.length){
@@ -1072,10 +1086,10 @@ function renderTable(){
 
     var driveUrlRaw = (
   getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"])
-  || v.driveUrl || v["رابط الصورة"] || ""
+  || findImageUrlFromRow(v)
+  || ""
 );
 var driveUrl = normalizeDriveUrl(driveUrlRaw);
-
 // إن لم يوجد رابط من الشيت، جرّب المحلي (جلسة نفس الجهاز فقط)
 var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
              : (localImages["plate_" + v.plate]
