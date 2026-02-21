@@ -738,14 +738,23 @@ async function lookupGuard(silent){
    🔧 مساعدات
    ════════════════════════════════════════════════ */
 function getField(v, keys){
+  function normKey(k){
+    return String(k||"")
+      .replace(/[\u{1F300}-\u{1FAFF}]/gu,"")
+      .replace(/[^\u0600-\u06FFa-zA-Z0-9 ]/g," ")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+
   for(var i=0;i<keys.length;i++){
     if(v[keys[i]] !== undefined && v[keys[i]] !== "") return v[keys[i]];
   }
+
+  var want = keys.map(normKey);
   for(var vk in v){
-    var clean = vk.replace(/^[^\u0600-\u06FF]+/,"").trim();
-    for(var j=0;j<keys.length;j++){
-      var kc = keys[j].replace(/^[^\u0600-\u06FF]+/,"").trim();
-      if(clean === kc && v[vk] !== undefined && v[vk] !== "") return v[vk];
+    var nk = normKey(vk);
+    for(var j=0;j<want.length;j++){
+      if(nk === want[j] && v[vk] !== undefined && v[vk] !== "") return v[vk];
     }
   }
   return "";
@@ -1016,6 +1025,26 @@ function towerBadge(t){
   return '<span class="tower-badge" style="'+st+'">'+t+'</span>';
 }
 
+function normalizeDriveUrl(u){
+  u = String(u||"").trim();
+  if(!u) return "";
+  if(u.indexOf("drive.google.com/uc?export=view&id=") >= 0) return u;
+
+  var id = "";
+  var m = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(m) id = m[1];
+  if(!id){
+    m = u.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if(m) id = m[1];
+  }
+  if(!id){
+    m = u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if(m) id = m[1];
+  }
+  if(id) return "https://drive.google.com/uc?export=view&id=" + id;
+  return u;
+}
+
 function renderTable(){
   els.tableBody.innerHTML="";
   if(!cloudData.length){
@@ -1041,9 +1070,18 @@ function renderTable(){
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
 
-    var driveUrl = String(getField(v,["رابط الصورة","بيانات الصورة","driveUrl"])||v.driveUrl||v["رابط الصورة"]||"").trim();
-    var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
-                 : localImages["plate_" + v.plate] || null;
+    var driveUrlRaw = (
+  getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"])
+  || v.driveUrl || v["رابط الصورة"] || ""
+);
+var driveUrl = normalizeDriveUrl(driveUrlRaw);
+
+// إن لم يوجد رابط من الشيت، جرّب المحلي (جلسة نفس الجهاز فقط)
+var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
+             : (localImages["plate_" + v.plate]
+                || localImages[v.plate + "_" + v.date + "_" + v.time.replace(":","")]
+                || localImages[v.plate + "_" + v.date]
+                || null);
 
     var imgCell = localImg
       ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'
