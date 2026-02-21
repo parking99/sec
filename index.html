@@ -834,109 +834,196 @@
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
-      #loginScreen, .no-print, #fallbackBanner { display: none !important; }
+      /* ═══ إخفاء كل شيء ما عدا الجدول ═══ */
+      #loginScreen,
+      #fallbackBanner,
+      .header,
+      .sync-bar,
+      .stats-grid,
+      .no-print,
+      .card:not(:last-of-type),
+      .card-header .btn,
+      .img-drive-link { display: none !important; }
 
-      body { background: #fff !important; font-size: 11px !important; }
+      /* ═══ إعداد الصفحة ═══ */
+      @page {
+        size: A4 landscape;
+        margin: 10mm 12mm;
+      }
+
+      html, body {
+        background: #fff !important;
+        font-size: 11px !important;
+        font-family: 'IBM Plex Sans Arabic', sans-serif !important;
+      }
 
       #appWrapper { display: block !important; }
 
-      .header {
-        position: static !important;
-        background: #0a0f1e !important;
-        color: #fff !important;
-        padding: 10px 20px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        margin-bottom: 12px;
-      }
-      .header-title { color: #fff !important; font-size: 14px !important; }
-      .header-sub { color: rgba(255,255,255,.6) !important; }
-      .header-icon { background: #1a56db !important; }
-
-      /* Print report header info */
-      .sync-bar {
-        display: flex !important;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        margin-bottom: 12px;
-        padding: 8px 16px !important;
-        font-size: 11px;
-      }
-
       .main { padding: 0 !important; max-width: 100% !important; }
 
-      /* Stats - show in print */
-      .stats-grid {
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 8px !important;
-        margin-bottom: 12px !important;
-      }
-      .stat-card {
-        box-shadow: none !important;
-        border: 1.5px solid #e2e8f0 !important;
-        padding: 10px 14px !important;
-        break-inside: avoid;
-      }
-      .stat-card::before { width: 3px !important; }
-      .stat-value { font-size: 22px !important; }
-      .stat-label { font-size: 10px !important; }
-
-      /* Guard card */
-      .card {
-        box-shadow: none !important;
-        border: 1px solid #e2e8f0 !important;
-        margin-bottom: 10px !important;
-        break-inside: avoid;
-      }
-      .card-header { padding: 10px 16px !important; }
-      .card-body { padding: 12px 16px !important; }
-      .guard-card {
+      /* ═══ رأس التقرير للطباعة ═══ */
+      .print-report-header {
         display: flex !important;
-        background: #f0fdf4 !important;
-        border: 1px solid #6ee7b7 !important;
-        padding: 10px !important;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0 8px;
+        border-bottom: 3px solid #0a0f1e;
+        margin-bottom: 10px;
+      }
+      .print-report-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #0a0f1e;
+        letter-spacing: -0.5px;
+      }
+      .print-report-sub {
+        font-size: 10px;
+        color: #475569;
+        margin-top: 2px;
+      }
+      .print-report-meta {
+        text-align: left;
+        font-size: 10px;
+        color: #475569;
+      }
+      .print-report-meta strong {
+        display: block;
+        font-size: 12px;
+        color: #0a0f1e;
+        font-weight: 700;
       }
 
-      /* TABLE */
+      /* ═══ الجدول ═══ */
+      .card:last-of-type {
+        display: block !important;
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+      }
+      .card-header {
+        padding: 0 0 6px !important;
+        border-bottom: 2px solid #0a0f1e !important;
+        margin-bottom: 8px;
+        background: transparent !important;
+      }
+      .card-title {
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        color: #0a0f1e !important;
+      }
+      .card-title-icon { display: none !important; }
+
       .table-wrap { overflow: visible !important; }
-      table { min-width: unset !important; width: 100% !important; border-collapse: collapse !important; }
+      table {
+        min-width: unset !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        border: 1px solid #cbd5e1;
+      }
       thead tr { background: #0a0f1e !important; }
       th {
         background: #0a0f1e !important;
-        color: rgba(255,255,255,.85) !important;
-        font-size: 9px !important;
-        padding: 8px 8px !important;
+        color: #fff !important;
+        font-size: 9.5px !important;
+        padding: 7px 8px !important;
         position: static !important;
+        border: 1px solid #1e293b !important;
+        text-align: right !important;
       }
-      td { font-size: 10px !important; padding: 7px 8px !important; }
-      tbody tr { border-bottom: 1px solid #e2e8f0 !important; }
+      td {
+        font-size: 10px !important;
+        padding: 6px 8px !important;
+        border: 1px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+      }
       tbody tr:nth-child(even) { background: #f8f9fc !important; }
+      tbody tr:nth-child(odd)  { background: #ffffff !important; }
 
-      /* Badges in print */
+      /* Badges */
       .plate-badge {
         font-size: 10px !important;
         padding: 3px 7px !important;
         background: #0a0f1e !important;
         color: #fff !important;
         border-radius: 4px !important;
+        letter-spacing: 1px !important;
       }
-      .tower-badge { width: 24px !important; height: 24px !important; font-size: 10px !important; border-radius: 5px !important; }
-      .floor-badge, .date-pill, .time-pill, .guard-pill { font-size: 9px !important; padding: 2px 6px !important; }
-      .status-new, .status-mid, .status-dust { font-size: 9px !important; padding: 2px 6px !important; }
-
-      /* Images in print */
-      .img-thumb { width: 56px !important; height: 40px !important; border-radius: 4px !important; }
-      .img-drive-link { display: none !important; }
-
-      /* Page setup */
-      @page {
-        size: A4 landscape;
-        margin: 12mm 10mm;
+      .tower-badge {
+        width: 22px !important; height: 22px !important;
+        font-size: 10px !important;
+        border-radius: 4px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .tower-A { background: #1a56db !important; color: #fff !important; }
+      .tower-B { background: #059669 !important; color: #fff !important; }
+      .tower-C { background: #dc2626 !important; color: #fff !important; }
+      .floor-badge {
+        background: #fef3c7 !important;
+        color: #92400e !important;
+        padding: 2px 6px !important;
+        font-size: 9px !important;
+        border-radius: 4px !important;
+      }
+      .guard-pill {
+        background: #f5f3ff !important;
+        color: #5b21b6 !important;
+        padding: 2px 6px !important;
+        font-size: 9px !important;
+        border-radius: 4px !important;
+      }
+      .status-new {
+        background: #dcfce7 !important;
+        color: #166534 !important;
+        padding: 2px 6px !important;
+        font-size: 9px !important;
+        border-radius: 4px !important;
+      }
+      .status-mid {
+        background: #fef9c3 !important;
+        color: #854d0e !important;
+        padding: 2px 6px !important;
+        font-size: 9px !important;
+        border-radius: 4px !important;
+      }
+      .status-dust {
+        background: #fee2e2 !important;
+        color: #991b1b !important;
+        padding: 2px 6px !important;
+        font-size: 9px !important;
+        border-radius: 4px !important;
+      }
+      .date-pill, .time-pill {
+        background: #f1f5f9 !important;
+        color: #0a0f1e !important;
+        padding: 2px 5px !important;
+        font-size: 9px !important;
+        border-radius: 3px !important;
       }
 
-      /* Page break control */
+      /* صورة + رابط في الطباعة */
+      .img-thumb-wrap { display: block !important; }
+      .img-thumb {
+        width: 56px !important;
+        height: 40px !important;
+        border-radius: 4px !important;
+        border: 1px solid #e2e8f0 !important;
+      }
+      /* رابط الصورة كنص في الطباعة */
+      .print-img-link {
+        display: block !important;
+        font-size: 8px !important;
+        color: #1a56db !important;
+        text-decoration: underline !important;
+        margin-top: 2px !important;
+        word-break: break-all !important;
+        max-width: 80px !important;
+      }
+
+      /* footer */
+      .table-footer { display: none !important; }
+
       thead { display: table-header-group; }
       tbody tr { break-inside: avoid; }
     }
@@ -1037,6 +1124,18 @@
     <button class="btn btn-primary btn-sm no-print" id="btnSync">🔄 تحديث</button>
   </div>
 </header>
+
+<!-- PRINT REPORT HEADER — يظهر فقط عند الطباعة -->
+<div class="print-report-header" style="display:none;">
+  <div>
+    <div class="print-report-title">🚗 تقرير رصد السيارات</div>
+    <div class="print-report-sub" id="printGuardInfo">نظام المراقبة الذكي — Google Sheets</div>
+  </div>
+  <div class="print-report-meta">
+    <strong id="printDateInfo"></strong>
+    <span id="printCountInfo"></span>
+  </div>
+</div>
 
 <!-- FALLBACK WARNING BANNER -->
 <div id="fallbackBanner" style="display:none;background:linear-gradient(90deg,#92400e,#b45309);color:#fff;text-align:center;padding:8px 16px;font-size:12px;font-weight:700;">
@@ -1587,6 +1686,17 @@ function onLoginSuccess(){
   report.guard = {empId: currentUser.empId, name: currentUser.name, dept: currentUser.dept||""};
   saveLocal();
 
+  // Update print header info
+  var pd = $("printDateInfo");
+  var pg = $("printGuardInfo");
+  var pc = $("printCountInfo");
+  if(pd){
+    var now = new Date();
+    var months=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+    pd.textContent = now.getDate()+" "+months[now.getMonth()]+" "+now.getFullYear()+" — "+("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
+  }
+  if(pg && currentUser) pg.textContent = "الحارس: "+currentUser.name+" | الرقم: "+currentUser.empId+(currentUser.dept?" | "+currentUser.dept:"");
+
   // Show fallback warning banner if needed
   if(currentUser && currentUser.fallback){
     var banner = $("fallbackBanner");
@@ -1920,7 +2030,9 @@ function renderTable(){
     var localImg=(driveUrl&&driveUrl.startsWith("http"))?driveUrl:(localImages["plate_"+v.plate]||localImages[v.plate+"_"+v.date]||null);
 
     var imgCell=localImg
-      ?'<div class="img-thumb-wrap"><img class="img-thumb" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\'">'+(driveUrl?'<a class="img-drive-link" href="'+driveUrl+'" target="_blank">↗</a>':'')+' </div>'
+      ?'<div class="img-thumb-wrap"><img class="img-thumb" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\'">'+(driveUrl?'<a class="img-drive-link" href="'+driveUrl+'" target="_blank">↗</a>':'')+
+        (driveUrl?'<a class="print-img-link" href="'+driveUrl+'" target="_blank">🔗 صورة</a>':'')+
+        '</div>'
       :'<span style="color:var(--border);">—</span>';
 
     var towerClass="tower-badge tower-"+(["A","B","C"].includes(v.tower)?v.tower:"");
@@ -1952,6 +2064,7 @@ function renderTable(){
   });
 
   els.footerCount.textContent=cloudData.length+" سجل";
+  var pc2=$("printCountInfo"); if(pc2) pc2.textContent="إجمالي السجلات: "+cloudData.length;
 }
 
 function viewImage(src){ els.fullImage.src=src; els.imageModal.classList.add("active"); }
