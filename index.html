@@ -788,26 +788,7 @@ function fixExcelDate(val){
     var d=new Date(Date.UTC(1899,11,30)+num*86400000);
     return d.toISOString().slice(0,10);
   }
-  
-/* ════════ Normalize Drive URL ════════ */
-function normalizeDriveUrl(u){
-  u = String(u||"").trim();
-  if(!u) return "";
-  // already direct uc view
-  if(u.indexOf("drive.google.com/uc?")>-1) return u;
-  // file/d/<id>/
-  var m1 = u.match(/drive\.google\.com\/file\/d\/([^\/\?]+)/);
-  if(m1 && m1[1]) return "https://drive.google.com/uc?export=view&id=" + m1[1];
-  // open?id=<id>
-  var m2 = u.match(/[\?&]id=([^&]+)/);
-  if(m2 && m2[1]) return "https://drive.google.com/uc?export=view&id=" + m2[1];
-  // already a http(s) image
-  if(/^https?:\/\//i.test(u)) return u;
-  return "";
-}
-
-
-return s.slice(0,10);
+  return s.slice(0,10);
 }
 
 /* ════════ JSONP ════════ */
@@ -914,36 +895,40 @@ async function addToCloud(v){
 }
 
 async function uploadImageToDrive(v, imgB64){
-  // ملاحظة مهمة: Web App (Apps Script) لا يدعم CORS بشكل كامل
-  // لذلك نرسل الطلب بـ no-cors (لا نستطيع قراءة الرد)، ثم نعمل Refresh للجدول لالتقاط رابط Drive من الشيت.
   try {
     setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
 
-    // ضغط الصورة (حجم مناسب للعرض داخل الجدول)
-    var small  = await compressImage(imgB64, 800, 0.75);
+    // ضغط الصورة (حجم أكبر قليلًا للوضوح داخل الجدول)
+    var small  = await compressImage(imgB64, 600, 0.7);
     var base64 = small.split(",")[1] || small;
 
-    await fetch(GS_URL, {
+    // ملاحظة: بعض بيئات Apps Script تتعامل أفضل مع text/plain
+    var resp = await fetch(GS_URL, {
       method : "POST",
-      mode   : "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body   : JSON.stringify({
         action : "uploadImage",
         plate  : v.plate,
         date   : v.date,
-        time   : v.time,   // يساعد على تحديث نفس الصف عند تكرار اللوحة
+        time   : v.time,   // ✅ مهم لتحديث نفس الصف
         imgData: base64
       })
     });
 
-    // لا يمكن قراءة الرد (opaque) — نعمل إعادة تحميل بعد فترة بسيطة
-    setSyncStatus("loading","✅ تم إرسال الصورة — جارٍ تحديث البيانات...");
-    setTimeout(function(){ loadFromCloud(false); }, 2000);
-    setTimeout(function(){ loadFromCloud(false); }, 5000); // محاولة ثانية للتأكد
+    var text   = await resp.text();
+    var result = JSON.parse(text || "{}");
 
+    if(result && result.driveUrl){
+      // بعد نجاح الرفع: أعِد جلب البيانات من السحابة ليظهر الرابط لكل الأجهزة
+      setSyncStatus("ok","✅ تم رفع الصورة على Drive — جارٍ تحديث الجدول...");
+      setTimeout(function(){ loadFromCloud(false); }, 900);
+    } else {
+      setSyncStatus("error","⚠️ تم رفع الصورة لكن لم يتم إرجاع رابط");
+    }
   } catch(err) {
     console.warn("Drive upload:", err && err.message ? err.message : err);
-    setSyncStatus("error","⚠️ تعذّر رفع الصورة — تأكد من إعداد Apps Script والصلاحيات");
+    // فشل رفع الصورة لا يؤثر على السجل
+    setSyncStatus("ok","✅ تم الحفظ (الصورة محلياً فقط)");
   }
 }
 
@@ -1066,57 +1051,40 @@ function renderTable(){
     els.tableBody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">🚗</div><p><b>لا توجد بيانات بعد</b></p><p style="font-size:12px;">أضف سجلاً أو اضغط "🔄 تحديث"</p></div></td></tr>';
     els.tableFooter.style.display="none"; return;
   }
-  var rows = cloudData.map(function(rec){
-    var rawDate = getField(rec,["تاريخ الرصد","📅 تاريخ الرصد"]) || rec.obsDate || rec.date || "";
-    var rawTime = getField(rec,["الوقت","⏰ الوقت"]) || rec.time || "";
-    // رابط الصورة: من عمود "رابط الصورة" (أو أي حقل فيه رابط Drive)
-    var driveUrl = String(
-      getField(rec,["رابط الصورة","رابط_الصورة","driveUrl","DriveUrl","Image URL","رابط","Link"]) ||
-      rec.driveUrl || rec["رابط الصورة"] || ""
-    ).trim();
-    driveUrl = normalizeDriveUrl(driveUrl);
-    if(!driveUrl){
-      for(var kk in rec){
-        var vv = rec[kk];
-        if(typeof vv === "string" && /https?:\/\/(drive|lh3|googleusercontent|google)\./i.test(vv) && vv.indexOf("http")===0){
-          driveUrl = vv.trim();
-          break;
-        }
-      }
-    }
-    driveUrl = normalizeDriveUrl(driveUrl);
-
+  var rows = cloudData.map(function(v){
+    var rawDate=getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
+    var rawTime=getField(v,["الوقت","⏰ الوقت"])||v.time||"";
     return {
-      tower:  String(getField(rec,["البرج","🏢 البرج"])||rec.tower||"").trim().toUpperCase(),
-      floor:  String(getField(rec,["الدور","🔢 الدور"])||rec.floor||""),
-      plate:  String(getField(rec,["رقم اللوحة","🚗 رقم اللوحة"])||rec.plate||""),
+      tower:  String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
+      floor:  String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
+      plate:  String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
       date:   fixExcelDate(rawDate),
       time:   fixExcelTime(rawTime),
-      carStatus:String(getField(rec,["حالة المركبة","🚦 حالة المركبة"])||rec.carStatus||""),
-      notes:  String(getField(rec,["ملاحظات","📝 ملاحظات"])||rec.notes||""),
-      guard:  String(getField(rec,["رجل الأمن","👤 رجل الأمن"])||rec.empName||""),
-      hasImg: String(getField(rec,["صورة","📷 صورة"])||rec.hasImage||""),
-      driveUrl: driveUrl
+      carStatus:String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||""),
+      notes:  String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||""),
+      guard:  String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""),
+      hasImg: String(getField(v,["صورة","📷 صورة"])||v.hasImage||"")
     };
   }).reverse();
 
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
-    // الصورة: استخدم رابط Drive القادم من الشيت (يظهر لكل الأجهزة)
-    var driveUrl = v.driveUrl || "";
-    // احتياط: صور محلية إن وُجدت
-    var localImg = (driveUrl && driveUrl.indexOf("http")===0)
-      ? driveUrl
-      : (localImages["plate_" + v.plate]
-         || localImages[v.plate + "_" + v.date + "_" + v.time.replace(":","")]
-         || localImages[v.plate + "_" + v.date]
-         || null);
+
+    var driveUrlRaw = (
+  getField(v,["رابط الصورة","🔗 رابط الصورة","Image URL","driveUrl","بيانات الصورة","رابط الصوره","url"])
+  || v.driveUrl || v["رابط الصورة"] || ""
+);
+var driveUrl = normalizeDriveUrl(driveUrlRaw);
+
+// إن لم يوجد رابط من الشيت، جرّب المحلي (جلسة نفس الجهاز فقط)
+var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
+             : (localImages["plate_" + v.plate]
+                || localImages[v.plate + "_" + v.date + "_" + v.time.replace(":","")]
+                || localImages[v.plate + "_" + v.date]
+                || null);
 
     var imgCell = localImg
-      ? '<div class="imgHolder" data-src="'+localImg+'" title="عرض الصورة" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">'
-        + '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'inline-block\';" />'
-        + '<span class="imgFallback" style="display:none;background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:11px;">📷</span>'
-        + '</div>'
+      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'
       : '<span style="color:#cbd5e1;">—</span>';
 
     var notesCell = v.notes
@@ -1146,13 +1114,6 @@ function renderTable(){
 
   els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
     img.addEventListener("click",function(){ viewImage(img.getAttribute("data-src")||img.src); });
-  });
-
-  els.tableBody.querySelectorAll(".imgHolder").forEach(function(box){
-    box.addEventListener("click", function(){
-      var src = box.getAttribute("data-src");
-      if(src) viewImage(src);
-    });
   });
 
   els.tableFooter.style.display="block";
