@@ -106,18 +106,33 @@
     .imgPrev:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(37,99,235,.35);}
     
 
-    /* ── Link Icon on Image (فتح رابط Google Drive) ── */
+    /* ── Camera Link Button (احترافي أزرق) ── */
     .img-wrapper{position:relative;display:inline-block;}
     .img-link-btn{
-      position:absolute;top:-8px;left:-8px;
-      width:26px;height:26px;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg,#16a34a,#059669);
-      color:#fff;text-decoration:none;font-size:14px;font-weight:800;
-      box-shadow:0 3px 8px rgba(0,0,0,.3);
-      opacity:0;transform:scale(.85);transition:all .2s ease;
+      position:absolute;
+      bottom:6px;
+      left:6px;
+      width:28px;
+      height:28px;
+      border-radius:8px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(135deg,#2563eb,#1d4ed8);
+      color:#fff;
+      text-decoration:none;
+      box-shadow:0 3px 10px rgba(37,99,235,.45);
+      transition:all .2s ease;
+      font-size:16px;
     }
-    .img-wrapper:hover .img-link-btn{opacity:1;transform:scale(1);}
+    .img-link-btn:hover{
+      transform:scale(1.1);
+      box-shadow:0 5px 14px rgba(37,99,235,.6);
+    }
+
+    @media (hover: none){
+      .img-link-btn{opacity:1;transform:scale(1);}
+    }
 .notes-cell{color:#64748b;font-size:12px;}
     .empty-state{text-align:center;padding:50px 20px;color:#94a3b8;}
     .empty-state .icon{font-size:48px;margin-bottom:10px;}
@@ -1191,7 +1206,7 @@ var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
     var imgCell = localImg
       ? '<div class="img-wrapper">'+
           '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'+
-          (driveUrl ? '<a class="img-link-btn" href="'+driveUrl+'" target="_blank" title="فتح الصورة من Google Drive">👁</a>' : '')+
+          (driveUrl ? '<a class="img-link-btn" href="'+driveUrl+'" target="_blank" title="فتح الصورة من Google Drive">📷</a>' : '')+
         '</div>'
       : '<span style="color:#cbd5e1;">—</span>';
 
