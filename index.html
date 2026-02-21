@@ -893,7 +893,7 @@ async function uploadImageToDrive(v, imgB64){
 
     var resp = await fetch(GS_URL, {
       method : "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body   : JSON.stringify({
         action : "uploadImage",
         plate  : v.plate,
@@ -902,7 +902,9 @@ async function uploadImageToDrive(v, imgB64){
         imgData: base64
       })
     });
-    var result = await resp.json();
+    var txt = await resp.text();
+    var result = null;
+    try{ result = JSON.parse(txt); }catch(e){ result = null; }
     if(result && result.driveUrl){
       localImages["plate_"+v.plate] = result.driveUrl;
       renderTable();
@@ -946,7 +948,8 @@ async function addVehicle(){
          obsDate:obsDate||n.toISOString().split("T")[0],
          date:n.toISOString().split("T")[0],
          time:n.toTimeString().slice(0,5),
-         carStatus, notes:els.notes.value.trim()};
+         carStatus, notes:els.notes.value.trim(),
+         hasImage: (currentImgBase64 ? "نعم" : "لا")};
 
   els.btnAdd.disabled=true; els.btnAdd.textContent="⏳ جارٍ الحفظ...";
   setSyncStatus("loading","⏳ جارٍ إضافة "+plate+"...");
