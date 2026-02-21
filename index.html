@@ -635,6 +635,9 @@
     .time-pill { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--ink); background: var(--paper); padding: 3px 9px; border-radius: 6px; display: inline-block; }
     .notes-text { color: var(--ink3); font-size: 12px; }
 
+    /* Hide print-only columns on screen */
+    .col-link-print { display: none; }
+
     .img-thumb-wrap {
       position: relative;
       display: inline-flex;
@@ -893,9 +896,22 @@
         font-weight: 700;
       }
 
-      /* ═══ إخفاء عمود الصورة وإظهار عمود الرابط ═══ */
+      /* ═══ إخفاء عمود الصورة وإظهار عمود الرابط في الطباعة ═══ */
       .col-img-screen { display: none !important; }
-      .col-link-print { display: table-cell !important; width: 160px !important; }
+      .col-link-print {
+        display: table-cell !important;
+        width: 180px !important;
+        max-width: 180px !important;
+        vertical-align: middle !important;
+      }
+      .col-link-print a {
+        color: #1a56db !important;
+        font-size: 8.5px !important;
+        word-break: break-all !important;
+        text-decoration: underline !important;
+        display: block !important;
+        line-height: 1.4 !important;
+      }
 
       /* ═══ الجدول ═══ */
       .card:last-of-type {
@@ -1269,7 +1285,7 @@
         <thead><tr>
           <th style="width:44px;">#</th>
           <th style="width:84px;" class="col-img-screen">الصورة</th>
-          <th class="col-link-print" style="display:none;">رابط الصورة</th>
+          <th class="col-link-print">رابط الصورة</th>
           <th style="width:70px;">البرج</th>
           <th style="width:70px;">الدور</th>
           <th>رقم اللوحة</th>
@@ -2050,7 +2066,7 @@ function renderTable(){
     var notesCell=v.notes?'<span class="notes-text" title="'+v.notes+'">'+(v.notes.length>22?v.notes.slice(0,22)+"…":v.notes)+'</span>':'<span style="color:var(--border);">—</span>';
 
     var linkCellPrint = driveUrl
-      ? '<td class="col-link-print" style="display:none;"><a href="'+driveUrl+'" style="color:#1a56db;font-size:9px;word-break:break-all;text-decoration:underline;">'+driveUrl+'</a></td>'
+      ? '<td class="col-link-print"><a href="'+driveUrl+'" style="color:#1a56db;font-size:9px;word-break:break-all;text-decoration:underline;display:block;">'+driveUrl+'</a></td>'
       : '<td class="col-link-print" style="display:none;"><span style="color:#cbd5e1;font-size:9px;">لا توجد صورة</span></td>';
 
     tr.innerHTML=
