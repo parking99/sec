@@ -638,6 +638,46 @@
     /* Hide print-only columns on screen */
     .col-link-print { display: none; }
 
+    /* Parking & Column number badges */
+    .parking-badge {
+      background: #f0f9ff;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-block;
+    }
+    .col-num-badge {
+      background: #fdf4ff;
+      color: #7e22ce;
+      border: 1px solid #e9d5ff;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    /* Print icon link - screen */
+    .print-icon-link {
+      font-size: 18px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      transition: all .15s;
+    }
+    .print-icon-link:hover {
+      background: #dbeafe;
+      transform: scale(1.1);
+    }
+
     .img-thumb-wrap {
       position: relative;
       display: inline-flex;
@@ -960,6 +1000,43 @@
       tbody tr:nth-child(odd)  { background: #ffffff !important; }
 
       /* Badges */
+      .parking-badge {
+        background: #f0f9ff !important;
+        color: #0369a1 !important;
+        border: 1px solid #bae6fd !important;
+        padding: 2px 5px !important;
+        border-radius: 4px !important;
+        font-size: 9px !important;
+        font-weight: 700 !important;
+      }
+      .col-num-badge {
+        background: #fdf4ff !important;
+        color: #7e22ce !important;
+        border: 1px solid #e9d5ff !important;
+        padding: 2px 5px !important;
+        border-radius: 4px !important;
+        font-size: 9px !important;
+        font-weight: 700 !important;
+      }
+      .print-icon-link {
+        font-size: 14px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 26px !important; height: 26px !important;
+        border-radius: 5px !important;
+        background: #eff6ff !important;
+        border: 1px solid #bfdbfe !important;
+        text-decoration: none !important;
+        color: #1a56db !important;
+      }
+      .col-link-print {
+        display: table-cell !important;
+        width: 40px !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+      }
+
       .plate-badge {
         font-size: 10px !important;
         padding: 3px 7px !important;
@@ -1245,7 +1322,15 @@
             <option value="مغبرة">🔴 مغبرة</option>
           </select>
         </div>
-        <div class="form-group span3">
+        <div class="form-group">
+          <label>رقم الموقف</label>
+          <input id="parkingNum" placeholder="مثال: P12" maxlength="10"/>
+        </div>
+        <div class="form-group">
+          <label>رقم العامود</label>
+          <input id="colNum" placeholder="مثال: C4" maxlength="10"/>
+        </div>
+        <div class="form-group span2">
           <label>ملاحظات</label>
           <input id="notes" placeholder="اختياري…"/>
         </div>
@@ -1285,9 +1370,11 @@
         <thead><tr>
           <th style="width:44px;">#</th>
           <th style="width:84px;" class="col-img-screen">الصورة</th>
-          <th class="col-link-print">رابط الصورة</th>
+          <th class="col-link-print" style="width:48px;">صورة</th>
           <th style="width:70px;">البرج</th>
           <th style="width:70px;">الدور</th>
+          <th style="width:80px;">رقم الموقف</th>
+          <th style="width:70px;">رقم العامود</th>
           <th>رقم اللوحة</th>
           <th>تاريخ الرصد</th>
           <th style="width:80px;">الوقت</th>
@@ -1351,7 +1438,7 @@ function getSheet_() {
 }
 
 function setupHeaders_(sheet) {
-  const h = ["البرج","الدور","رقم اللوحة","تاريخ الرصد","الوقت","حالة المركبة","ملاحظات","رجل الأمن","الرقم الوظيفي","صورة","وقت الإضافة","رابط الصورة"];
+  const h = ["البرج","الدور","رقم اللوحة","تاريخ الرصد","الوقت","حالة المركبة","ملاحظات","رجل الأمن","الرقم الوظيفي","صورة","وقت الإضافة","رابط الصورة","رقم الموقف","رقم العامود"];
   sheet.getRange(1,1,1,h.length).setValues([h]).setBackground("#0a0f1e").setFontColor("#ffffff").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
   sheet.setRowHeight(1,36); sheet.setFrozenRows(1); sheet.setRightToLeft(true);
 }
@@ -1403,7 +1490,7 @@ function handleAdd(p, cb) {
   const sheet = getSheet_();
   if(sheet.getLastRow()===0) setupHeaders_(sheet);
   const nextRow = sheet.getLastRow()+1;
-  sheet.getRange(nextRow,1,1,12).setValues([[p.tower||"",p.floor||"",p.plate||"",p.obsDate||p.date||"",p.time||"",p.carStatus||"",p.notes||"",p.empName||"",p.empId||"",p.hasImage||"لا",new Date().toLocaleString("ar-SA"),""]]);
+  sheet.getRange(nextRow,1,1,14).setValues([[p.tower||"",p.floor||"",p.plate||"",p.obsDate||p.date||"",p.time||"",p.carStatus||"",p.notes||"",p.empName||"",p.empId||"",p.hasImage||"لا",new Date().toLocaleString("ar-SA"),"",p.parkingNum||"",p.colNum||""]]);
   formatRow_(sheet, nextRow);
   SpreadsheetApp.flush();
   return makeResponse({success:true, row:nextRow}, cb);
@@ -1830,6 +1917,8 @@ function setImage(base64){
 function clearForm(){
   els.tower.value=""; els.floor.value=""; els.plate.value="";
   els.carStatus.value=""; els.notes.value="";
+  var pn=$('parkingNum'); if(pn) pn.value='';
+  var cn=$('colNum'); if(cn) cn.value='';
   els.obsDate.value = new Date().toISOString().slice(0,10);
   els.plateFoundCard.classList.remove("show");
   setImage(null);
@@ -1926,7 +2015,7 @@ function checkPlateExists(plateVal){
 }
 
 async function addToCloud(v){
-  var params=["action=add","tower="+encodeURIComponent(v.tower),"floor="+encodeURIComponent(v.floor),"plate="+encodeURIComponent(v.plate),"obsDate="+encodeURIComponent(v.obsDate),"date="+encodeURIComponent(v.date),"time="+encodeURIComponent(v.time),"carStatus="+encodeURIComponent(v.carStatus||""),"notes="+encodeURIComponent(v.notes||""),"empName="+encodeURIComponent(report.guard.name),"empId="+encodeURIComponent(report.guard.empId),"hasImage="+encodeURIComponent(v.hasImage||"لا")].join("&");
+  var params=["action=add","tower="+encodeURIComponent(v.tower),"floor="+encodeURIComponent(v.floor),"plate="+encodeURIComponent(v.plate),"obsDate="+encodeURIComponent(v.obsDate),"date="+encodeURIComponent(v.date),"time="+encodeURIComponent(v.time),"carStatus="+encodeURIComponent(v.carStatus||""),"notes="+encodeURIComponent(v.notes||""),"empName="+encodeURIComponent(report.guard.name),"empId="+encodeURIComponent(report.guard.empId),"hasImage="+encodeURIComponent(v.hasImage||"لا"),"parkingNum="+encodeURIComponent(v.parkingNum||""),"colNum="+encodeURIComponent(v.colNum||"")].join("&");
   return await jsonpCall(GS_URL+"?"+params,20000);
 }
 
@@ -1982,7 +2071,9 @@ async function addVehicle(){
   if(!tower||!floor||!plate){alert("أدخل البرج والدور ورقم اللوحة");return;}
   if(!currentUser){alert("يجب تسجيل الدخول أولاً");return;}
   var n=new Date();
-  var v={tower,floor,plate,obsDate:obsDate||n.toISOString().split("T")[0],date:n.toISOString().split("T")[0],time:n.toTimeString().slice(0,5),carStatus,notes:els.notes.value.trim(),hasImage:(currentImgBase64?"نعم":"لا")};
+  var parkingNumVal = ($('parkingNum')&&$('parkingNum').value.trim())||'';
+  var colNumVal     = ($('colNum')&&$('colNum').value.trim())||'';
+  var v={tower,floor,plate,obsDate:obsDate||n.toISOString().split("T")[0],date:n.toISOString().split("T")[0],time:n.toTimeString().slice(0,5),carStatus,notes:els.notes.value.trim(),hasImage:(currentImgBase64?"نعم":"لا"),parkingNum:parkingNumVal,colNum:colNumVal};
   els.btnAdd.disabled=true;els.btnAdd.innerHTML="<span style='opacity:.7'>⏳ جارٍ الحفظ…</span>";
   setSyncStatus("loading","⏳ جارٍ إضافة "+plate+"…");
   var savedImg=currentImgBase64;
@@ -2069,12 +2160,17 @@ function renderTable(){
       ? '<td class="col-link-print"><a href="'+driveUrl+'" style="color:#1a56db;font-size:9px;word-break:break-all;text-decoration:underline;display:block;">'+driveUrl+'</a></td>'
       : '<td class="col-link-print" style="display:none;"><span style="color:#cbd5e1;font-size:9px;">لا توجد صورة</span></td>';
 
+    var parkingNum = getField(v,["رقم الموقف","موقف"]) || '';
+    var colNum     = getField(v,["رقم العامود","عامود","العمود"]) || '';
+
     tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
       '<td class="col-img-screen">'+imgCell+'</td>'+
       linkCellPrint+
       '<td><span class="'+towerClass+'">'+v.tower+'</span></td>'+
       '<td><span class="floor-badge">'+v.floor+'</span></td>'+
+      '<td>'+(parkingNum?'<span class="parking-badge">'+parkingNum+'</span>':'<span style="color:var(--border);">—</span>')+'</td>'+
+      '<td>'+(colNum?'<span class="col-num-badge">'+colNum+'</span>':'<span style="color:var(--border);">—</span>')+'</td>'+
       '<td><span class="plate-badge">'+v.plate+'</span></td>'+
       '<td><span class="date-pill">'+v.date+'</span></td>'+
       '<td><span class="time-pill">'+v.time+'</span></td>'+
