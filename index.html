@@ -106,12 +106,17 @@
     .imgPrev:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(37,99,235,.35);}
     
 
-    /* ── Camera Link Button (احترافي أزرق) ── */
-    .img-wrapper{position:relative;display:inline-block;}
+    /* ── Camera Link Button (محاذاة محسنة للجوال) ── */
+    .img-wrapper{
+      position:relative;
+      display:inline-block;
+      line-height:0; /* يمنع أي فراغ إضافي */
+    }
+
     .img-link-btn{
       position:absolute;
-      bottom:6px;
-      left:6px;
+      top:6px;
+      right:6px;   /* لأن الاتجاه RTL */
       width:28px;
       height:28px;
       border-radius:8px;
@@ -125,8 +130,9 @@
       transition:all .2s ease;
       font-size:16px;
     }
+
     .img-link-btn:hover{
-      transform:scale(1.1);
+      transform:scale(1.08);
       box-shadow:0 5px 14px rgba(37,99,235,.6);
     }
 
@@ -177,7 +183,26 @@
       thead tr{background:#1e3a8a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       tbody tr:nth-child(odd){background:#f8fafc!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     }
-  </style>
+  
+    /* ── محاذاة نهائية للجوال داخل الجدول ── */
+    td{vertical-align:middle !important;}
+    
+    .img-wrapper{
+      position:relative;
+      display:inline-block;
+      vertical-align:middle;
+    }
+
+    .imgPrev{
+      display:block; /* يمنع الفراغ السفلي */
+    }
+
+    .img-link-btn{
+      top:4px !important;
+      right:4px !important;
+    }
+
+</style>
 </head>
 <body>
 
