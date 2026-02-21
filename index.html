@@ -1060,17 +1060,15 @@ function renderTable(){
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
     // ابحث عن الصورة: Drive URL من الشيت أولاً ثم المحفوظ محلياً
-    var driveUrl = String(getField(v,["بيانات الصورة","driveUrl"])||v.driveUrl||"").trim();
+    var driveUrl = String(getField(v,["رابط الصورة","بيانات الصورة","driveUrl"])||v.driveUrl||v["رابط الصورة"]||"").trim();
     var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
                  : localImages["plate_" + v.plate]
                 || localImages[v.plate + "_" + v.date + "_" + v.time.replace(":","")]
                 || localImages[v.plate + "_" + v.date]
                 || null;
     var imgCell = localImg
-      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'"/>'
-      : (v.hasImg==="نعم"
-        ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">📷 موجود</span>'
-        : '<span style="color:#cbd5e1;">—</span>');
+      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display='none';this.nextSibling.style.display='inline'"/><span style="display:none;background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:11px;">📷</span>'
+      : '<span style="color:#cbd5e1;">—</span>';
     var notesCell = v.notes
       ? '<span class="notes-cell" title="'+v.notes+'">'+(v.notes.length>20?v.notes.slice(0,20)+"…":v.notes)+'</span>'
       : '<span style="color:#e2e8f0;">—</span>';
