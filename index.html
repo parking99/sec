@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8"/>
@@ -863,18 +864,8 @@ function checkPlateExists(plateVal){
 }
 
 /* ════════ Add to Cloud ════════ */
-async function addToCloud(v, imgB64){
-  var hasImg = imgB64 ? "نعم" : "لا";
-
-  // ═══ ضغط الصورة لـ 400px كحد أقصى قبل الإرسال ═══
-  var smallImg = null;
-  if(imgB64){
-    try{
-      smallImg = await compressImage(imgB64, 400, 0.5);
-    }catch(e){ smallImg = null; }
-  }
-
-  // ═══ أرسل كل شيء في طلب واحد عبر JSONP ═══
+async function addToCloud(v){
+  // ═══ أرسل السجل فقط بدون صورة — JSONP آمن ═══
   var params = [
     "action=add",
     "tower="+encodeURIComponent(v.tower),
@@ -887,13 +878,42 @@ async function addToCloud(v, imgB64){
     "notes="+encodeURIComponent(v.notes||""),
     "empName="+encodeURIComponent(report.guard.name),
     "empId="+encodeURIComponent(report.guard.empId),
-    "hasImage="+encodeURIComponent(hasImg),
-    "imgData="+encodeURIComponent(smallImg||"")
+    "hasImage="+encodeURIComponent(v.hasImage||"لا")
   ].join("&");
-  return await jsonpCall(GS_URL+"?"+params, 30000);
+  return await jsonpCall(GS_URL+"?"+params, 20000);
 }
 
-// ضغط الصورة
+async function uploadImageToDrive(v, imgB64){
+  // ═══ رفع الصورة منفصل في الخلفية ═══
+  try {
+    setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
+    // ضغط الصورة لـ 300px
+    var small = await compressImage(imgB64, 300, 0.45);
+    var base64 = small.split(",")[1] || small;
+
+    var resp = await fetch(GS_URL, {
+      method : "POST",
+      headers: { "Content-Type": "application/json" },
+      body   : JSON.stringify({
+        action : "uploadImage",
+        plate  : v.plate,
+        date   : v.date,
+        imgData: base64
+      })
+    });
+    var result = await resp.json();
+    if(result && result.driveUrl){
+      localImages["plate_"+v.plate] = result.driveUrl;
+      renderTable();
+      setSyncStatus("ok","✅ تم رفع الصورة على Drive");
+    }
+  } catch(err) {
+    // فشل رفع الصورة لا يؤثر على السجل
+    console.warn("Drive upload:", err.message);
+    setSyncStatus("ok","✅ تم الحفظ (الصورة محلياً فقط)");
+  }
+}
+
 function compressImage(base64, maxSize, quality){
   return new Promise(function(resolve, reject){
     var img = new Image();
@@ -903,14 +923,13 @@ function compressImage(base64, maxSize, quality){
       if(h > maxSize){ w = Math.round(w*maxSize/h); h = maxSize; }
       var canvas = document.createElement("canvas");
       canvas.width = w; canvas.height = h;
-      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      canvas.getContext("2d").drawImage(img,0,0,w,h);
       resolve(canvas.toDataURL("image/jpeg", quality));
     };
     img.onerror = reject;
     img.src = base64;
   });
 }
-
 
 async function addVehicle(){
   var tower=els.tower.value.trim(), floor=els.floor.value.trim();
@@ -927,31 +946,30 @@ async function addVehicle(){
          carStatus, notes:els.notes.value.trim()};
   els.btnAdd.disabled=true; els.btnAdd.textContent="⏳ جارٍ الحفظ...";
   setSyncStatus("loading","⏳ جارٍ إضافة "+plate+"...");
+  var savedImg = currentImgBase64;
   try{
-    var res=await addToCloud(v, currentImgBase64);
-    if(res&&res.success){
-      report.addedCount=(report.addedCount||0)+1; saveLocal();
-      // احفظ الصورة محلياً مع الوقت الدقيق كمفتاح
-      if(currentImgBase64){
-        var imgKey = v.plate + "_" + v.date + "_" + v.time.replace(":","");
-        localImages[imgKey] = currentImgBase64;
-        // احفظ أيضاً بمفتاح اللوحة فقط (للعرض السريع)
-        localImages["plate_" + v.plate] = currentImgBase64;
-        try{
-          localStorage.setItem("img_"+imgKey, currentImgBase64);
-          localStorage.setItem("img_plate_"+v.plate, currentImgBase64);
-        }catch(e){}
+    var res = await addToCloud(v);
+    if(res && res.success){
+      report.addedCount=(report.addedCount||0)+1;
+      saveLocal();
+      if(savedImg){
+        localImages["plate_"+v.plate] = savedImg;
+        try{ localStorage.setItem("img_plate_"+v.plate, savedImg); }catch(e){}
       }
       clearForm();
-      setSyncStatus("loading","🔄 تم — جارٍ تحديث الجدول...");
       setStatus("✅ تم حفظ "+plate);
-      renderTable(); // أعد الرسم فوراً لعرض الصورة
-      setTimeout(function(){ loadFromCloud(false); },1200);
+      renderTable();
+      setTimeout(function(){ loadFromCloud(false); }, 1500);
+      if(savedImg){
+        setTimeout(function(){ uploadImageToDrive(v, savedImg); }, 3000);
+      } else {
+        setSyncStatus("ok","✅ تم حفظ "+plate);
+      }
     } else { throw new Error("لم يتأكد الحفظ من الخادم"); }
   }catch(err){
     setSyncStatus("error","❌ "+err.message);
-    setStatus("❌ فشل الحفظ — اضغط ⚠️ للمساعدة");
-    alert("❌ تعذّر الحفظ\n"+err.message+"\n\nاضغط ⚙️ إعداد Apps Script للمساعدة");
+    setStatus("❌ فشل الحفظ");
+    alert("❌ تعذّر الحفظ\n"+err.message);
   }finally{
     els.btnAdd.disabled=false; els.btnAdd.textContent="➕ إضافة وحفظ"; updateStats();
   }
