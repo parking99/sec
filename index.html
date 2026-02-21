@@ -356,9 +356,10 @@ function doGet(e) {
   const cb     = p.callback || "";
   const action = p.action   || "getAll";
 
-  if (action === "add")      return handleAdd(p, cb);
-  if (action === "getAll")   return handleGetAll(cb);
-  if (action === "getGuard") return handleGetGuard(p, cb);
+  if (action === "add")         return handleAdd(p, cb);
+  if (action === "getAll")      return handleGetAll(cb);
+  if (action === "getGuard")    return handleGetGuard(p, cb);
+  if (action === "uploadImage") return handleImageUpload(p, cb); // JSONP fallback
 
   return makeResponse({ error: "unknown_action" }, cb);
 }
@@ -514,7 +515,8 @@ function handleGetGuard(p, cb) {
 /* =========================================================
    Image upload (Drive) + update sheet
    ========================================================= */
-function handleImageUpload(p) {
+function handleImageUpload(p, cb) {
+  cb = cb || "";
   try {
     const plate   = String(p.plate || "unknown").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
     const date    = String(p.date  || "").trim();     // yyyy-mm-dd
@@ -549,9 +551,9 @@ function handleImageUpload(p) {
     // اكتب الرابط في الشيت (نستخدم thumbUrl للعرض داخل <img>)
     updateImageUrl_(plate, date, time, thumbUrl, rowHint);
 
-    return makeResponse({ success: true, viewUrl: viewUrl, thumbUrl: thumbUrl, fileId: fileId }, "");
+    return makeResponse({ success: true, viewUrl: viewUrl, thumbUrl: thumbUrl, fileId: fileId }, cb);
   } catch (err) {
-    return makeResponse({ error: String(err && err.message ? err.message : err) }, "");
+    return makeResponse({ error: String(err && err.message ? err.message : err) }, cb);
   }
 }
 
@@ -951,49 +953,74 @@ async function addToCloud(v){
 }
 
 async function uploadImageToDrive(v, imgB64){
-  // ✅ رفع الصورة ثم تحديث رابطها في Google Sheet ليظهر على كل الأجهزة
-  try{
-    setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
+  setSyncStatus("loading","📤 جارٍ رفع الصورة على Google Drive...");
+  var imgUrl = null;
 
-    // ضغط الصورة لتقليل الحجم (توازن بين وضوح وحجم)
+  // ── محاولة 1: fetch POST (text/plain يتجنب CORS Preflight) ──
+  try{
     var small  = await compressImage(imgB64, 900, 0.75);
     var base64 = (small.indexOf(",")>-1 ? small.split(",")[1] : small);
 
-    // ⛔ لا تستخدم application/json لتجنب CORS Preflight مع Apps Script
-    var fd = new FormData();
-    fd.append("action", "uploadImage");
-    fd.append("plate",  v.plate);
-    fd.append("date",   v.date);
-    fd.append("time",   v.time);
-    fd.append("imgData", base64);
+    var resp = await fetch(GS_URL, {
+      method : "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body   : JSON.stringify({
+        action  : "uploadImage",
+        plate   : v.plate,
+        date    : v.date,
+        time    : v.time,
+        row     : v._row || 0,
+        imgData : base64
+      })
+    });
 
-    var resp = await fetch(GS_URL, { method:"POST", body: fd });
-
-    // بعض البيئات قد تعيد نص/JSON
-    var txt = await resp.text();
-    var result = null;
-    try{ result = JSON.parse(txt); }catch(e){ result = null; }
-
-    if(!resp.ok){
-      throw new Error("فشل الرفع ("+resp.status+")");
+    if(resp.ok){
+      var txt = await resp.text();
+      var result = null;
+      try{ result = JSON.parse(txt); }catch(e){}
+      // السكربت يرجع thumbUrl أو viewUrl
+      if(result && (result.thumbUrl || result.viewUrl || result.driveUrl)){
+        imgUrl = result.thumbUrl || result.viewUrl || result.driveUrl;
+      }
     }
+  }catch(fetchErr){
+    console.warn("⚠️ fetch فشل:", fetchErr.message);
+  }
 
-    if(result && result.driveUrl){
-      // خزّن الرابط محلياً للعرض الفوري، ثم اعتمد على الشيت للتزامن بين الأجهزة
-      localImages["plate_"+v.plate] = result.driveUrl;
-      try{ localStorage.setItem("img_plate_"+v.plate, result.driveUrl); }catch(e){}
-      setSyncStatus("ok","✅ تم رفع الصورة وتحديث الرابط");
-      // اسحب من السحابة لتأكيد التحديث لجميع السجلات
-      setTimeout(function(){ loadFromCloud(false); }, 800);
-    }else{
-      // حتى لو لم نقرأ JSON، غالباً تم الرفع. اسحب من السحابة للتأكد.
-      setSyncStatus("ok","✅ تم الرفع (جارٍ تحديث الجدول)");
-      setTimeout(function(){ loadFromCloud(false); }, 1200);
+  // ── محاولة 2: JSONP GET (صورة مضغوطة أكثر) إن فشل fetch ──
+  if(!imgUrl){
+    try{
+      setSyncStatus("loading","📤 جارٍ الرفع عبر JSONP...");
+      var tiny   = await compressImage(imgB64, 400, 0.5);
+      var tinyB64= (tiny.indexOf(",")>-1 ? tiny.split(",")[1] : tiny);
+      var jpResult = await jsonpCall(
+        GS_URL
+        +"?action=uploadImage"
+        +"&plate=" +encodeURIComponent(v.plate)
+        +"&date="  +encodeURIComponent(v.date)
+        +"&time="  +encodeURIComponent(v.time)
+        +"&row="   +encodeURIComponent(v._row||0)
+        +"&imgData="+encodeURIComponent(tinyB64),
+        35000
+      );
+      if(jpResult && (jpResult.thumbUrl || jpResult.viewUrl || jpResult.driveUrl)){
+        imgUrl = jpResult.thumbUrl || jpResult.viewUrl || jpResult.driveUrl;
+      }
+    }catch(jpErr){
+      console.warn("❌ JSONP رفع الصورة فشل:", jpErr.message);
     }
-  }catch(err){
-    console.warn("Drive upload:", err && err.message ? err.message : err);
-    // لا نكسر حفظ السجل
-    setSyncStatus("ok","✅ تم الحفظ (تعذّر تأكيد رفع الصورة)");
+  }
+
+  // ── النتيجة ──
+  if(imgUrl){
+    // حدّث المعاينة المحلية برابط Drive الحقيقي
+    localImages["plate_"+v.plate] = imgUrl;
+    try{ localStorage.setItem("img_plate_"+v.plate, imgUrl); }catch(e){}
+    setSyncStatus("ok","✅ تم رفع الصورة وتحديث الرابط في Google Sheets");
+    setTimeout(function(){ loadFromCloud(false); }, 800);
+  }else{
+    setSyncStatus("error","⚠️ الصورة محفوظة محلياً — تعذّر الرفع على Drive (تأكد من نشر السكربت)");
+    console.warn("Image upload failed for plate:", v.plate);
   }
 }
 
@@ -1149,16 +1176,9 @@ var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
                 || localImages[v.plate + "_" + v.date]
                 || null);
 
-    // إذا يوجد رابط: أظهر أيقونة قابلة للنقر تفتح الصورة في تبويب جديد
-    var imgCell;
-    if(localImg){
-      imgCell = '<a href="'+localImg+'" target="_blank" rel="noopener" title="فتح الصورة" style="display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:10px;text-decoration:none;box-shadow:0 2px 8px rgba(37,99,235,.35);transition:transform .15s,box-shadow .15s;" onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 4px 16px rgba(37,99,235,.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(37,99,235,.35)'"><span style="font-size:22px;">📷</span></a>';
-    } else if(v.hasImg === "نعم"){
-      // صورة محفوظة لكن رابطها غير متاح في هذا الجلسة
-      imgCell = '<span style="display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;background:#f1f5f9;border-radius:10px;font-size:20px;color:#94a3b8;" title="الصورة محفوظة لكن الرابط غير متاح">📷</span>';
-    } else {
-      imgCell = '<span style="color:#e2e8f0;">—</span>';
-    }
+    var imgCell = localImg
+      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'
+      : '<span style="color:#cbd5e1;">—</span>';
 
     var notesCell = v.notes
       ? '<span class="notes-cell" title="'+v.notes+'">'+(v.notes.length>20?v.notes.slice(0,20)+"…":v.notes)+'</span>'
