@@ -893,6 +893,10 @@
         font-weight: 700;
       }
 
+      /* ═══ إخفاء عمود الصورة وإظهار عمود الرابط ═══ */
+      .col-img-screen { display: none !important; }
+      .col-link-print { display: table-cell !important; width: 160px !important; }
+
       /* ═══ الجدول ═══ */
       .card:last-of-type {
         display: block !important;
@@ -1161,7 +1165,7 @@
   <!-- GUARD CARD — auto-filled from login -->
   <div class="card no-print">
     <div class="card-header">
-      <div class="card-title"><div class="card-title-icon">👤</div> بيانات رجل الامن</div>
+      <div class="card-title"><div class="card-title-icon">👤</div> بيانات الحارس</div>
       <div class="flex gap8">
         <span id="reportDate" style="font-size:12px;color:var(--ink3);padding:4px 10px;background:var(--paper);border-radius:6px;"></span>
         <span id="reportTime" style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:4px 10px;background:var(--paper);border-radius:6px;"></span>
@@ -1264,7 +1268,8 @@
       <table id="vehiclesTable">
         <thead><tr>
           <th style="width:44px;">#</th>
-          <th style="width:84px;">الصورة</th>
+          <th style="width:84px;" class="col-img-screen">الصورة</th>
+          <th class="col-link-print" style="display:none;">رابط الصورة</th>
           <th style="width:70px;">البرج</th>
           <th style="width:70px;">الدور</th>
           <th>رقم اللوحة</th>
@@ -2044,9 +2049,14 @@ function renderTable(){
 
     var notesCell=v.notes?'<span class="notes-text" title="'+v.notes+'">'+(v.notes.length>22?v.notes.slice(0,22)+"…":v.notes)+'</span>':'<span style="color:var(--border);">—</span>';
 
+    var linkCellPrint = driveUrl
+      ? '<td class="col-link-print" style="display:none;"><a href="'+driveUrl+'" style="color:#1a56db;font-size:9px;word-break:break-all;text-decoration:underline;">'+driveUrl+'</a></td>'
+      : '<td class="col-link-print" style="display:none;"><span style="color:#cbd5e1;font-size:9px;">لا توجد صورة</span></td>';
+
     tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
-      '<td>'+imgCell+'</td>'+
+      '<td class="col-img-screen">'+imgCell+'</td>'+
+      linkCellPrint+
       '<td><span class="'+towerClass+'">'+v.tower+'</span></td>'+
       '<td><span class="floor-badge">'+v.floor+'</span></td>'+
       '<td><span class="plate-badge">'+v.plate+'</span></td>'+
