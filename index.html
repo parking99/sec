@@ -1150,9 +1150,7 @@ var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
                 || null);
 
     var imgCell = localImg
-      ? '<a class="imgLink" href="'+localImg+'" target="_blank" rel="noopener" title="فتح الصورة في تبويب جديد">'
-        + '<span style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:800;">📷 صورة</span>'
-        + '</a>'
+      ? '<img class="imgPrev" src="'+localImg+'" data-src="'+localImg+'" onerror="this.style.display=\'none\';"/>'
       : '<span style="color:#cbd5e1;">—</span>';
 
     var notesCell = v.notes
@@ -1179,7 +1177,9 @@ var localImg = (driveUrl && driveUrl.startsWith("http")) ? driveUrl
 
     els.tableBody.appendChild(tr);
   });
-});
+
+  els.tableBody.querySelectorAll("img.imgPrev").forEach(function(img){
+    img.addEventListener("click",function(){ viewImage(img.getAttribute("data-src")||img.src); });
   });
 
   els.tableFooter.style.display="block";
