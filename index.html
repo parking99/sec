@@ -4,6 +4,8 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>رصد السيارات — تسجيل الدخول</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -1249,6 +1251,63 @@
       font-family:'JetBrains Mono',monospace;
     }
 
+    /* KPI Cards */
+    .ana-kpi-card {
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-align: center;
+      border: 1.5px solid transparent;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .ana-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+    .ana-kpi-icon { font-size: 22px; }
+    .ana-kpi-val { font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+    .ana-kpi-label { font-size: 11px; font-weight: 600; opacity: .75; }
+    .ana-kpi-total { background: #eff6ff; border-color: #bfdbfe; color: var(--accent); }
+    .ana-kpi-total .ana-kpi-val { color: var(--accent); }
+    .ana-kpi-dust { background: #fff1f2; border-color: #fecdd3; color: var(--red); }
+    .ana-kpi-dust .ana-kpi-val { color: var(--red); }
+    .ana-kpi-mid { background: #fffbeb; border-color: #fde68a; color: var(--amber); }
+    .ana-kpi-mid .ana-kpi-val { color: var(--amber); }
+    .ana-kpi-new { background: #f0fdf4; border-color: #bbf7d0; color: var(--green); }
+    .ana-kpi-new .ana-kpi-val { color: var(--green); }
+    .ana-kpi-photos { background: #fdf4ff; border-color: #e9d5ff; color: #7c3aed; }
+    .ana-kpi-photos .ana-kpi-val { color: #7c3aed; }
+
+    /* Tower rank items */
+    .tower-rank-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--paper);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .tower-rank-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .tower-rank-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent);
+    }
+
+    @media (max-width: 900px) {
+      #anaKpiGrid { grid-template-columns: repeat(3,1fr) !important; }
+    }
+    @media (max-width: 600px) {
+      #anaKpiGrid { grid-template-columns: repeat(2,1fr) !important; }
+    }
+
 
     /* Toast */
     .toast{
@@ -1278,118 +1337,8 @@
       .toast{ left: 16px; bottom: 16px; max-width: calc(100vw - 32px); }
     }
 
-    /* ════ ANALYTICS ENHANCED ════ */
-    .ana-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 14px;
-      margin-bottom: 20px;
-      padding: 20px 24px;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--card-shadow);
-    }
-    .ana-header-title { display: flex; align-items: center; gap: 14px; }
-    .ana-header-icon {
-      width: 48px; height: 48px;
-      background: linear-gradient(135deg, var(--accent2), var(--accent));
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 4px 16px rgba(26,86,219,.3);
-    }
-
-    /* KPI Cards */
-    .ana-kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-    @media (max-width: 900px) { .ana-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 500px) { .ana-kpi-grid { grid-template-columns: 1fr 1fr; } }
-
-    .ana-kpi-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 16px;
-      box-shadow: var(--card-shadow);
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-      transition: transform .2s, box-shadow .2s;
-    }
-    .ana-kpi-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow-hover); }
-    .ana-kpi-card::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 4px;
-      border-radius: 0 0 var(--radius) var(--radius);
-    }
-    .ana-kpi-total::after { background: linear-gradient(90deg, var(--accent), #6366f1); }
-    .ana-kpi-dust::after  { background: linear-gradient(90deg, var(--red), #f97316); }
-    .ana-kpi-mid::after   { background: linear-gradient(90deg, var(--amber), #eab308); }
-    .ana-kpi-new::after   { background: linear-gradient(90deg, var(--green), #10b981); }
-    .ana-kpi-top::after   { background: linear-gradient(90deg, #7c3aed, #a855f7); }
-    .ana-kpi-icon { font-size: 24px; margin-bottom: 8px; }
-    .ana-kpi-val  { font-size: 36px; font-weight: 800; letter-spacing: -1px; line-height: 1; color: var(--ink); }
-    .ana-kpi-label{ font-size: 11px; color: var(--ink3); font-weight: 600; margin-top: 4px; }
-    .ana-kpi-pct  { font-size: 12px; font-weight: 700; color: var(--ink3); margin-top: 6px;
-                    background: var(--paper); border-radius: 20px; padding: 2px 10px; display: inline-block; }
-
-    /* Charts Layout */
-    .ana-charts-row {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .ana-charts-row > .card { flex: 1; min-width: 260px; margin: 0; }
-
-    /* Floor Heatmap */
-    .floor-heat-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .floor-heat-label { font-size: 12px; font-weight: 700; color: var(--ink); width: 40px; text-align: left; flex-shrink: 0; }
-    .floor-heat-bar-wrap { flex: 1; background: var(--paper); border-radius: 6px; overflow: hidden; height: 22px; }
-    .floor-heat-bar { height: 100%; border-radius: 6px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-weight: 700; color: #fff; min-width: 4px; transition: width .5s ease; }
-    .floor-heat-count { font-size: 12px; font-weight: 800; color: var(--ink); width: 28px; text-align: right; }
-
-    /* Print Analytics */
-    .print-only { display: none; }
-    .ana-print-summary {
-      padding: 10px 0;
-    }
-    .ana-print-title {
-      font-size: 16px; font-weight: 800; color: var(--ink);
-      border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 12px;
-    }
-    .ana-print-kpis {
-      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;
-    }
-    .ana-print-kpi {
-      flex: 1; min-width: 100px;
-      border: 1px solid var(--border); border-radius: 8px;
-      padding: 8px 12px; text-align: center;
-    }
-    .ana-print-kpi-val { font-size: 22px; font-weight: 800; color: var(--ink); }
-    .ana-print-kpi-label { font-size: 10px; color: var(--ink3); }
-
-    @media print {
-      .ana-print-summary { display: block !important; page-break-before: always; }
-      .print-only { display: block !important; }
-      .no-print { display: none !important; }
-      #analyticsView { display: block !important; }
-      .ana-header, .ana-kpi-grid, .ana-charts-row { display: none !important; }
-    }
-
-  
+  </style>
+<body>
 
 <!-- ══════════════════════════════════════
      LOGIN SCREEN
@@ -1464,6 +1413,7 @@
     <button class="btn btn-ghost btn-sm no-print" id="btnExportCSV">📄 CSV</button>
     <button class="btn btn-ghost btn-sm no-print" id="btnShowSetup">⚙️ إعداد</button>
     <button class="btn btn-ghost btn-sm no-print" id="btnAnalytics">📊 تحليلات</button>
+    <button class="btn btn-ghost btn-sm no-print" id="btnExportPDF" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border-color:#7c3aed;">📑 تقرير PDF</button>
     <button class="btn btn-primary btn-sm no-print" id="btnSync">🔄 تحديث</button>
   </div>
 </header>
@@ -1650,162 +1600,186 @@
 
   <!-- ANALYTICS VIEW -->
   <div id="analyticsView" style="display:none;">
-    <!-- Header -->
-    <div class="ana-header no-print">
-      <div class="ana-header-title">
-        <div class="ana-header-icon">📊</div>
-        <div>
-          <div style="font-size:20px;font-weight:800;color:var(--ink);">لوحة التحليلات</div>
-          <div style="font-size:12px;color:var(--ink3);margin-top:2px;">تحليل شامل لبيانات رصد المركبات</div>
+    <div class="card no-print">
+      <div class="card-header">
+        <div class="card-title"><div class="card-title-icon">📊</div> لوحة التحليلات المتقدمة</div>
+        <div class="flex gap8">
+          <select id="anaRange" class="btn btn-ghost btn-sm" style="font-family:inherit;cursor:pointer;padding:6px 12px;">
+            <option value="all">كل البيانات</option>
+            <option value="today">اليوم</option>
+            <option value="7d">آخر 7 أيام</option>
+            <option value="30d">آخر 30 يوم</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" id="btnExportAnalyticsPDF" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border-color:#7c3aed;">📑 PDF التحليلات</button>
+          <button class="btn btn-ghost btn-sm" id="btnBackToMain">↩️ رجوع</button>
         </div>
       </div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <select id="anaRange" style="width:auto;padding:8px 14px;font-size:13px;">
-          <option value="all">📅 كل البيانات</option>
-          <option value="today">اليوم</option>
-          <option value="7d">آخر 7 أيام</option>
-          <option value="30d">آخر 30 يوم</option>
-        </select>
-        <button class="btn btn-ghost btn-sm" id="btnBackToMain">↩️ رجوع</button>
-      </div>
-    </div>
+      <div class="card-body" style="padding-bottom:32px;">
 
-    <!-- KPI Cards -->
-    <div class="ana-kpi-grid no-print">
-      <div class="ana-kpi-card ana-kpi-total">
-        <div class="ana-kpi-icon">🚗</div>
-        <div class="ana-kpi-val" id="anaTotal">0</div>
-        <div class="ana-kpi-label">إجمالي السجلات</div>
-      </div>
-      <div class="ana-kpi-card ana-kpi-dust">
-        <div class="ana-kpi-icon">🔴</div>
-        <div class="ana-kpi-val" id="anaDustyVal">0</div>
-        <div class="ana-kpi-label">مغبرة</div>
-        <div class="ana-kpi-pct" id="anaDustyPct">—</div>
-      </div>
-      <div class="ana-kpi-card ana-kpi-mid">
-        <div class="ana-kpi-icon">🟡</div>
-        <div class="ana-kpi-val" id="anaMidVal">0</div>
-        <div class="ana-kpi-label">متوسطة الغبار</div>
-        <div class="ana-kpi-pct" id="anaMidPct">—</div>
-      </div>
-      <div class="ana-kpi-card ana-kpi-new">
-        <div class="ana-kpi-icon">🟢</div>
-        <div class="ana-kpi-val" id="anaNewVal">0</div>
-        <div class="ana-kpi-label">حديثة</div>
-        <div class="ana-kpi-pct" id="anaNewPct">—</div>
-      </div>
-      <div class="ana-kpi-card ana-kpi-top">
-        <div class="ana-kpi-icon">🏆</div>
-        <div class="ana-kpi-val" style="font-size:28px;" id="anaTopTower">—</div>
-        <div class="ana-kpi-label">أعلى برج مغبرة</div>
-        <div class="ana-kpi-pct" id="anaTopTowerN">—</div>
-      </div>
-    </div>
-
-    <!-- Charts Row 1 -->
-    <div class="ana-charts-row no-print">
-      <!-- Donut Chart - Status Distribution -->
-      <div class="card" style="margin:0;flex:1;min-width:260px;">
-        <div class="card-header">
-          <div class="card-title"><div class="card-title-icon">🍩</div> توزيع حالات المركبات</div>
-        </div>
-        <div class="card-body" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
-          <canvas id="donutChart" width="220" height="220" style="max-width:220px;"></canvas>
-          <div id="donutLegend" style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;"></div>
-        </div>
-      </div>
-
-      <!-- Bar Chart by Tower -->
-      <div class="card" style="margin:0;flex:2;min-width:280px;">
-        <div class="card-header">
-          <div class="card-title"><div class="card-title-icon">🏢</div> توزيع الحالات حسب البرج</div>
-        </div>
-        <div class="card-body">
-          <canvas id="towerGroupChart" width="600" height="220" style="width:100%;"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Charts Row 2 -->
-    <div class="ana-charts-row no-print" style="margin-top:16px;">
-      <!-- Timeline Chart -->
-      <div class="card" style="margin:0;flex:2;min-width:280px;">
-        <div class="card-header">
-          <div class="card-title"><div class="card-title-icon">📈</div> الرصد اليومي (آخر 14 يوم)</div>
-        </div>
-        <div class="card-body">
-          <canvas id="timelineChart" width="700" height="200" style="width:100%;"></canvas>
-        </div>
-      </div>
-
-      <!-- Floor Heatmap -->
-      <div class="card" style="margin:0;flex:1;min-width:240px;">
-        <div class="card-header">
-          <div class="card-title"><div class="card-title-icon">🗺️</div> نشاط حسب الدور</div>
-        </div>
-        <div class="card-body">
-          <div id="floorHeatmap" style="display:flex;flex-direction:column;gap:6px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Top Locations Table + Location Chips -->
-    <div class="ana-charts-row no-print" style="margin-top:16px;">
-      <div class="card" style="margin:0;flex:1.5;">
-        <div class="card-header">
-          <div class="card-title"><div class="card-title-icon">📍</div> أكثر المواقع تكراراً (مغبرة)</div>
-        </div>
-        <div class="card-body" style="padding:0;">
-          <div style="overflow:auto;">
-            <table style="width:100%;border-collapse:collapse;">
-              <thead>
-                <tr style="background:var(--ink);">
-                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">#</th>
-                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">البرج</th>
-                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">الدور</th>
-                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">الموقف</th>
-                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">العامود</th>
-                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">العدد</th>
-                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">نسبة</th>
-                </tr>
-              </thead>
-              <tbody id="anaDustyTopLocations"></tbody>
-            </table>
+        <!-- KPI CARDS ROW -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;" id="anaKpiGrid">
+          <div class="ana-kpi-card ana-kpi-total">
+            <div class="ana-kpi-icon">🚗</div>
+            <div class="ana-kpi-val" id="anaKpiTotal">0</div>
+            <div class="ana-kpi-label">إجمالي السجلات</div>
+          </div>
+          <div class="ana-kpi-card ana-kpi-dust">
+            <div class="ana-kpi-icon">🔴</div>
+            <div class="ana-kpi-val" id="anaKpiDust">0</div>
+            <div class="ana-kpi-label">مغبرة</div>
+          </div>
+          <div class="ana-kpi-card ana-kpi-mid">
+            <div class="ana-kpi-icon">🟡</div>
+            <div class="ana-kpi-val" id="anaKpiMid">0</div>
+            <div class="ana-kpi-label">متوسطة</div>
+          </div>
+          <div class="ana-kpi-card ana-kpi-new">
+            <div class="ana-kpi-icon">🟢</div>
+            <div class="ana-kpi-val" id="anaKpiNew">0</div>
+            <div class="ana-kpi-label">حديثة</div>
+          </div>
+          <div class="ana-kpi-card ana-kpi-photos">
+            <div class="ana-kpi-icon">📷</div>
+            <div class="ana-kpi-val" id="anaKpiPhotos">0</div>
+            <div class="ana-kpi-label">بصور</div>
           </div>
         </div>
-      </div>
 
-      <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:220px;">
-        <div class="card" style="margin:0;flex:1;">
-          <div class="card-header" style="padding:12px 16px;">
-            <div class="card-title" style="font-size:13px;"><div class="card-title-icon">🟢</div> أماكن حديثة</div>
+        <!-- ROW 1: Bar Chart + Pie Chart -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="card" style="margin:0;">
+            <div class="card-header">
+              <div class="card-title"><div class="card-title-icon">🏢</div> توزيع المغبرة حسب البرج</div>
+            </div>
+            <div class="card-body" style="padding:16px;">
+              <canvas id="dustyByTowerChart" width="600" height="280" style="width:100%;max-width:100%;display:block;"></canvas>
+            </div>
           </div>
-          <div class="card-body" style="padding:10px 14px;">
-            <div id="anaNewLocations" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <div class="card" style="margin:0;">
+            <div class="card-header">
+              <div class="card-title"><div class="card-title-icon">🥧</div> نسب الحالات</div>
+            </div>
+            <div class="card-body" style="padding:16px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+              <canvas id="statusPieChart" width="280" height="280" style="max-width:220px;display:block;"></canvas>
+              <div id="pieLegend" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:12px;"></div>
+            </div>
           </div>
         </div>
-        <div class="card" style="margin:0;flex:1;">
-          <div class="card-header" style="padding:12px 16px;">
-            <div class="card-title" style="font-size:13px;"><div class="card-title-icon">🟡</div> أماكن متوسطة</div>
+
+        <!-- ROW 2: Daily Trend + Status by Tower -->
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="card" style="margin:0;">
+            <div class="card-header">
+              <div class="card-title"><div class="card-title-icon">📈</div> الاتجاه اليومي (آخر 14 يوم)</div>
+            </div>
+            <div class="card-body" style="padding:16px;">
+              <canvas id="dailyTrendChart" width="800" height="220" style="width:100%;max-width:100%;display:block;"></canvas>
+            </div>
           </div>
-          <div class="card-body" style="padding:10px 14px;">
-            <div id="anaMidLocations" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <div class="card" style="margin:0;">
+            <div class="card-header">
+              <div class="card-title"><div class="card-title-icon">🏆</div> أعلى برج مغبرة</div>
+            </div>
+            <div class="card-body" style="padding:20px;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;">
+              <div style="text-align:center;">
+                <div class="tower-badge" id="anaTopTowerBadge" style="width:64px;height:64px;font-size:28px;margin:0 auto 12px;">—</div>
+                <div style="font-weight:900;font-size:18px;color:var(--ink);" id="anaTopTowerText">—</div>
+                <div style="font-size:12px;color:var(--ink3);margin-top:4px;" id="anaTopTowerMeta"></div>
+              </div>
+              <div id="anaTowerRankList" style="width:100%;display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
           </div>
+        </div>
+
+        <!-- ROW 3: Top Dusty Locations Table -->
+        <div class="card" style="margin:0 0 16px;">
+          <div class="card-header">
+            <div class="card-title"><div class="card-title-icon">📍</div> أكثر المواقع تكراراً في المغبرة</div>
+            <span id="anaDustyCount" class="status-dust">🔴 مغبرة: 0</span>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div style="overflow:auto;">
+              <table style="width:100%;border-collapse:collapse;min-width:520px;">
+                <thead>
+                  <tr style="background:var(--ink);">
+                    <th style="padding:10px 16px;color:#fff;font-size:11px;text-align:right;">#</th>
+                    <th style="padding:10px 16px;color:#fff;font-size:11px;text-align:right;">الموقع</th>
+                    <th style="padding:10px 16px;color:#fff;font-size:11px;text-align:right;">البرج</th>
+                    <th style="padding:10px 16px;color:#fff;font-size:11px;text-align:right;">الدور</th>
+                    <th style="padding:10px 16px;color:#fff;font-size:11px;text-align:right;">الموقف</th>
+                    <th style="padding:10px 16px;color:#fff;font-size:11px;text-align:right;">العامود</th>
+                    <th style="padding:10px 16px;color:#fff;font-size:11px;text-align:right;">التكرار</th>
+                    <th style="padding:10px 16px;color:#fff;font-size:11px;text-align:right;">النسبة</th>
+                  </tr>
+                </thead>
+                <tbody id="anaDustyTopLocations"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 4: Location chips -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;">
+          <div class="card" style="margin:0;">
+            <div class="card-header">
+              <div class="card-title"><div class="card-title-icon">🟢</div> أماكن "حديثة"</div>
+              <span class="status-new" id="anaNewCount">0</span>
+            </div>
+            <div class="card-body" style="padding:12px;">
+              <div id="anaNewLocations" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+          </div>
+          <div class="card" style="margin:0;">
+            <div class="card-header">
+              <div class="card-title"><div class="card-title-icon">🟡</div> أماكن "متوسطة"</div>
+              <span class="status-mid" id="anaMidCount">0</span>
+            </div>
+            <div class="card-body" style="padding:12px;">
+              <div id="anaMidLocations" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+          </div>
+          <div class="card" style="margin:0;">
+            <div class="card-header">
+              <div class="card-title"><div class="card-title-icon">🔴</div> أماكن "مغبرة"</div>
+            </div>
+            <div class="card-body" style="padding:12px;">
+              <div id="anaDustyLocations" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:var(--ink3);margin-top:8px;background:var(--paper);padding:10px 14px;border-radius:8px;">
+          💡 التحليلات تعتمد على البيانات المحملة من Google Sheets — اضغط 🔄 تحديث للحصول على أحدث البيانات
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Print Analytics Summary -->
-    <div class="ana-print-summary print-only">
-      <div class="ana-print-title">📊 ملخص التحليلات</div>
-      <div class="ana-print-kpis" id="anaPrintKpis"></div>
-      <div class="ana-print-charts">
-        <canvas id="printBarChart" width="500" height="180"></canvas>
+  <!-- PDF REPORT MODAL -->
+  <div class="modal" id="pdfModal">
+    <div class="modal-box" style="max-width:520px;width:100%;">
+      <button class="modal-close" id="closePdfModal">×</button>
+      <h2 style="margin:0 0 6px;font-size:18px;">📑 تقرير PDF</h2>
+      <p style="color:var(--ink3);font-size:13px;margin-bottom:20px;">اختر نوع التقرير الذي تريد إنشاءه</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-primary" id="pdfBtnFull" style="font-size:14px;padding:14px;justify-content:flex-start;gap:12px;">
+          📋 <span><strong>تقرير كامل</strong><br><small style="opacity:.75;font-weight:400;">جميع السجلات مع الإحصائيات</small></span>
+        </button>
+        <button class="btn btn-ghost" id="pdfBtnAnalytics" style="font-size:14px;padding:14px;justify-content:flex-start;gap:12px;border:1.5px solid var(--border2);">
+          📊 <span><strong>تقرير التحليلات</strong><br><small style="opacity:.65;font-weight:400;">المخططات والإحصائيات التفصيلية</small></span>
+        </button>
+        <button class="btn btn-ghost" id="pdfBtnDusty" style="font-size:14px;padding:14px;justify-content:flex-start;gap:12px;border:1.5px solid #fee2e2;color:#991b1b;">
+          🔴 <span><strong>تقرير المغبرة فقط</strong><br><small style="opacity:.65;font-weight:400;">سجلات السيارات المغبرة</small></span>
+        </button>
+        <button class="btn btn-ghost" id="pdfBtnToday" style="font-size:14px;padding:14px;justify-content:flex-start;gap:12px;border:1.5px solid #bae6fd;color:#0369a1;">
+          📅 <span><strong>تقرير اليوم</strong><br><small style="opacity:.65;font-weight:400;">سجلات اليوم الحالي فقط</small></span>
+        </button>
       </div>
-      <div id="anaPrintTopTable"></div>
+      <div id="pdfProgress" style="display:none;margin-top:16px;text-align:center;padding:16px;background:var(--paper);border-radius:10px;">
+        <div class="spinner" style="margin:0 auto 10px;"></div>
+        <div style="font-weight:700;color:var(--ink3);" id="pdfProgressText">جارٍ إنشاء التقرير…</div>
+      </div>
     </div>
-
   </div>
 
 </div><!-- /main -->
@@ -2261,9 +2235,11 @@ $("btnLogout").addEventListener("click", doLogout);
 
 /* ══ CHECK SESSION ON LOAD ══ */
 window.addEventListener("load", function(){
-  // دائماً ابدأ بشاشة الدخول
-  clearSession();
-  loginEmpId.focus();
+  if(loadSession()){
+    onLoginSuccess();
+  } else {
+    loginEmpId.focus();
+  }
 });
 
 /* ══════════════════════════════════
@@ -2599,296 +2575,393 @@ function updateStats(){
 
 
 /* ══════════════════════════════════
-   ANALYTICS (NO DARK MODE)
+   ANALYTICS ENHANCED (NO DARK MODE)
 ══════════════════════════════════ */
 function A(id){ return document.getElementById(id); }
 
 function parseISODateSafe(s){
   s = String(s||"").trim();
   if(!s) return null;
-  // accept yyyy-mm-dd
   var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(m) return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-  // accept dd/mm/yyyy
   m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if(m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
   return null;
 }
 
-
-/* ══════════════════════════════════
-   ANALYTICS — ENHANCED
-══════════════════════════════════ */
-
 function filterByRange(list){
-  var range = (typeof A !== 'undefined' && A("anaRange")) ? A("anaRange").value : "all";
-  if(range==="all") return list;
-  var now=new Date(), cutoff=new Date();
-  if(range==="today"){ cutoff.setHours(0,0,0,0); }
-  else if(range==="7d"){ cutoff.setDate(now.getDate()-7); }
-  else if(range==="30d"){ cutoff.setDate(now.getDate()-30); }
+  var sel = A("anaRange");
+  var mode = sel && sel.value ? sel.value : "all";
+  if(mode === "all") return list.slice();
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  var start = new Date(today);
+  if(mode === "7d") start.setDate(start.getDate() - 6);
+  else if(mode === "30d") start.setDate(start.getDate() - 29);
   return list.filter(function(v){
-    var d=fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"");
-    if(!d) return range==="all";
-    return new Date(d)>=cutoff;
+    var d = parseISODateSafe(fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||""));
+    if(!d) return false;
+    d.setHours(0,0,0,0);
+    return d >= start && d <= today;
   });
 }
 
-function buildLocationCounts(list,status){
-  var map={};
+function normalizeLocParts(v){
+  return {
+    tower: String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase()||"—",
+    floor: String(getField(v,["الدور","🔢 الدور"])||v.floor||"").trim().toUpperCase()||"—",
+    parking: String(getField(v,["رقم الموقف","موقف"])||v.parkingNum||"").trim().toUpperCase()||"—",
+    col: String(getField(v,["رقم العامود","عامود","العمود"])||v.colNum||"").trim().toUpperCase()||"—"
+  };
+}
+
+function buildLocationCounts(list, statusLabel){
+  var map = {};
   list.forEach(function(v){
-    var st=String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
-    if(st!==status) return;
-    var tower=String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim();
-    var floor=String(getField(v,["الدور","🔢 الدور"])||v.floor||"").trim();
-    var parking=String(v.parkingNum||getField(v,["رقم الموقف"])||"—").trim();
-    var col=String(v.colNum||getField(v,["رقم العامود"])||"—").trim();
-    var key=tower+"_"+floor+"_"+parking+"_"+col;
-    if(!map[key]) map[key]={tower:tower,floor:floor,parking:parking,col:col,count:0};
-    map[key].count++;
+    var st = String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
+    if(st !== statusLabel) return;
+    var p = normalizeLocParts(v);
+    var key = [p.tower,p.floor,p.parking,p.col].join("|");
+    map[key] = (map[key]||0) + 1;
   });
-  return Object.values(map).sort(function(a,b){return b.count-a.count;});
+  return Object.keys(map).map(function(k){
+    var parts = k.split("|");
+    return {key:k, tower:parts[0], floor:parts[1], parking:parts[2], col:parts[3], count:map[k]};
+  }).sort(function(a,b){ return b.count - a.count; });
 }
 
-function drawDonutChart(canvas,segments){
+/* ── Bar Chart (enhanced) ── */
+function drawBarChart(canvas, labels, values, colors){
   if(!canvas) return;
-  var ctx=canvas.getContext("2d");
-  var W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=Math.min(cx,cy)-14,ri=r*0.58;
-  ctx.clearRect(0,0,W,H);
-  var total=segments.reduce(function(s,x){return s+x.val;},0)||1;
-  var angle=-Math.PI/2;
-  segments.forEach(function(seg){
-    var sweep=(seg.val/total)*Math.PI*2;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+sweep);ctx.closePath();
-    ctx.fillStyle=seg.color;ctx.fill();angle+=sweep;
-  });
-  ctx.beginPath();ctx.arc(cx,cy,ri,0,Math.PI*2);ctx.fillStyle="#fff";ctx.fill();
-  ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.fillStyle="#0e2a5c";ctx.font="bold 28px IBM Plex Sans Arabic";ctx.fillText(String(total),cx,cy-6);
-  ctx.fillStyle="#64748b";ctx.font="11px IBM Plex Sans Arabic";ctx.fillText("إجمالي",cx,cy+14);
+  var ctx = canvas.getContext("2d");
+  var dpr = window.devicePixelRatio || 1;
+  var w = canvas.clientWidth || canvas.width;
+  var h = canvas.clientHeight || canvas.height;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0,0,w,h);
+
+  colors = colors || ["#1a56db","#059669","#dc2626","#d97706","#7c3aed"];
+  var padL=50, padR=16, padT=20, padB=48;
+  var chartW = w - padL - padR, chartH = h - padT - padB;
+  var maxVal = Math.max.apply(null, values.concat([1]));
+
+  /* grid */
+  var steps = 5;
+  ctx.font = "11px 'IBM Plex Sans Arabic'";
+  ctx.textAlign = "right";
+  for(var s=0; s<=steps; s++){
+    var yg = padT + chartH - (chartH*(s/steps));
+    ctx.strokeStyle = s===0 ? "rgba(14,42,92,.4)" : "rgba(226,232,240,.8)";
+    ctx.lineWidth = s===0 ? 1.5 : 1;
+    ctx.beginPath(); ctx.moveTo(padL, yg); ctx.lineTo(padL+chartW, yg); ctx.stroke();
+    ctx.fillStyle = "#64748b";
+    ctx.fillText(String(Math.round(maxVal*(s/steps))), padL-6, yg+4);
+  }
+
+  var barCount = labels.length||1, gap = 12;
+  var barW = Math.max(24, (chartW - gap*(barCount+1)) / barCount);
+
+  for(var i=0; i<labels.length; i++){
+    var v = values[i]||0;
+    var bh = (v/maxVal)*chartH;
+    var x = padL + gap + i*(barW+gap);
+    var y = padT + chartH - bh;
+    var col = colors[i % colors.length];
+
+    /* gradient bar */
+    var grad = ctx.createLinearGradient(x, y, x, padT+chartH);
+    grad.addColorStop(0, col);
+    grad.addColorStop(1, col+"55");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, barW, bh, [6,6,0,0]) : ctx.rect(x, y, barW, bh);
+    ctx.fill();
+
+    /* value on top */
+    ctx.fillStyle = "#0e2a5c";
+    ctx.font = "bold 12px 'JetBrains Mono'";
+    ctx.textAlign = "center";
+    if(v>0) ctx.fillText(String(v), x+barW/2, Math.max(y-6, padT+12));
+
+    /* label */
+    ctx.fillStyle = "#475569";
+    ctx.font = "12px 'IBM Plex Sans Arabic'";
+    ctx.fillText(labels[i], x+barW/2, padT+chartH+28);
+  }
 }
 
-function drawGroupedBarChart(canvas,labels,groups){
-  if(!canvas) return;
-  var ctx=canvas.getContext("2d");
-  var W=canvas.width,H=canvas.height;
-  ctx.clearRect(0,0,W,H);
-  var padL=46,padR=14,padT=14,padB=44;
-  var chartW=W-padL-padR,chartH=H-padT-padB;
-  var maxVal=1;
-  groups.forEach(function(g){g.values.forEach(function(v){if(v>maxVal)maxVal=v;});});
-  ctx.strokeStyle="rgba(226,232,240,1)";ctx.lineWidth=1;
-  var steps=4;
+/* ── Pie Chart ── */
+function drawPieChart(canvas, data, colors){
+  if(!canvas||!data.length) return;
+  var ctx = canvas.getContext("2d");
+  var dpr = window.devicePixelRatio||1;
+  var size = Math.min(canvas.clientWidth||200, canvas.clientHeight||200);
+  canvas.width = size*dpr; canvas.height = size*dpr;
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,size,size);
+  var cx=size/2, cy=size/2, r=size/2-14;
+  var total = data.reduce(function(s,d){return s+d.value;},0);
+  if(!total) return;
+  var angle = -Math.PI/2;
+  data.forEach(function(d,i){
+    var slice = (d.value/total)*Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle,angle+slice);
+    ctx.closePath();
+    ctx.fillStyle = colors[i%colors.length];
+    ctx.fill();
+    /* border */
+    ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.stroke();
+    angle += slice;
+  });
+  /* inner circle */
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.52,0,Math.PI*2);
+  ctx.fillStyle="#fff"; ctx.fill();
+  /* center text */
+  ctx.fillStyle="#0e2a5c"; ctx.font="bold 18px 'JetBrains Mono'"; ctx.textAlign="center";
+  ctx.fillText(String(total), cx, cy+6);
+}
+
+/* ── Daily Trend Chart ── */
+function drawTrendChart(canvas, labels, datasets){
+  if(!canvas||!labels.length) return;
+  var ctx = canvas.getContext("2d");
+  var dpr = window.devicePixelRatio||1;
+  var w = canvas.clientWidth||800, h = canvas.clientHeight||220;
+  canvas.width = w*dpr; canvas.height = h*dpr;
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+
+  var padL=40, padR=16, padT=16, padB=40;
+  var chartW=w-padL-padR, chartH=h-padT-padB;
+  var n = labels.length;
+  if(!n) return;
+
+  var allVals = datasets.reduce(function(arr,ds){return arr.concat(ds.data);},[]);
+  var maxVal = Math.max.apply(null, allVals.concat([1]));
+  var steps = 4;
+
+  /* grid */
+  ctx.font="11px 'IBM Plex Sans Arabic'"; ctx.textAlign="right";
   for(var s=0;s<=steps;s++){
-    var y=padT+chartH-(chartH*(s/steps));
-    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+chartW,y);ctx.stroke();
-    ctx.fillStyle="#94a3b8";ctx.font="10px IBM Plex Sans Arabic";ctx.textAlign="right";
-    ctx.fillText(String(Math.round(maxVal*(s/steps))),padL-4,y+4);
+    var yg = padT+chartH - (chartH*(s/steps));
+    ctx.strokeStyle = s===0 ? "rgba(14,42,92,.4)" : "rgba(226,232,240,.9)";
+    ctx.lineWidth = s===0?1.5:1;
+    ctx.beginPath(); ctx.moveTo(padL,yg); ctx.lineTo(padL+chartW,yg); ctx.stroke();
+    ctx.fillStyle="#64748b";
+    ctx.fillText(String(Math.round(maxVal*(s/steps))), padL-5, yg+4);
   }
-  ctx.strokeStyle="rgba(14,42,92,.3)";ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.moveTo(padL,padT);ctx.lineTo(padL,padT+chartH);ctx.lineTo(padL+chartW,padT+chartH);ctx.stroke();
-  var groupW=chartW/labels.length,gapB=8,barW=Math.max(8,(groupW-gapB*2-gapB*(groups.length-1))/groups.length);
-  labels.forEach(function(lbl,li){
-    var gx=padL+li*groupW+gapB;
-    groups.forEach(function(g,gi){
-      var v=g.values[li]||0;
-      var bh=(v/maxVal)*chartH,bx=gx+gi*(barW+3),by=padT+chartH-bh;
-      ctx.fillStyle=g.color;ctx.fillRect(bx,by,barW,bh);
-      if(v>0){ctx.fillStyle="#0e2a5c";ctx.font="bold 10px JetBrains Mono";ctx.textAlign="center";ctx.fillText(String(v),bx+barW/2,by-4);}
+
+  var step = chartW/(n-1||1);
+
+  datasets.forEach(function(ds){
+    var pts = ds.data.map(function(v,i){
+      return {x: padL+i*step, y: padT+chartH - (v/maxVal)*chartH};
     });
-    ctx.fillStyle="#475569";ctx.font="11px IBM Plex Sans Arabic";ctx.textAlign="center";
-    ctx.fillText(lbl,padL+li*groupW+groupW/2,padT+chartH+20);
+
+    /* fill area */
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, padT+chartH);
+    pts.forEach(function(p){ctx.lineTo(p.x,p.y);});
+    ctx.lineTo(pts[pts.length-1].x, padT+chartH);
+    ctx.closePath();
+    ctx.fillStyle = ds.color+"22";
+    ctx.fill();
+
+    /* line */
+    ctx.beginPath();
+    pts.forEach(function(p,i){i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y);});
+    ctx.strokeStyle = ds.color; ctx.lineWidth=2.5; ctx.lineJoin="round";
+    ctx.stroke();
+
+    /* dots */
+    pts.forEach(function(p){
+      ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2);
+      ctx.fillStyle="#fff"; ctx.fill();
+      ctx.strokeStyle=ds.color; ctx.lineWidth=2; ctx.stroke();
+    });
   });
-  var lx=padL,ly=padT+chartH+36;
-  groups.forEach(function(g){
-    ctx.fillStyle=g.color;ctx.fillRect(lx,ly-8,12,10);
-    ctx.fillStyle="#475569";ctx.font="10px IBM Plex Sans Arabic";ctx.textAlign="left";
-    ctx.fillText(g.label,lx+16,ly+2);lx+=80;
+
+  /* x labels */
+  ctx.fillStyle="#64748b"; ctx.font="10px 'IBM Plex Sans Arabic'"; ctx.textAlign="center";
+  labels.forEach(function(lbl,i){
+    ctx.fillText(lbl, padL+i*step, padT+chartH+22);
   });
 }
 
-function drawLineChart(canvas,labels,values){
-  if(!canvas) return;
-  var ctx=canvas.getContext("2d");
-  var W=canvas.width,H=canvas.height;
-  ctx.clearRect(0,0,W,H);
-  if(!labels.length) return;
-  var padL=42,padR=14,padT=14,padB=36;
-  var chartW=W-padL-padR,chartH=H-padT-padB;
-  var maxVal=Math.max.apply(null,values.concat([1]));
-  var grad=ctx.createLinearGradient(0,padT,0,padT+chartH);
-  grad.addColorStop(0,"rgba(26,86,219,.22)");grad.addColorStop(1,"rgba(26,86,219,.02)");
-  ctx.strokeStyle="rgba(226,232,240,1)";ctx.lineWidth=1;
-  for(var s=0;s<=4;s++){
-    var y=padT+chartH-(chartH*(s/4));
-    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+chartW,y);ctx.stroke();
-    ctx.fillStyle="#94a3b8";ctx.font="10px IBM Plex Sans Arabic";ctx.textAlign="right";
-    ctx.fillText(String(Math.round(maxVal*(s/4))),padL-4,y+4);
-  }
-  var n=labels.length;
-  var pts=labels.map(function(l,i){return {x:padL+i*(chartW/(n-1||1)),y:padT+chartH-(values[i]/maxVal)*chartH};});
-  ctx.beginPath();ctx.moveTo(pts[0].x,padT+chartH);
-  pts.forEach(function(p){ctx.lineTo(p.x,p.y);});
-  ctx.lineTo(pts[pts.length-1].x,padT+chartH);ctx.closePath();
-  ctx.fillStyle=grad;ctx.fill();
-  ctx.strokeStyle="#1a56db";ctx.lineWidth=2.5;ctx.lineJoin="round";
-  ctx.beginPath();pts.forEach(function(p,i){i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.stroke();
-  pts.forEach(function(p,i){
-    ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,Math.PI*2);
-    ctx.fillStyle="#fff";ctx.fill();ctx.strokeStyle="#1a56db";ctx.lineWidth=2;ctx.stroke();
-    if(values[i]>0){ctx.fillStyle="#0e2a5c";ctx.font="bold 9px JetBrains Mono";ctx.textAlign="center";ctx.fillText(String(values[i]),p.x,p.y-8);}
-  });
-  ctx.fillStyle="#94a3b8";ctx.font="9px IBM Plex Sans Arabic";ctx.textAlign="center";
-  pts.forEach(function(p,i){if(i%2===0)ctx.fillText(labels[i],p.x,padT+chartH+16);});
-}
-
-function renderFloorHeatmap(list){
-  var el=document.getElementById("floorHeatmap");if(!el) return;
-  var floorMap={};
-  list.forEach(function(v){
-    var f=String(getField(v,["الدور","🔢 الدور"])||v.floor||"").trim()||"غير محدد";
-    floorMap[f]=(floorMap[f]||0)+1;
-  });
-  var entries=Object.entries(floorMap).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-  var maxC=entries.length?entries[0][1]:1;
-  var colors=["#1a56db","#0e3a8c","#3b82f6","#60a5fa","#93c5fd","#bfdbfe","#dbeafe","#eff6ff"];
-  el.innerHTML="";
-  if(!entries.length){el.innerHTML='<div style="color:var(--border2);font-size:12px;text-align:center;padding:20px;">لا توجد بيانات</div>';return;}
-  entries.forEach(function(e,i){
-    var pct=Math.round((e[1]/maxC)*100);
-    var row=document.createElement("div");row.className="floor-heat-row";
-    row.innerHTML='<div class="floor-heat-label">'+e[0]+'</div>'+
-      '<div class="floor-heat-bar-wrap"><div class="floor-heat-bar" style="width:'+pct+'%;background:'+colors[i%colors.length]+';">'+
-      (pct>20?e[1]:"")+
-      '</div></div>'+
-      '<div class="floor-heat-count">'+e[1]+'</div>';
-    el.appendChild(row);
-  });
-}
-
+/* ── Build Analytics ── */
 function buildAnalytics(){
-  var list=filterByRange(cloudData||[]);
-  var total=list.length,dusty=0,mid=0,fresh=0;
-  var td={A:{dusty:0,mid:0,fresh:0},B:{dusty:0,mid:0,fresh:0},C:{dusty:0,mid:0,fresh:0}};
+  var list = filterByRange(cloudData||[]);
+  var dusty=0, mid=0, fresh=0, photos=0;
+  var dustyByTower={A:0,B:0,C:0};
+  var allByTower={A:0,B:0,C:0};
+
   list.forEach(function(v){
     var st=String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
-    var tw=String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase();
-    if(st==="مغبرة"){dusty++;if(td[tw])td[tw].dusty++;}
-    else if(st==="متوسطة الغبار"){mid++;if(td[tw])td[tw].mid++;}
-    else if(st==="حديثة"){fresh++;if(td[tw])td[tw].fresh++;}
+    var tower=String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase();
+    if(dustyByTower[tower]!==undefined) allByTower[tower]++;
+    if(st==="مغبرة"){dusty++; if(dustyByTower[tower]!==undefined) dustyByTower[tower]++;}
+    else if(st==="متوسطة الغبار") mid++;
+    else if(st==="حديثة") fresh++;
+    if((getField(v,["صورة","📷 صورة"])||v.hasImage||"")==="نعم") photos++;
   });
-  var pct=function(n){return total?Math.round(n/total*100)+"%":"—";};
-  var set=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
-  set("anaTotal",total);
-  set("anaDustyVal",dusty);set("anaDustyPct",pct(dusty));
-  set("anaMidVal",mid);set("anaMidPct",pct(mid));
-  set("anaNewVal",fresh);set("anaNewPct",pct(fresh));
-  var topT="—",topN=0;
-  ["A","B","C"].forEach(function(t){if(td[t].dusty>topN){topN=td[t].dusty;topT=t;}});
-  set("anaTopTower",topT==="—"?"—":"برج "+topT);
-  set("anaTopTowerN",topN?topN+" سجل مغبر":"لا يوجد");
-  drawDonutChart(document.getElementById("donutChart"),[
-    {val:dusty,color:"#dc2626"},{val:mid,color:"#d97706"},{val:fresh,color:"#059669"}
-  ]);
-  var leg=document.getElementById("donutLegend");
-  if(leg) leg.innerHTML=[{c:"#dc2626",l:"مغبرة",n:dusty},{c:"#d97706",l:"متوسطة",n:mid},{c:"#059669",l:"حديثة",n:fresh}]
-    .map(function(x){return '<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;">'+
-      '<span style="width:12px;height:12px;border-radius:3px;background:'+x.c+';display:inline-block;"></span>'+
-      x.l+' <span style="color:'+x.c+';font-family:JetBrains Mono,monospace;">'+x.n+'</span></div>';}).join("");
-  drawGroupedBarChart(document.getElementById("towerGroupChart"),["برج A","برج B","برج C"],[
-    {label:"مغبرة",color:"#dc2626",values:[td.A.dusty,td.B.dusty,td.C.dusty]},
-    {label:"متوسطة",color:"#d97706",values:[td.A.mid,td.B.mid,td.C.mid]},
-    {label:"حديثة",color:"#059669",values:[td.A.fresh,td.B.fresh,td.C.fresh]},
-  ]);
-  var days=14,tlL=[],tlV=[];
-  for(var d=days-1;d>=0;d--){
-    var dt=new Date();dt.setDate(dt.getDate()-d);
-    var ds=dt.toISOString().slice(0,10);
-    tlL.push(dt.getDate()+"/"+(dt.getMonth()+1));
-    tlV.push(list.filter(function(v){
-      return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===ds;
-    }).length);
+
+  /* KPI */
+  if(A("anaKpiTotal")) A("anaKpiTotal").textContent=list.length;
+  if(A("anaKpiDust")) A("anaKpiDust").textContent=dusty;
+  if(A("anaKpiMid")) A("anaKpiMid").textContent=mid;
+  if(A("anaKpiNew")) A("anaKpiNew").textContent=fresh;
+  if(A("anaKpiPhotos")) A("anaKpiPhotos").textContent=photos;
+
+  /* Summary badges */
+  if(A("anaDustyCount")) A("anaDustyCount").textContent="🔴 مغبرة: "+dusty;
+  if(A("anaMidCount")) A("anaMidCount").textContent="🟡 متوسطة: "+mid;
+  if(A("anaNewCount")) A("anaNewCount").textContent="🟢 حديثة: "+fresh;
+
+  /* Top tower */
+  var entries=Object.keys(dustyByTower).map(function(k){return [k,dustyByTower[k]];}).sort(function(a,b){return b[1]-a[1];});
+  var top=entries[0]||["—",0];
+  var topTower=top[0], topCount=top[1];
+  if(A("anaTopTowerBadge")){
+    A("anaTopTowerBadge").className="tower-badge "+(topTower==="A"?"tower-A":topTower==="B"?"tower-B":topTower==="C"?"tower-C":"");
+    A("anaTopTowerBadge").textContent=topTower;
+    A("anaTopTowerBadge").style.cssText="width:64px;height:64px;font-size:28px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:16px;";
   }
-  drawLineChart(document.getElementById("timelineChart"),tlL,tlV);
-  renderFloorHeatmap(list);
+  if(A("anaTopTowerText")) A("anaTopTowerText").textContent=topTower==="—"?"لا توجد بيانات":("برج "+topTower+" — الأعلى في المغبرة");
+  if(A("anaTopTowerMeta")) A("anaTopTowerMeta").textContent=topTower==="—"?"":("عدد المغبرة: "+topCount+" سجل");
+
+  /* Tower rank bars */
+  var rankEl=A("anaTowerRankList");
+  if(rankEl){
+    rankEl.innerHTML="";
+    var maxB=Math.max.apply(null,Object.values(dustyByTower).concat([1]));
+    entries.forEach(function(e){
+      var div=document.createElement("div");
+      div.className="tower-rank-item";
+      var pct=Math.round((e[1]/maxB)*100);
+      div.innerHTML='<span class="tower-badge '+(e[0]==="A"?"tower-A":e[0]==="B"?"tower-B":"tower-C")+'" style="width:28px;height:28px;font-size:13px;border-radius:8px;flex-shrink:0;">'+e[0]+'</span>'+
+        '<div class="tower-rank-bar"><div class="tower-rank-fill" style="width:'+pct+'%;background:'+(e[0]==="A"?"var(--accent)":e[0]==="B"?"var(--green)":"var(--red)")+'"></div></div>'+
+        '<span style="font-family:JetBrains Mono,monospace;font-weight:800;font-size:13px;min-width:24px;text-align:center;">'+e[1]+'</span>';
+      rankEl.appendChild(div);
+    });
+  }
+
+  /* Bar chart */
+  setTimeout(function(){
+    drawBarChart(A("dustyByTowerChart"),["A","B","C"],[dustyByTower.A||0,dustyByTower.B||0,dustyByTower.C||0],["#1a56db","#059669","#dc2626"]);
+  },50);
+
+  /* Pie chart */
+  setTimeout(function(){
+    var pieCanvas=A("statusPieChart");
+    var pieData=[{label:"مغبرة",value:dusty},{label:"متوسطة",value:mid},{label:"حديثة",value:fresh}];
+    var pieColors=["#dc2626","#d97706","#059669"];
+    drawPieChart(pieCanvas, pieData.filter(function(d){return d.value>0;}), pieColors.filter(function(_,i){return pieData[i].value>0;}));
+    var legendEl=A("pieLegend");
+    if(legendEl){
+      legendEl.innerHTML="";
+      pieData.forEach(function(d,i){
+        if(!d.value) return;
+        var span=document.createElement("span");
+        span.style.cssText="display:flex;align-items:center;gap:5px;";
+        var total2=dusty+mid+fresh||1;
+        span.innerHTML='<span style="width:10px;height:10px;border-radius:3px;background:'+pieColors[i]+';display:inline-block;"></span>'+
+          '<span style="color:var(--ink3);">'+d.label+'</span>'+
+          '<strong style="color:var(--ink);">'+d.value+'</strong>'+
+          '<span style="color:var(--ink3);">('+Math.round(d.value/total2*100)+'%)</span>';
+        legendEl.appendChild(span);
+      });
+    }
+  },50);
+
+  /* Daily trend (last 14 days) */
+  setTimeout(function(){
+    var trendCanvas=A("dailyTrendChart");
+    var days=14;
+    var labels=[], dustyTrend=[], midTrend=[], freshTrend=[];
+    for(var di=days-1;di>=0;di--){
+      var d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-di);
+      var dStr=d.toISOString().split("T")[0];
+      var mm=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
+      labels.push(mm+"/"+dd);
+      var dayData=cloudData.filter(function(v){
+        return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")=== dStr;
+      });
+      var du=0,mi=0,fr=0;
+      dayData.forEach(function(v){
+        var st=String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
+        if(st==="مغبرة")du++;else if(st==="متوسطة الغبار")mi++;else if(st==="حديثة")fr++;
+      });
+      dustyTrend.push(du); midTrend.push(mi); freshTrend.push(fr);
+    }
+    drawTrendChart(trendCanvas, labels, [
+      {label:"مغبرة",data:dustyTrend,color:"#dc2626"},
+      {label:"متوسطة",data:midTrend,color:"#d97706"},
+      {label:"حديثة",data:freshTrend,color:"#059669"}
+    ]);
+  },80);
+
+  /* Top dusty locations table */
   var dustyLocs=buildLocationCounts(list,"مغبرة");
-  var tbody=document.getElementById("anaDustyTopLocations");
-  if(tbody){
-    tbody.innerHTML="";
-    if(!dustyLocs.length){
-      tbody.innerHTML='<tr><td colspan="7" style="padding:16px;color:var(--border2);font-weight:800;text-align:center;">لا توجد سجلات مغبرة في هذا النطاق</td></tr>';
-    } else {
-      dustyLocs.slice(0,10).forEach(function(it,idx){
-        var rowPct=dusty?Math.round(it.count/dusty*100)+"%":"—";
+  var midLocs=buildLocationCounts(list,"متوسطة الغبار");
+  var newLocs=buildLocationCounts(list,"حديثة");
+
+  var dustyTopTbody=A("anaDustyTopLocations");
+  if(dustyTopTbody){
+    dustyTopTbody.innerHTML="";
+    var top10=dustyLocs.slice(0,10);
+    var totalDusty=dustyLocs.reduce(function(s,i){return s+i.count;},0)||1;
+    if(!top10.length){
+      dustyTopTbody.innerHTML='<tr><td colspan="8" style="padding:20px;color:var(--border2);font-weight:800;text-align:center;">— لا توجد سجلات مغبرة ضمن هذا النطاق —</td></tr>';
+    }else{
+      top10.forEach(function(it,idx){
         var tr=document.createElement("tr");
-        tr.style.background=idx%2===0?"#fff":"#f8faff";
-        tr.style.borderBottom="1px solid var(--border)";
+        tr.style.cssText="border-bottom:1px solid var(--border);"+(idx%2?"background:#f8f9fc;":"");
+        var pct=Math.round(it.count/totalDusty*100);
         tr.innerHTML=
-          '<td style="padding:10px 14px;font-weight:800;color:var(--ink3);">'+( idx+1)+'</td>'+
-          '<td style="padding:10px 14px;"><span class="tower-badge '+( it.tower==="A"?"tower-A":it.tower==="B"?"tower-B":"tower-C")+'">'+it.tower+'</span></td>'+
-          '<td style="padding:10px 14px;"><span class="floor-badge">'+it.floor+'</span></td>'+
-          '<td style="padding:10px 14px;">'+( it.parking!=="—"?'<span class="parking-badge">'+it.parking+'</span>':' <span style="color:var(--border2);">—</span>')+'</td>'+
-          '<td style="padding:10px 14px;">'+( it.col!=="—"?'<span class="col-num-badge">'+it.col+'</span>':' <span style="color:var(--border2);">—</span>')+'</td>'+
-          '<td style="padding:10px 14px;font-weight:900;font-family:JetBrains Mono,monospace;font-size:15px;color:var(--red);">'+it.count+'</td>'+
-          '<td style="padding:10px 14px;"><span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;">'+rowPct+'</span></td>';
-        tbody.appendChild(tr);
+          '<td style="padding:10px 16px;font-weight:800;color:var(--ink3);font-family:JetBrains Mono,monospace;">'+(idx+1)+'</td>'+
+          '<td style="padding:10px 16px;font-weight:700;color:var(--ink);">برج '+it.tower+' • دور '+it.floor+'</td>'+
+          '<td style="padding:10px 16px;"><span class="tower-badge '+(it.tower==="A"?"tower-A":it.tower==="B"?"tower-B":it.tower==="C"?"tower-C":"")+'">'+it.tower+'</span></td>'+
+          '<td style="padding:10px 16px;"><span class="floor-badge">'+it.floor+'</span></td>'+
+          '<td style="padding:10px 16px;">'+(it.parking!=="—"?'<span class="parking-badge">'+it.parking+'</span>':'<span style="color:var(--border2);">—</span>')+'</td>'+
+          '<td style="padding:10px 16px;">'+(it.col!=="—"?'<span class="col-num-badge">'+it.col+'</span>':'<span style="color:var(--border2);">—</span>')+'</td>'+
+          '<td style="padding:10px 16px;font-weight:900;font-family:JetBrains Mono,monospace;color:var(--red);">'+it.count+'</td>'+
+          '<td style="padding:10px 16px;"><div style="display:flex;align-items:center;gap:6px;"><div style="width:60px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:var(--red);border-radius:3px;"></div></div><span style="font-size:11px;color:var(--ink3);">'+pct+'%</span></div></td>';
+        dustyTopTbody.appendChild(tr);
       });
     }
   }
-  renderLocChips(document.getElementById("anaNewLocations"),buildLocationCounts(list,"حديثة"),"🟢","#059669");
-  renderLocChips(document.getElementById("anaMidLocations"),buildLocationCounts(list,"متوسطة الغبار"),"🟡","#d97706");
-  buildPrintSummary(total,dusty,mid,fresh,td,dustyLocs);
+
+  renderLocChips(A("anaNewLocations"), newLocs,"🟢");
+  renderLocChips(A("anaMidLocations"), midLocs,"🟡");
+  renderLocChips(A("anaDustyLocations"), dustyLocs,"🔴");
 }
 
-function renderLocChips(container,items,emoji,color){
+function renderLocChips(container, items, statusEmoji){
   if(!container) return;
   container.innerHTML="";
-  if(!items.length){container.innerHTML='<div style="color:var(--border2);font-size:12px;padding:8px;">— لا توجد بيانات —</div>';return;}
-  items.slice(0,5).forEach(function(it){
-    var div=document.createElement("div");div.className="loc-chip";
-    div.innerHTML='<div style="flex:1;"><div style="font-size:12px;font-weight:700;color:var(--ink);">'+emoji+' برج '+it.tower+' • دور '+it.floor+'</div>'+
-      (it.parking!=="—"?'<div style="font-size:11px;color:var(--ink3);margin-top:2px;">موقف '+it.parking+(it.col!=="—"?' • عامود '+it.col:"")+'</div>':"")+
-      '</div><b style="background:'+color+'1a;color:'+color+';border:1px solid '+color+'33;padding:2px 10px;border-radius:999px;font-size:12px;font-family:JetBrains Mono,monospace;">'+it.count+'</b>';
+  if(!items.length){
+    container.innerHTML='<div style="color:var(--border2);font-weight:700;padding:8px;text-align:center;">— لا توجد بيانات —</div>';
+    return;
+  }
+  items.slice(0,6).forEach(function(it){
+    var loc="برج "+it.tower+" • دور "+it.floor+(it.parking!=="—"?" • موقف "+it.parking:"")+(it.col!=="—"?" • عامود "+it.col:"");
+    var div=document.createElement("div");
+    div.className="loc-chip";
+    div.innerHTML='<div style="flex:1;"><strong>'+statusEmoji+' '+loc+'</strong></div><div><span>تكرار</span> <b>'+it.count+'</b></div>';
     container.appendChild(div);
   });
 }
 
-function buildPrintSummary(total,dusty,mid,fresh,td,dustyLocs){
-  var kpiEl=document.getElementById("anaPrintKpis");
-  if(kpiEl) kpiEl.innerHTML=[{v:total,l:"الإجمالي",c:"#0e2a5c"},{v:dusty,l:"مغبرة",c:"#dc2626"},{v:mid,l:"متوسطة",c:"#d97706"},{v:fresh,l:"حديثة",c:"#059669"}]
-    .map(function(x){return '<div class="ana-print-kpi"><div class="ana-print-kpi-val" style="color:'+x.c+'">'+x.v+'</div><div class="ana-print-kpi-label">'+x.l+'</div></div>';}).join("");
-  setTimeout(function(){
-    drawGroupedBarChart(document.getElementById("printBarChart"),["برج A","برج B","برج C"],[
-      {label:"مغبرة",color:"#dc2626",values:[td.A.dusty,td.B.dusty,td.C.dusty]},
-      {label:"متوسطة",color:"#d97706",values:[td.A.mid,td.B.mid,td.C.mid]},
-      {label:"حديثة",color:"#059669",values:[td.A.fresh,td.B.fresh,td.C.fresh]},
-    ]);
-  },100);
-  var tbl=document.getElementById("anaPrintTopTable");
-  if(tbl&&dustyLocs.length){
-    tbl.innerHTML='<div style="font-size:12px;font-weight:800;color:#0e2a5c;margin:10px 0 6px;">أكثر المواقع المغبرة:</div>'+
-      '<table style="width:100%;border-collapse:collapse;font-size:10px;">'+
-      '<thead><tr style="background:#0e2a5c;color:#fff;">'+
-      ["#","البرج","الدور","الموقف","العامود","العدد"].map(function(h){return '<th style="padding:6px 8px;text-align:right;">'+h+'</th>';}).join("")+
-      '</tr></thead><tbody>'+
-      dustyLocs.slice(0,8).map(function(it,i){return '<tr style="background:'+( i%2?"#f8f9fc":"#fff")+'">'+
-        '<td style="padding:6px 8px;">'+( i+1)+'</td>'+
-        '<td style="padding:6px 8px;">'+it.tower+'</td>'+
-        '<td style="padding:6px 8px;">'+it.floor+'</td>'+
-        '<td style="padding:6px 8px;">'+it.parking+'</td>'+
-        '<td style="padding:6px 8px;">'+it.col+'</td>'+
-        '<td style="padding:6px 8px;font-weight:800;color:#dc2626;">'+it.count+'</td></tr>';}).join("")+
-      '</tbody></table>';
-  }
-}
-
 function showAnalytics(){
   if(!currentUser){showToast("⚠️ يجب تسجيل الدخول أولاً","warn");return;}
-  var view=A("analyticsView");if(!view) return;
+  var view=A("analyticsView");
+  if(!view){showToast("⚠️ تعذر فتح التحليلات","error");return;}
   view.style.display="block";
   Array.from(document.querySelectorAll(".main > *")).forEach(function(ch){
-    if(ch.id==="analyticsView") return;
-    ch.style.display="none";
+    if(ch.id==="analyticsView")return; ch.style.display="none";
   });
   buildAnalytics();
   showToast("📊 تم فتح لوحة التحليلات","success");
@@ -2898,17 +2971,430 @@ function backToMain(){
   var view=A("analyticsView");
   if(view) view.style.display="none";
   Array.from(document.querySelectorAll(".main > *")).forEach(function(ch){
-    if(ch.id==="analyticsView") return;
-    ch.style.display="";
+    if(ch.id==="analyticsView")return; ch.style.display="";
   });
 }
 
+/* Wire analytics */
 (function(){
-  var btn=A("btnAnalytics");if(btn) btn.addEventListener("click",showAnalytics);
-  var back=A("btnBackToMain");if(back) back.addEventListener("click",backToMain);
-  var range=A("anaRange");if(range) range.addEventListener("change",buildAnalytics);
+  var btn=A("btnAnalytics"), back=A("btnBackToMain"), range=A("anaRange");
+  if(btn) btn.addEventListener("click",showAnalytics);
+  if(back) back.addEventListener("click",backToMain);
+  if(range) range.addEventListener("change",buildAnalytics);
+  var anaBtn=A("btnExportAnalyticsPDF");
+  if(anaBtn) anaBtn.addEventListener("click",function(){exportPDF("analytics");});
 })();
 
+/* ══════════════════════════════════
+   PDF EXPORT SYSTEM
+══════════════════════════════════ */
+(function(){
+  var btnPDF=A("btnExportPDF");
+  if(btnPDF) btnPDF.addEventListener("click",function(){
+    var modal=A("pdfModal");
+    if(modal) modal.classList.add("active");
+  });
+  var closeBtn=A("closePdfModal");
+  if(closeBtn) closeBtn.addEventListener("click",function(){
+    A("pdfModal").classList.remove("active");
+    A("pdfProgress").style.display="none";
+  });
+  var pdfBtnFull=A("pdfBtnFull");
+  var pdfBtnAnalytics=A("pdfBtnAnalytics");
+  var pdfBtnDusty=A("pdfBtnDusty");
+  var pdfBtnToday=A("pdfBtnToday");
+  if(pdfBtnFull) pdfBtnFull.addEventListener("click",function(){exportPDF("full");});
+  if(pdfBtnAnalytics) pdfBtnAnalytics.addEventListener("click",function(){exportPDF("analytics");});
+  if(pdfBtnDusty) pdfBtnDusty.addEventListener("click",function(){exportPDF("dusty");});
+  if(pdfBtnToday) pdfBtnToday.addEventListener("click",function(){exportPDF("today");});
+})();
+
+function setProgress(msg){
+  var el=A("pdfProgressText");
+  if(el) el.textContent=msg||"جارٍ المعالجة…";
+}
+
+async function exportPDF(type){
+  // Show progress
+  var progEl=A("pdfProgress");
+  if(progEl) progEl.style.display="block";
+  setProgress("جارٍ إنشاء التقرير…");
+
+  // Disable all buttons
+  ["pdfBtnFull","pdfBtnAnalytics","pdfBtnDusty","pdfBtnToday"].forEach(function(id){
+    var el=A(id); if(el){el.disabled=true;el.style.opacity="0.5";}
+  });
+
+  try{
+    if(type==="analytics"){
+      await exportAnalyticsPDF();
+    } else {
+      await exportDataPDF(type);
+    }
+    A("pdfModal").classList.remove("active");
+    showToast("✅ تم إنشاء التقرير PDF بنجاح","success");
+  }catch(e){
+    console.error("PDF Error:",e);
+    showToast("❌ خطأ في إنشاء PDF: "+e.message,"error",4000);
+  }finally{
+    if(progEl) progEl.style.display="none";
+    ["pdfBtnFull","pdfBtnAnalytics","pdfBtnDusty","pdfBtnToday"].forEach(function(id){
+      var el=A(id); if(el){el.disabled=false;el.style.opacity="1";}
+    });
+  }
+}
+
+function getNow(){
+  var d=new Date();
+  var months=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  return d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear()+" — "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+}
+
+async function exportDataPDF(type){
+  if(!cloudData.length){showToast("⚠️ لا توجد بيانات","warn");return;}
+  var { jsPDF } = window.jspdf;
+  if(!jsPDF) throw new Error("jsPDF غير محمّل");
+
+  var today=new Date().toISOString().split("T")[0];
+  var filteredData=cloudData.slice();
+  var titleSuffix="";
+
+  if(type==="dusty"){
+    filteredData=cloudData.filter(function(v){
+      return String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim()==="مغبرة";
+    });
+    titleSuffix=" - المغبرة فقط";
+  } else if(type==="today"){
+    filteredData=cloudData.filter(function(v){
+      return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===today;
+    });
+    titleSuffix=" - اليوم";
+  }
+
+  if(!filteredData.length){showToast("⚠️ لا توجد بيانات لهذا الفلتر","warn");return;}
+
+  setProgress("جارٍ بناء ملف PDF…");
+  var doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+  var pageW=doc.internal.pageSize.getWidth();
+  var pageH=doc.internal.pageSize.getHeight();
+  var margin=14;
+
+  function addPageHeader(pageNum){
+    /* Header bar */
+    doc.setFillColor(14,42,92);
+    doc.rect(0,0,pageW,18,"F");
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12);
+    doc.setTextColor(255,255,255);
+    doc.text("Rasad Al-Saiarat Report"+titleSuffix, pageW/2, 12, {align:"center"});
+    doc.setFontSize(9);
+    doc.setFont("helvetica","normal");
+    doc.text(getNow(), margin, 12);
+    doc.text("Page "+pageNum, pageW-margin, 12, {align:"right"});
+
+    /* Guard info */
+    doc.setFillColor(239,246,255);
+    doc.rect(0,18,pageW,10,"F");
+    doc.setFontSize(9);
+    doc.setTextColor(14,42,92);
+    if(currentUser){
+      doc.text("Guard: "+currentUser.name+" | ID: "+currentUser.empId+(currentUser.dept?" | "+currentUser.dept:""), pageW-margin, 25, {align:"right"});
+    }
+    doc.text("Total records: "+filteredData.length, margin, 25);
+  }
+
+  /* Summary stats box (page 1 only) */
+  function drawSummaryBox(){
+    var dusty=filteredData.filter(function(v){return String(getField(v,["حالة المركبة"])||v.carStatus||"").trim()==="مغبرة";}).length;
+    var mid=filteredData.filter(function(v){return String(getField(v,["حالة المركبة"])||v.carStatus||"").trim()==="متوسطة الغبار";}).length;
+    var fresh=filteredData.filter(function(v){return String(getField(v,["حالة المركبة"])||v.carStatus||"").trim()==="حديثة";}).length;
+    var stats=[["Total",filteredData.length,"#1a56db"],["Dusty",dusty,"#dc2626"],["Medium",mid,"#d97706"],["Fresh",fresh,"#059669"]];
+    var bw=(pageW-margin*2)/stats.length, bh=18, by=32;
+    stats.forEach(function(s,i){
+      var bx=margin+i*bw;
+      var rgb=s[2].match(/[0-9a-f]{2}/gi).map(function(x){return parseInt(x,16);});
+      doc.setFillColor(rgb[0],rgb[1],rgb[2]);
+      doc.setDrawColor(rgb[0],rgb[1],rgb[2]);
+      doc.roundedRect(bx+1, by, bw-2, bh, 2, 2, "FD");
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(16);
+      doc.setTextColor(255,255,255);
+      doc.text(String(s[1]), bx+bw/2, by+10, {align:"center"});
+      doc.setFontSize(8);
+      doc.setFont("helvetica","normal");
+      doc.text(s[0], bx+bw/2, by+16, {align:"center"});
+    });
+    return by+bh+4;
+  }
+
+  var page=1;
+  addPageHeader(page);
+  var startY=drawSummaryBox();
+
+  /* Table */
+  var cols=[
+    {label:"#", width:8},
+    {label:"Tower", width:14},
+    {label:"Floor", width:14},
+    {label:"Parking", width:18},
+    {label:"Column", width:18},
+    {label:"Plate", width:30},
+    {label:"Date", width:22},
+    {label:"Time", width:16},
+    {label:"Status", width:24},
+    {label:"Notes", width:32},
+    {label:"Guard", width:30}
+  ];
+  var totalW=cols.reduce(function(s,c){return s+c.width;},0);
+  var scale=(pageW-margin*2)/totalW;
+  cols.forEach(function(c){c.w=c.width*scale;});
+
+  var rowH=7, headerH=9, y=startY;
+  var x0=margin;
+
+  /* Table header */
+  function drawTableHeader(yy){
+    doc.setFillColor(14,42,92);
+    var xx=x0;
+    cols.forEach(function(c){
+      doc.rect(xx, yy, c.w, headerH, "F");
+      xx+=c.w;
+    });
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(255,255,255);
+    xx=x0;
+    cols.forEach(function(c){
+      doc.text(c.label, xx+c.w/2, yy+6, {align:"center"});
+      xx+=c.w;
+    });
+    return yy+headerH;
+  }
+
+  y=drawTableHeader(y);
+
+  var rows=filteredData.map(function(v){
+    return [
+      "",
+      String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim(),
+      String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
+      String(getField(v,["رقم الموقف","موقف"])||v.parkingNum||""),
+      String(getField(v,["رقم العامود","عامود"])||v.colNum||""),
+      String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
+      fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||""),
+      fixExcelTime(getField(v,["الوقت","⏰ الوقت"])||v.time||""),
+      String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||""),
+      (function(n){return n.length>18?n.slice(0,18)+"…":n;})(String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||"")),
+      String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||"")
+    ];
+  }).reverse();
+
+  rows.forEach(function(row,ri){
+    if(y+rowH>pageH-14){
+      doc.addPage();
+      page++;
+      addPageHeader(page);
+      y=22;
+      y=drawTableHeader(y);
+    }
+    var even=(ri%2===0);
+    doc.setFillColor(even?255:248, even?255:249, even?255:252);
+    var xx=x0;
+    cols.forEach(function(c){
+      doc.rect(xx,y,c.w,rowH,"F");
+      doc.setDrawColor(226,232,240);
+      doc.rect(xx,y,c.w,rowH,"S");
+      xx+=c.w;
+    });
+
+    row[0]=String(ri+1);
+    /* Status color */
+    var status=row[8];
+    if(status==="مغبرة"||status.includes("غبار")&&status.includes("مغبرة")) {doc.setTextColor(153,27,27);}
+    else if(status==="متوسطة الغبار") {doc.setTextColor(133,77,14);}
+    else if(status==="حديثة") {doc.setTextColor(22,101,52);}
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(7);
+    xx=x0;
+    row.forEach(function(cell,ci){
+      doc.setTextColor(ci===8&&status==="مغبرة"?153:ci===8&&status==="متوسطة الغبار"?133:ci===8&&status==="حديثة"?22:14,
+        ci===8&&status==="مغبرة"?27:ci===8&&status==="متوسطة الغبار"?77:ci===8&&status==="حديثة"?101:42,
+        ci===8&&status==="مغبرة"?27:ci===8&&status==="متوسطة الغبار"?14:ci===8&&status==="حديثة"?52:92);
+      doc.text(String(cell||"—"), xx+cols[ci].w/2, y+5, {align:"center", maxWidth:cols[ci].w-2});
+      xx+=cols[ci].w;
+    });
+    y+=rowH;
+  });
+
+  /* Footer */
+  var totalPages=doc.getNumberOfPages();
+  for(var p=1;p<=totalPages;p++){
+    doc.setPage(p);
+    doc.setFillColor(14,42,92);
+    doc.rect(0,pageH-8,pageW,8,"F");
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
+    doc.text("Rasad Al-Saiarat | Generated: "+getNow(), margin, pageH-3);
+    doc.text("Page "+p+" / "+totalPages, pageW-margin, pageH-3, {align:"right"});
+  }
+
+  doc.save("rasad_report_"+today+".pdf");
+}
+
+async function exportAnalyticsPDF(){
+  setProgress("جارٍ تجهيز التحليلات…");
+  // First show analytics view to render charts
+  var wasVisible=(A("analyticsView").style.display==="block");
+  if(!wasVisible) showAnalytics();
+  await new Promise(function(r){setTimeout(r,500);});
+
+  setProgress("جارٍ التقاط المخططات…");
+  var { jsPDF } = window.jspdf;
+  if(!jsPDF) throw new Error("jsPDF غير محمّل");
+
+  var doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  var pageW=doc.internal.pageSize.getWidth();
+  var pageH=doc.internal.pageSize.getHeight();
+  var margin=14;
+  var today=new Date().toISOString().split("T")[0];
+
+  /* Cover page */
+  doc.setFillColor(14,42,92);
+  doc.rect(0,0,pageW,pageH,"F");
+
+  /* Decorative circles */
+  doc.setFillColor(26,86,219,0.15);
+  doc.circle(pageW+20, -20, 60, "F");
+  doc.circle(-20, pageH+20, 50, "F");
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(28);
+  doc.setTextColor(255,255,255);
+  doc.text("Analytics Report", pageW/2, 80, {align:"center"});
+
+  doc.setFontSize(14);
+  doc.setTextColor(148,163,184);
+  doc.text("Rasad Al-Saiarat System", pageW/2, 92, {align:"center"});
+
+  doc.setFontSize(10);
+  doc.text(getNow(), pageW/2, 106, {align:"center"});
+
+  if(currentUser){
+    doc.setFillColor(26,86,219,0.3);
+    doc.roundedRect(margin, 118, pageW-margin*2, 18, 3, 3, "F");
+    doc.setFontSize(10);
+    doc.setTextColor(255,255,255);
+    doc.text("Guard: "+currentUser.name+" | ID: "+currentUser.empId+(currentUser.dept?" | "+currentUser.dept:""),
+      pageW/2, 129, {align:"center"});
+  }
+
+  /* KPI summary box */
+  var dusty=0,mid=0,fresh=0,total=(cloudData||[]).length;
+  (cloudData||[]).forEach(function(v){
+    var st=String(getField(v,["حالة المركبة"])||v.carStatus||"").trim();
+    if(st==="مغبرة")dusty++;else if(st==="متوسطة الغبار")mid++;else if(st==="حديثة")fresh++;
+  });
+  var kpis=[["TOTAL",total,"#3b82f6"],["DUSTY",dusty,"#ef4444"],["MEDIUM",mid,"#f59e0b"],["FRESH",fresh,"#10b981"]];
+  var kpiW=(pageW-margin*2)/kpis.length, kpiY=148;
+  kpis.forEach(function(k,i){
+    var bx=margin+i*kpiW+2, bw=kpiW-4;
+    var rgb=k[2].match(/[0-9a-f]{2}/gi).map(function(x){return parseInt(x,16);});
+    doc.setFillColor(rgb[0],rgb[1],rgb[2]);
+    doc.roundedRect(bx, kpiY, bw, 28, 3, 3, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(255,255,255);
+    doc.text(String(k[1]), bx+bw/2, kpiY+15, {align:"center"});
+    doc.setFontSize(8); doc.setFont("helvetica","normal");
+    doc.text(k[0], bx+bw/2, kpiY+24, {align:"center"});
+  });
+
+  doc.setFontSize(8); doc.setTextColor(100,116,139);
+  doc.text("Page 1", pageW/2, pageH-8, {align:"center"});
+
+  /* Page 2: Charts */
+  doc.addPage();
+  doc.setFillColor(248,249,252);
+  doc.rect(0,0,pageW,pageH,"F");
+  doc.setFillColor(14,42,92);
+  doc.rect(0,0,pageW,16,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
+  doc.text("Analytics Charts", pageW/2, 11, {align:"center"});
+  doc.text(getNow(), margin, 11); doc.text("Page 2", pageW-margin, 11, {align:"right"});
+
+  setProgress("جارٍ تصدير المخططات…");
+  /* Capture bar chart */
+  var barCanvas=A("dustyByTowerChart");
+  var pieCanvas=A("statusPieChart");
+  var trendCanvas=A("dailyTrendChart");
+
+  var chartY=22;
+  if(barCanvas){
+    try{
+      var barImg=barCanvas.toDataURL("image/png");
+      doc.addImage(barImg,"PNG", margin, chartY, 85, 55);
+      doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(14,42,92);
+      doc.text("Dusty Cars by Tower", margin+42, chartY-2, {align:"center"});
+    }catch(e){}
+  }
+  if(pieCanvas){
+    try{
+      var pieImg=pieCanvas.toDataURL("image/png");
+      doc.addImage(pieImg,"PNG", margin+90, chartY, 55, 55);
+      doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(14,42,92);
+      doc.text("Status Distribution", margin+117, chartY-2, {align:"center"});
+    }catch(e){}
+    /* Pie legend */
+    var legY=chartY+57;
+    doc.setFontSize(8); doc.setFont("helvetica","normal");
+    [["DUSTY",dusty,"#ef4444"],["MEDIUM",mid,"#f59e0b"],["FRESH",fresh,"#10b981"]].forEach(function(item,i){
+      var total2=dusty+mid+fresh||1;
+      var rgb=item[2].match(/[0-9a-f]{2}/gi).map(function(x){return parseInt(x,16);});
+      doc.setFillColor(rgb[0],rgb[1],rgb[2]); doc.circle(margin+90+i*40+3, legY, 2, "F");
+      doc.setTextColor(71,85,105);
+      doc.text(item[0]+": "+item[1]+" ("+Math.round(item[1]/total2*100)+"%)", margin+90+i*40+7, legY+1);
+    });
+  }
+  if(trendCanvas){
+    try{
+      var trendImg=trendCanvas.toDataURL("image/png");
+      doc.addImage(trendImg,"PNG", margin, chartY+65, pageW-margin*2, 50);
+      doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(14,42,92);
+      doc.text("14-Day Trend", pageW/2, chartY+63, {align:"center"});
+    }catch(e){}
+  }
+
+  /* Top dusty locations table */
+  var dustyLocs=buildLocationCounts(cloudData||[],"مغبرة");
+  var tableY=chartY+122;
+  doc.setFillColor(14,42,92); doc.rect(margin, tableY, pageW-margin*2, 8, "F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(255,255,255);
+  var tcols=["#","Tower","Floor","Parking","Column","Count","%"];
+  var tcw=(pageW-margin*2)/tcols.length;
+  tcols.forEach(function(h,i){doc.text(h,margin+i*tcw+tcw/2,tableY+5.5,{align:"center"});});
+  tableY+=8;
+  var rowH2=7;
+  dustyLocs.slice(0,8).forEach(function(it,i){
+    doc.setFillColor(i%2?248:255, i%2?249:255, i%2?252:255);
+    doc.rect(margin, tableY, pageW-margin*2, rowH2, "F");
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(14,42,92);
+    var totalDusty2=dustyLocs.reduce(function(s,d){return s+d.count;},0)||1;
+    var cells=[String(i+1),it.tower,it.floor,it.parking!=="—"?it.parking:"",it.col!=="—"?it.col:"",String(it.count),Math.round(it.count/totalDusty2*100)+"%"];
+    cells.forEach(function(c,ci){doc.text(c,margin+ci*tcw+tcw/2,tableY+5,{align:"center"});});
+    tableY+=rowH2;
+  });
+
+  /* Footer all pages */
+  var totalPages=doc.getNumberOfPages();
+  for(var pp=1;pp<=totalPages;pp++){
+    doc.setPage(pp);
+    doc.setFillColor(14,42,92); doc.rect(0,pageH-8,pageW,8,"F");
+    doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(255,255,255);
+    doc.text("Rasad Al-Saiarat | Analytics Report | "+getNow(), margin, pageH-3);
+    doc.text("Page "+pp+" / "+totalPages, pageW-margin, pageH-3, {align:"right"});
+  }
+
+  doc.save("rasad_analytics_"+today+".pdf");
+  if(!wasVisible) backToMain();
+}
 
 
 function normalizeDriveUrl(u){
@@ -3164,12 +3650,7 @@ els.btnClearImg.addEventListener("click",function(){setImage(null);});
 
 els.btnAdd.addEventListener("click",addVehicle);
 els.btnExportCSV.addEventListener("click",exportCSV);
-els.btnPrint.addEventListener("click",function(){
-  // إذا كنا في صفحة التحليلات، جهّز ملخص الطباعة أولاً
-  var anaView=A("analyticsView");
-  if(anaView && anaView.style.display==="block") buildAnalytics();
-  setTimeout(function(){window.print();},200);
-});
+els.btnPrint.addEventListener("click",function(){window.print();});
 els.btnCamera.addEventListener("click",function(){els.vehicleImg.click();});
 els.btnClearLocal.addEventListener("click",function(){
   if(confirm("مسح البيانات المحلية فقط؟")){
