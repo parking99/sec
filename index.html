@@ -4,7 +4,6 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>رصد السيارات — تسجيل الدخول</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -516,6 +515,38 @@
     }
     .btn-sm { padding: 7px 14px; font-size: 12px; }
 
+    /* ── OCR CAMERA BUTTON (prominent, mobile-friendly) ── */
+    .btn-ocr-prominent {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #0e2a5c, #1a56db);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 13px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 3px 12px rgba(26,86,219,.35);
+      transition: all .2s;
+      letter-spacing: 0.2px;
+    }
+    .btn-ocr-prominent:hover {
+      background: linear-gradient(135deg, #1a3a6e, #2563eb);
+      box-shadow: 0 6px 20px rgba(26,86,219,.45);
+      transform: translateY(-1px);
+    }
+    .btn-ocr-prominent:active { transform: translateY(0); }
+    .btn-ocr-icon { font-size: 22px; flex-shrink: 0; }
+    .btn-ocr-text { font-size: 14px; }
+    @media (max-width: 600px) {
+      .btn-ocr-prominent { padding: 15px 18px; font-size: 15px; }
+      .btn-ocr-icon { font-size: 26px; }
+    }
+
     /* ── GUARD CARD ── */
     .guard-card {
       display: none;
@@ -956,9 +987,12 @@
       .sync-bar,
       .stats-grid,
       .no-print,
-      .card:not(:last-of-type),
       .card-header .btn,
       .img-drive-link { display: none !important; }
+
+      /* إخفاء كل الكروت عدا جدول المركبات */
+      .card { display: none !important; }
+      .print-table-card { display: block !important; }
 
       @page {
         size: A4 landscape;
@@ -973,6 +1007,7 @@
 
       #appWrapper { display: block !important; }
       .main { padding: 0 !important; max-width: 100% !important; }
+      #analyticsView { display: none !important; }
 
       .print-report-header {
         display: flex !important;
@@ -1037,13 +1072,13 @@
       }
 
       /* ═══ الجدول ═══ */
-      .card:last-of-type {
+      .print-table-card {
         display: block !important;
         box-shadow: none !important;
         border: none !important;
         margin: 0 !important;
       }
-      .card-header {
+      .print-table-card .card-header {
         padding: 0 0 6px !important;
         border-bottom: 2px solid #0e2a5c !important;
         margin-bottom: 8px;
@@ -1500,22 +1535,27 @@
         </div>
         <div class="form-group span2">
           <label>رقم اللوحة</label>
-          <div class="flex gap8 items-end">
-            <div class="plate-cells-wrap" id="plateCellsWrap">
-              <div class="plate-cells" id="plateCells">
-                <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="0"/>
-                <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="1"/>
-                <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="2"/>
-                <div class="plate-sep"></div>
-                <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3"/>
-                <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4"/>
-                <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="5"/>
-                <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6"/>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="flex gap8 items-end">
+              <div class="plate-cells-wrap" id="plateCellsWrap">
+                <div class="plate-cells" id="plateCells">
+                  <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="0"/>
+                  <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="1"/>
+                  <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="2"/>
+                  <div class="plate-sep"></div>
+                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3"/>
+                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4"/>
+                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="5"/>
+                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6"/>
+                </div>
+                <input id="plate" type="hidden" value=""/>
               </div>
-              <!-- hidden input يحمل القيمة الكاملة للإضافة -->
-              <input id="plate" type="hidden" value=""/>
             </div>
-            <button id="btnOcrCamera" class="btn btn-ghost btn-icon" title="قراءة بالكاميرا أو رفع صورة">📷</button>
+            <!-- زر OCR بارز للجوال -->
+            <button id="btnOcrCamera" class="btn-ocr-prominent" title="قراءة اللوحة بالكاميرا أو رفع صورة">
+              <span class="btn-ocr-icon">📷</span>
+              <span class="btn-ocr-text">قراءة اللوحة بالكاميرا / صورة</span>
+            </button>
             <input type="file" id="ocrFileInput" accept="image/*" style="display:none;"/>
           </div>
         </div>
@@ -1570,7 +1610,7 @@
   </div>
 
   <!-- TABLE CARD -->
-  <div class="card">
+  <div class="card print-table-card">
     <div class="card-header">
       <div class="card-title"><div class="card-title-icon">📋</div> سجل المركبات</div>
       <span id="footerCount" style="font-size:12px;color:var(--ink3);">0 سجل</span>
@@ -2986,7 +3026,7 @@ function backToMain(){
 })();
 
 /* ══════════════════════════════════
-   PDF EXPORT SYSTEM
+   PDF EXPORT SYSTEM — HTML PRINT (دعم كامل للعربية)
 ══════════════════════════════════ */
 (function(){
   var btnPDF=A("btnExportPDF");
@@ -2997,7 +3037,6 @@ function backToMain(){
   var closeBtn=A("closePdfModal");
   if(closeBtn) closeBtn.addEventListener("click",function(){
     A("pdfModal").classList.remove("active");
-    A("pdfProgress").style.display="none";
   });
   var pdfBtnFull=A("pdfBtnFull");
   var pdfBtnAnalytics=A("pdfBtnAnalytics");
@@ -3014,28 +3053,29 @@ function setProgress(msg){
   if(el) el.textContent=msg||"جارٍ المعالجة…";
 }
 
+function getNow(){
+  var d=new Date();
+  var months=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  return d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear()+" — "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+}
+
 async function exportPDF(type){
-  // Show progress
   var progEl=A("pdfProgress");
   if(progEl) progEl.style.display="block";
   setProgress("جارٍ إنشاء التقرير…");
-
-  // Disable all buttons
   ["pdfBtnFull","pdfBtnAnalytics","pdfBtnDusty","pdfBtnToday"].forEach(function(id){
     var el=A(id); if(el){el.disabled=true;el.style.opacity="0.5";}
   });
-
   try{
     if(type==="analytics"){
-      await exportAnalyticsPDF();
+      exportAnalyticsPDFHtml();
     } else {
-      await exportDataPDF(type);
+      exportDataPDFHtml(type);
     }
     A("pdfModal").classList.remove("active");
-    showToast("✅ تم إنشاء التقرير PDF بنجاح","success");
   }catch(e){
     console.error("PDF Error:",e);
-    showToast("❌ خطأ في إنشاء PDF: "+e.message,"error",4000);
+    showToast("❌ خطأ في إنشاء التقرير: "+e.message,"error",4000);
   }finally{
     if(progEl) progEl.style.display="none";
     ["pdfBtnFull","pdfBtnAnalytics","pdfBtnDusty","pdfBtnToday"].forEach(function(id){
@@ -3044,358 +3084,319 @@ async function exportPDF(type){
   }
 }
 
-function getNow(){
-  var d=new Date();
-  var months=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
-  return d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear()+" — "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+/* ── بناء HTML احترافي وفتحه في نافذة طباعة ── */
+function openPrintWindow(htmlContent){
+  var win=window.open("","_blank","width=1100,height=800");
+  win.document.open();
+  win.document.write(htmlContent);
+  win.document.close();
+  win.onload=function(){
+    setTimeout(function(){ win.focus(); win.print(); },600);
+  };
 }
 
-async function exportDataPDF(type){
-  if(!cloudData.length){showToast("⚠️ لا توجد بيانات","warn");return;}
-  var { jsPDF } = window.jspdf;
-  if(!jsPDF) throw new Error("jsPDF غير محمّل");
+function getPdfBaseStyles(){
+  return `
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0;}
+      body{
+        font-family:'IBM Plex Sans Arabic',Arial,sans-serif;
+        direction:rtl; font-size:10px; color:#0e2a5c;
+        background:#fff; line-height:1.5;
+      }
+      @page{ size:A4 landscape; margin:10mm 12mm; }
+      @media print{
+        body{font-size:9px;}
+        .no-print{display:none!important;}
+        button{display:none!important;}
+      }
+      .pdf-header{
+        background:#0e2a5c; color:#fff;
+        padding:10px 16px; display:flex;
+        align-items:center; justify-content:space-between;
+        border-radius:0; margin-bottom:10px;
+      }
+      .pdf-header-title{font-size:14px;font-weight:700;}
+      .pdf-header-sub{font-size:10px;opacity:.7;margin-top:2px;}
+      .pdf-header-meta{text-align:left;font-size:9px;opacity:.8;}
+      .pdf-stats{
+        display:flex; gap:10px; margin-bottom:10px;
+      }
+      .pdf-stat{
+        flex:1; background:#f0f9ff; border:1px solid #bae6fd;
+        border-radius:8px; padding:8px 12px; text-align:center;
+      }
+      .pdf-stat-val{font-size:20px;font-weight:900;color:#0369a1;}
+      .pdf-stat-lbl{font-size:9px;color:#475569;margin-top:2px;}
+      .pdf-stat.dust .pdf-stat-val{color:#dc2626;}
+      .pdf-stat.dust{background:#fff1f2;border-color:#fecdd3;}
+      .pdf-stat.mid .pdf-stat-val{color:#d97706;}
+      .pdf-stat.mid{background:#fffbeb;border-color:#fde68a;}
+      .pdf-stat.fresh .pdf-stat-val{color:#059669;}
+      .pdf-stat.fresh{background:#f0fdf4;border-color:#bbf7d0;}
+      table{width:100%;border-collapse:collapse;border:1px solid #cbd5e1;}
+      thead tr{background:#0e2a5c;}
+      th{
+        background:#0e2a5c!important; color:#fff!important;
+        font-size:9px; font-weight:700; padding:7px 8px;
+        text-align:right; border:1px solid #1a3a6e;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      }
+      td{font-size:9px;padding:6px 8px;border:1px solid #e2e8f0;vertical-align:middle;}
+      tbody tr:nth-child(even){background:#f8f9fc;}
+      .tower-A{background:#1a56db;color:#fff;border-radius:5px;padding:2px 7px;font-weight:800;font-size:9px;display:inline-block;}
+      .tower-B{background:#059669;color:#fff;border-radius:5px;padding:2px 7px;font-weight:800;font-size:9px;display:inline-block;}
+      .tower-C{background:#dc2626;color:#fff;border-radius:5px;padding:2px 7px;font-weight:800;font-size:9px;display:inline-block;}
+      .floor-b{background:#fef3c7;color:#92400e;border-radius:4px;padding:2px 6px;font-weight:700;font-size:9px;display:inline-block;}
+      .pk-b{background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;border-radius:4px;padding:2px 6px;font-weight:700;font-size:9px;display:inline-block;}
+      .col-b{background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff;border-radius:4px;padding:2px 6px;font-weight:700;font-size:9px;display:inline-block;}
+      .st-dust{background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 7px;font-weight:700;font-size:9px;display:inline-block;}
+      .st-mid{background:#fef9c3;color:#854d0e;border-radius:4px;padding:2px 7px;font-weight:700;font-size:9px;display:inline-block;}
+      .st-fresh{background:#dcfce7;color:#166534;border-radius:4px;padding:2px 7px;font-weight:700;font-size:9px;display:inline-block;}
+      .plate-badge{background:#0e2a5c;color:#fff;border-radius:5px;padding:2px 8px;font-family:JetBrains Mono,monospace;font-size:10px;font-weight:800;letter-spacing:1px;display:inline-block;}
+      .guard-pill{background:#f5f3ff;color:#5b21b6;border-radius:4px;padding:2px 6px;font-size:9px;display:inline-block;}
+      .pdf-footer{
+        margin-top:10px; padding-top:6px;
+        border-top:2px solid #0e2a5c;
+        display:flex; justify-content:space-between;
+        font-size:8px; color:#475569;
+      }
+      .section-title{
+        font-size:12px; font-weight:800; color:#0e2a5c;
+        padding:6px 0; border-bottom:2px solid #0e2a5c;
+        margin:10px 0 8px;
+      }
+      .print-btn{
+        font-family:'IBM Plex Sans Arabic',sans-serif;
+        background:#0e2a5c;color:#fff;border:none;
+        border-radius:8px;padding:10px 24px;font-size:13px;
+        font-weight:700;cursor:pointer;margin:10px auto;display:block;
+      }
+    </style>`;
+}
 
+function buildTableRows(filteredData){
+  var rows=filteredData.map(function(v){
+    return {
+      tower:String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
+      floor:String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
+      plate:String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
+      date:fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||""),
+      time:fixExcelTime(getField(v,["الوقت","⏰ الوقت"])||v.time||""),
+      carStatus:String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||""),
+      notes:String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||""),
+      guard:String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||""),
+      parkingNum:String(getField(v,["رقم الموقف","موقف"])||v.parkingNum||""),
+      colNum:String(getField(v,["رقم العامود","عامود"])||v.colNum||"")
+    };
+  }).reverse();
+
+  return rows.map(function(v,i){
+    var towerCls=v.tower==="A"?"tower-A":v.tower==="B"?"tower-B":v.tower==="C"?"tower-C":"";
+    var stHtml=v.carStatus==="مغبرة"?'<span class="st-dust">🔴 مغبرة</span>':
+               v.carStatus==="متوسطة الغبار"?'<span class="st-mid">🟡 متوسطة</span>':
+               v.carStatus==="حديثة"?'<span class="st-fresh">🟢 حديثة</span>':
+               (v.carStatus||"—");
+    var notes=v.notes.length>20?v.notes.slice(0,20)+"…":v.notes;
+    return '<tr>'+
+      '<td style="text-align:center;color:#94a3b8;font-weight:700;">'+(i+1)+'</td>'+
+      '<td><span class="'+towerCls+'">'+v.tower+'</span></td>'+
+      '<td><span class="floor-b">'+v.floor+'</span></td>'+
+      '<td>'+(v.parkingNum?'<span class="pk-b">'+v.parkingNum+'</span>':'—')+'</td>'+
+      '<td>'+(v.colNum?'<span class="col-b">'+v.colNum+'</span>':'—')+'</td>'+
+      '<td><span class="plate-badge">'+v.plate+'</span></td>'+
+      '<td>'+v.date+'</td>'+
+      '<td style="font-family:JetBrains Mono,monospace;font-weight:700;">'+v.time+'</td>'+
+      '<td>'+stHtml+'</td>'+
+      '<td style="color:#475569;">'+notes+'</td>'+
+      '<td>'+(v.guard?'<span class="guard-pill">'+v.guard+'</span>':'—')+'</td>'+
+    '</tr>';
+  }).join("");
+}
+
+function exportDataPDFHtml(type){
+  if(!cloudData.length){showToast("⚠️ لا توجد بيانات","warn");return;}
   var today=new Date().toISOString().split("T")[0];
-  var filteredData=cloudData.slice();
-  var titleSuffix="";
+  var filteredData=cloudData.slice(), titleAr="تقرير رصد السيارات — كامل";
 
   if(type==="dusty"){
     filteredData=cloudData.filter(function(v){
       return String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim()==="مغبرة";
     });
-    titleSuffix=" - المغبرة فقط";
+    titleAr="تقرير رصد السيارات — المغبرة فقط";
   } else if(type==="today"){
     filteredData=cloudData.filter(function(v){
       return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===today;
     });
-    titleSuffix=" - اليوم";
+    titleAr="تقرير رصد السيارات — اليوم";
   }
-
   if(!filteredData.length){showToast("⚠️ لا توجد بيانات لهذا الفلتر","warn");return;}
 
-  setProgress("جارٍ بناء ملف PDF…");
-  var doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
-  var pageW=doc.internal.pageSize.getWidth();
-  var pageH=doc.internal.pageSize.getHeight();
-  var margin=14;
+  var dusty=filteredData.filter(function(v){return String(getField(v,["حالة المركبة"])||v.carStatus||"").trim()==="مغبرة";}).length;
+  var mid=filteredData.filter(function(v){return String(getField(v,["حالة المركبة"])||v.carStatus||"").trim()==="متوسطة الغبار";}).length;
+  var fresh=filteredData.filter(function(v){return String(getField(v,["حالة المركبة"])||v.carStatus||"").trim()==="حديثة";}).length;
+  var guardInfo=currentUser?(currentUser.name+" | الرقم: "+currentUser.empId+(currentUser.dept?" | "+currentUser.dept:"")):"—";
 
-  function addPageHeader(pageNum){
-    /* Header bar */
-    doc.setFillColor(14,42,92);
-    doc.rect(0,0,pageW,18,"F");
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(12);
-    doc.setTextColor(255,255,255);
-    doc.text("Rasad Al-Saiarat Report"+titleSuffix, pageW/2, 12, {align:"center"});
-    doc.setFontSize(9);
-    doc.setFont("helvetica","normal");
-    doc.text(getNow(), margin, 12);
-    doc.text("Page "+pageNum, pageW-margin, 12, {align:"right"});
+  var html='<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'+
+    '<title>'+titleAr+'</title>'+getPdfBaseStyles()+'</head><body>'+
+    '<button class="print-btn no-print" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>'+
+    '<div class="pdf-header">'+
+      '<div><div class="pdf-header-title">🚗 '+titleAr+'</div>'+
+      '<div class="pdf-header-sub">الحارس: '+guardInfo+'</div></div>'+
+      '<div class="pdf-header-meta">'+getNow()+'<br>إجمالي السجلات: '+filteredData.length+'</div>'+
+    '</div>'+
+    '<div class="pdf-stats">'+
+      '<div class="pdf-stat"><div class="pdf-stat-val">'+filteredData.length+'</div><div class="pdf-stat-lbl">إجمالي السجلات</div></div>'+
+      '<div class="pdf-stat dust"><div class="pdf-stat-val">'+dusty+'</div><div class="pdf-stat-lbl">🔴 مغبرة</div></div>'+
+      '<div class="pdf-stat mid"><div class="pdf-stat-val">'+mid+'</div><div class="pdf-stat-lbl">🟡 متوسطة الغبار</div></div>'+
+      '<div class="pdf-stat fresh"><div class="pdf-stat-val">'+fresh+'</div><div class="pdf-stat-lbl">🟢 حديثة</div></div>'+
+    '</div>'+
+    '<table>'+
+      '<thead><tr>'+
+        '<th style="width:30px;">#</th>'+
+        '<th style="width:44px;">البرج</th>'+
+        '<th style="width:40px;">الدور</th>'+
+        '<th style="width:55px;">رقم الموقف</th>'+
+        '<th style="width:55px;">رقم العامود</th>'+
+        '<th style="width:80px;">رقم اللوحة</th>'+
+        '<th style="width:65px;">تاريخ الرصد</th>'+
+        '<th style="width:42px;">الوقت</th>'+
+        '<th style="width:70px;">الحالة</th>'+
+        '<th>الملاحظات</th>'+
+        '<th style="width:80px;">رجل الأمن</th>'+
+      '</tr></thead>'+
+      '<tbody>'+buildTableRows(filteredData)+'</tbody>'+
+    '</table>'+
+    '<div class="pdf-footer">'+
+      '<span>🚗 نظام رصد السيارات</span>'+
+      '<span>'+getNow()+'</span>'+
+    '</div>'+
+    '</body></html>';
 
-    /* Guard info */
-    doc.setFillColor(239,246,255);
-    doc.rect(0,18,pageW,10,"F");
-    doc.setFontSize(9);
-    doc.setTextColor(14,42,92);
-    if(currentUser){
-      doc.text("Guard: "+currentUser.name+" | ID: "+currentUser.empId+(currentUser.dept?" | "+currentUser.dept:""), pageW-margin, 25, {align:"right"});
-    }
-    doc.text("Total records: "+filteredData.length, margin, 25);
-  }
-
-  /* Summary stats box (page 1 only) */
-  function drawSummaryBox(){
-    var dusty=filteredData.filter(function(v){return String(getField(v,["حالة المركبة"])||v.carStatus||"").trim()==="مغبرة";}).length;
-    var mid=filteredData.filter(function(v){return String(getField(v,["حالة المركبة"])||v.carStatus||"").trim()==="متوسطة الغبار";}).length;
-    var fresh=filteredData.filter(function(v){return String(getField(v,["حالة المركبة"])||v.carStatus||"").trim()==="حديثة";}).length;
-    var stats=[["Total",filteredData.length,"#1a56db"],["Dusty",dusty,"#dc2626"],["Medium",mid,"#d97706"],["Fresh",fresh,"#059669"]];
-    var bw=(pageW-margin*2)/stats.length, bh=18, by=32;
-    stats.forEach(function(s,i){
-      var bx=margin+i*bw;
-      var rgb=s[2].match(/[0-9a-f]{2}/gi).map(function(x){return parseInt(x,16);});
-      doc.setFillColor(rgb[0],rgb[1],rgb[2]);
-      doc.setDrawColor(rgb[0],rgb[1],rgb[2]);
-      doc.roundedRect(bx+1, by, bw-2, bh, 2, 2, "FD");
-      doc.setFont("helvetica","bold");
-      doc.setFontSize(16);
-      doc.setTextColor(255,255,255);
-      doc.text(String(s[1]), bx+bw/2, by+10, {align:"center"});
-      doc.setFontSize(8);
-      doc.setFont("helvetica","normal");
-      doc.text(s[0], bx+bw/2, by+16, {align:"center"});
-    });
-    return by+bh+4;
-  }
-
-  var page=1;
-  addPageHeader(page);
-  var startY=drawSummaryBox();
-
-  /* Table */
-  var cols=[
-    {label:"#", width:8},
-    {label:"Tower", width:14},
-    {label:"Floor", width:14},
-    {label:"Parking", width:18},
-    {label:"Column", width:18},
-    {label:"Plate", width:30},
-    {label:"Date", width:22},
-    {label:"Time", width:16},
-    {label:"Status", width:24},
-    {label:"Notes", width:32},
-    {label:"Guard", width:30}
-  ];
-  var totalW=cols.reduce(function(s,c){return s+c.width;},0);
-  var scale=(pageW-margin*2)/totalW;
-  cols.forEach(function(c){c.w=c.width*scale;});
-
-  var rowH=7, headerH=9, y=startY;
-  var x0=margin;
-
-  /* Table header */
-  function drawTableHeader(yy){
-    doc.setFillColor(14,42,92);
-    var xx=x0;
-    cols.forEach(function(c){
-      doc.rect(xx, yy, c.w, headerH, "F");
-      xx+=c.w;
-    });
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(7.5);
-    doc.setTextColor(255,255,255);
-    xx=x0;
-    cols.forEach(function(c){
-      doc.text(c.label, xx+c.w/2, yy+6, {align:"center"});
-      xx+=c.w;
-    });
-    return yy+headerH;
-  }
-
-  y=drawTableHeader(y);
-
-  var rows=filteredData.map(function(v){
-    return [
-      "",
-      String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim(),
-      String(getField(v,["الدور","🔢 الدور"])||v.floor||""),
-      String(getField(v,["رقم الموقف","موقف"])||v.parkingNum||""),
-      String(getField(v,["رقم العامود","عامود"])||v.colNum||""),
-      String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||""),
-      fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||""),
-      fixExcelTime(getField(v,["الوقت","⏰ الوقت"])||v.time||""),
-      String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||""),
-      (function(n){return n.length>18?n.slice(0,18)+"…":n;})(String(getField(v,["ملاحظات","📝 ملاحظات"])||v.notes||"")),
-      String(getField(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||"")
-    ];
-  }).reverse();
-
-  rows.forEach(function(row,ri){
-    if(y+rowH>pageH-14){
-      doc.addPage();
-      page++;
-      addPageHeader(page);
-      y=22;
-      y=drawTableHeader(y);
-    }
-    var even=(ri%2===0);
-    doc.setFillColor(even?255:248, even?255:249, even?255:252);
-    var xx=x0;
-    cols.forEach(function(c){
-      doc.rect(xx,y,c.w,rowH,"F");
-      doc.setDrawColor(226,232,240);
-      doc.rect(xx,y,c.w,rowH,"S");
-      xx+=c.w;
-    });
-
-    row[0]=String(ri+1);
-    /* Status color */
-    var status=row[8];
-    if(status==="مغبرة"||status.includes("غبار")&&status.includes("مغبرة")) {doc.setTextColor(153,27,27);}
-    else if(status==="متوسطة الغبار") {doc.setTextColor(133,77,14);}
-    else if(status==="حديثة") {doc.setTextColor(22,101,52);}
-
-    doc.setFont("helvetica","normal");
-    doc.setFontSize(7);
-    xx=x0;
-    row.forEach(function(cell,ci){
-      doc.setTextColor(ci===8&&status==="مغبرة"?153:ci===8&&status==="متوسطة الغبار"?133:ci===8&&status==="حديثة"?22:14,
-        ci===8&&status==="مغبرة"?27:ci===8&&status==="متوسطة الغبار"?77:ci===8&&status==="حديثة"?101:42,
-        ci===8&&status==="مغبرة"?27:ci===8&&status==="متوسطة الغبار"?14:ci===8&&status==="حديثة"?52:92);
-      doc.text(String(cell||"—"), xx+cols[ci].w/2, y+5, {align:"center", maxWidth:cols[ci].w-2});
-      xx+=cols[ci].w;
-    });
-    y+=rowH;
-  });
-
-  /* Footer */
-  var totalPages=doc.getNumberOfPages();
-  for(var p=1;p<=totalPages;p++){
-    doc.setPage(p);
-    doc.setFillColor(14,42,92);
-    doc.rect(0,pageH-8,pageW,8,"F");
-    doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
-    doc.text("Rasad Al-Saiarat | Generated: "+getNow(), margin, pageH-3);
-    doc.text("Page "+p+" / "+totalPages, pageW-margin, pageH-3, {align:"right"});
-  }
-
-  doc.save("rasad_report_"+today+".pdf");
+  openPrintWindow(html);
+  showToast("✅ تم فتح نافذة التقرير — اضغط طباعة أو احفظ PDF","success",4000);
 }
 
-async function exportAnalyticsPDF(){
-  setProgress("جارٍ تجهيز التحليلات…");
-  // First show analytics view to render charts
-  var wasVisible=(A("analyticsView").style.display==="block");
-  if(!wasVisible) showAnalytics();
-  await new Promise(function(r){setTimeout(r,500);});
-
-  setProgress("جارٍ التقاط المخططات…");
-  var { jsPDF } = window.jspdf;
-  if(!jsPDF) throw new Error("jsPDF غير محمّل");
-
-  var doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
-  var pageW=doc.internal.pageSize.getWidth();
-  var pageH=doc.internal.pageSize.getHeight();
-  var margin=14;
-  var today=new Date().toISOString().split("T")[0];
-
-  /* Cover page */
-  doc.setFillColor(14,42,92);
-  doc.rect(0,0,pageW,pageH,"F");
-
-  /* Decorative circles */
-  doc.setFillColor(26,86,219,0.15);
-  doc.circle(pageW+20, -20, 60, "F");
-  doc.circle(-20, pageH+20, 50, "F");
-
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(28);
-  doc.setTextColor(255,255,255);
-  doc.text("Analytics Report", pageW/2, 80, {align:"center"});
-
-  doc.setFontSize(14);
-  doc.setTextColor(148,163,184);
-  doc.text("Rasad Al-Saiarat System", pageW/2, 92, {align:"center"});
-
-  doc.setFontSize(10);
-  doc.text(getNow(), pageW/2, 106, {align:"center"});
-
-  if(currentUser){
-    doc.setFillColor(26,86,219,0.3);
-    doc.roundedRect(margin, 118, pageW-margin*2, 18, 3, 3, "F");
-    doc.setFontSize(10);
-    doc.setTextColor(255,255,255);
-    doc.text("Guard: "+currentUser.name+" | ID: "+currentUser.empId+(currentUser.dept?" | "+currentUser.dept:""),
-      pageW/2, 129, {align:"center"});
-  }
-
-  /* KPI summary box */
-  var dusty=0,mid=0,fresh=0,total=(cloudData||[]).length;
-  (cloudData||[]).forEach(function(v){
-    var st=String(getField(v,["حالة المركبة"])||v.carStatus||"").trim();
-    if(st==="مغبرة")dusty++;else if(st==="متوسطة الغبار")mid++;else if(st==="حديثة")fresh++;
+function exportAnalyticsPDFHtml(){
+  var list=cloudData||[];
+  var dusty=0,mid=0,fresh=0,photos=0;
+  var byTower={A:0,B:0,C:0};
+  list.forEach(function(v){
+    var st=String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
+    var tower=String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase();
+    if(st==="مغبرة"){dusty++;if(byTower[tower]!==undefined)byTower[tower]++;}
+    else if(st==="متوسطة الغبار")mid++;
+    else if(st==="حديثة")fresh++;
+    if((getField(v,["صورة","📷 صورة"])||v.hasImage||"")==="نعم")photos++;
   });
-  var kpis=[["TOTAL",total,"#3b82f6"],["DUSTY",dusty,"#ef4444"],["MEDIUM",mid,"#f59e0b"],["FRESH",fresh,"#10b981"]];
-  var kpiW=(pageW-margin*2)/kpis.length, kpiY=148;
-  kpis.forEach(function(k,i){
-    var bx=margin+i*kpiW+2, bw=kpiW-4;
-    var rgb=k[2].match(/[0-9a-f]{2}/gi).map(function(x){return parseInt(x,16);});
-    doc.setFillColor(rgb[0],rgb[1],rgb[2]);
-    doc.roundedRect(bx, kpiY, bw, 28, 3, 3, "F");
-    doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(255,255,255);
-    doc.text(String(k[1]), bx+bw/2, kpiY+15, {align:"center"});
-    doc.setFontSize(8); doc.setFont("helvetica","normal");
-    doc.text(k[0], bx+bw/2, kpiY+24, {align:"center"});
-  });
+  var dustyLocs=buildLocationCounts(list,"مغبرة");
+  var guardInfo=currentUser?(currentUser.name+" | "+currentUser.empId+(currentUser.dept?" | "+currentUser.dept:"")):"—";
+  var total=list.length||0;
+  var total2=dusty+mid+fresh||1;
 
-  doc.setFontSize(8); doc.setTextColor(100,116,139);
-  doc.text("Page 1", pageW/2, pageH-8, {align:"center"});
+  /* Tower rank */
+  var towerRows=["A","B","C"].map(function(t){
+    var pct=Math.round((byTower[t]||0)/Math.max(dusty,1)*100);
+    var barHtml='<div style="width:100%;background:#e2e8f0;border-radius:3px;height:8px;overflow:hidden;"><div style="width:'+pct+'%;background:'+(t==="A"?"#1a56db":t==="B"?"#059669":"#dc2626")+';height:100%;border-radius:3px;"></div></div>';
+    var cls=t==="A"?"tower-A":t==="B"?"tower-B":"tower-C";
+    return '<tr><td><span class="'+cls+'">برج '+t+'</span></td><td style="width:120px;">'+barHtml+'</td><td style="text-align:center;font-weight:900;font-family:JetBrains Mono,monospace;">'+(byTower[t]||0)+'</td><td style="text-align:center;color:#475569;">'+pct+'%</td></tr>';
+  }).join("");
 
-  /* Page 2: Charts */
-  doc.addPage();
-  doc.setFillColor(248,249,252);
-  doc.rect(0,0,pageW,pageH,"F");
-  doc.setFillColor(14,42,92);
-  doc.rect(0,0,pageW,16,"F");
-  doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
-  doc.text("Analytics Charts", pageW/2, 11, {align:"center"});
-  doc.text(getNow(), margin, 11); doc.text("Page 2", pageW-margin, 11, {align:"right"});
+  /* Top dusty locations */
+  var locRows=dustyLocs.slice(0,10).map(function(it,i){
+    var pct2=Math.round(it.count/Math.max(dusty,1)*100);
+    var cls=it.tower==="A"?"tower-A":it.tower==="B"?"tower-B":it.tower==="C"?"tower-C":"";
+    return '<tr>'+
+      '<td style="text-align:center;color:#94a3b8;font-weight:700;">'+(i+1)+'</td>'+
+      '<td><span class="'+cls+'">برج '+it.tower+'</span></td>'+
+      '<td><span class="floor-b">'+it.floor+'</span></td>'+
+      '<td>'+(it.parking!=="—"?'<span class="pk-b">'+it.parking+'</span>':'—')+'</td>'+
+      '<td>'+(it.col!=="—"?'<span class="col-b">'+it.col+'</span>':'—')+'</td>'+
+      '<td style="font-weight:900;color:#dc2626;font-family:JetBrains Mono,monospace;text-align:center;">'+it.count+'</td>'+
+      '<td style="text-align:center;color:#475569;">'+pct2+'%</td>'+
+    '</tr>';
+  }).join("") || '<tr><td colspan="7" style="text-align:center;padding:16px;color:#94a3b8;">— لا توجد سجلات مغبرة —</td></tr>';
 
-  setProgress("جارٍ تصدير المخططات…");
-  /* Capture bar chart */
-  var barCanvas=A("dustyByTowerChart");
-  var pieCanvas=A("statusPieChart");
-  var trendCanvas=A("dailyTrendChart");
+  var html='<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'+
+    '<title>تقرير التحليلات — رصد السيارات</title>'+getPdfBaseStyles()+
+    '<style>'+
+    '.kpi-grid{display:flex;gap:10px;margin-bottom:12px;}'+
+    '.kpi{flex:1;border-radius:8px;padding:10px 14px;text-align:center;border:1.5px solid;}'+
+    '.kpi-val{font-size:22px;font-weight:900;line-height:1;}'+
+    '.kpi-lbl{font-size:9px;margin-top:3px;opacity:.8;}'+
+    '.kpi-total{background:#eff6ff;border-color:#bfdbfe;color:#1a56db;}'+
+    '.kpi-dust{background:#fff1f2;border-color:#fecdd3;color:#dc2626;}'+
+    '.kpi-mid{background:#fffbeb;border-color:#fde68a;color:#d97706;}'+
+    '.kpi-fresh{background:#f0fdf4;border-color:#bbf7d0;color:#059669;}'+
+    '.kpi-photos{background:#fdf4ff;border-color:#e9d5ff;color:#7c3aed;}'+
+    '.two-col{display:flex;gap:14px;margin-bottom:10px;}'+
+    '.two-col>div{flex:1;}'+
+    '.pie-legend{display:flex;flex-direction:column;gap:6px;margin-top:10px;}'+
+    '.pie-leg-row{display:flex;align-items:center;gap:8px;font-size:10px;}'+
+    '.pie-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}'+
+    '.pie-bar-wrap{flex:1;background:#e2e8f0;border-radius:3px;height:10px;overflow:hidden;}'+
+    '.pie-bar-fill{height:100%;border-radius:3px;}'+
+    '</style>'+
+    '</head><body>'+
+    '<button class="print-btn no-print" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>'+
 
-  var chartY=22;
-  if(barCanvas){
-    try{
-      var barImg=barCanvas.toDataURL("image/png");
-      doc.addImage(barImg,"PNG", margin, chartY, 85, 55);
-      doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(14,42,92);
-      doc.text("Dusty Cars by Tower", margin+42, chartY-2, {align:"center"});
-    }catch(e){}
-  }
-  if(pieCanvas){
-    try{
-      var pieImg=pieCanvas.toDataURL("image/png");
-      doc.addImage(pieImg,"PNG", margin+90, chartY, 55, 55);
-      doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(14,42,92);
-      doc.text("Status Distribution", margin+117, chartY-2, {align:"center"});
-    }catch(e){}
-    /* Pie legend */
-    var legY=chartY+57;
-    doc.setFontSize(8); doc.setFont("helvetica","normal");
-    [["DUSTY",dusty,"#ef4444"],["MEDIUM",mid,"#f59e0b"],["FRESH",fresh,"#10b981"]].forEach(function(item,i){
-      var total2=dusty+mid+fresh||1;
-      var rgb=item[2].match(/[0-9a-f]{2}/gi).map(function(x){return parseInt(x,16);});
-      doc.setFillColor(rgb[0],rgb[1],rgb[2]); doc.circle(margin+90+i*40+3, legY, 2, "F");
-      doc.setTextColor(71,85,105);
-      doc.text(item[0]+": "+item[1]+" ("+Math.round(item[1]/total2*100)+"%)", margin+90+i*40+7, legY+1);
-    });
-  }
-  if(trendCanvas){
-    try{
-      var trendImg=trendCanvas.toDataURL("image/png");
-      doc.addImage(trendImg,"PNG", margin, chartY+65, pageW-margin*2, 50);
-      doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(14,42,92);
-      doc.text("14-Day Trend", pageW/2, chartY+63, {align:"center"});
-    }catch(e){}
-  }
+    /* Header */
+    '<div class="pdf-header">'+
+      '<div><div class="pdf-header-title">📊 تقرير التحليلات — رصد السيارات</div>'+
+      '<div class="pdf-header-sub">الحارس: '+guardInfo+'</div></div>'+
+      '<div class="pdf-header-meta">'+getNow()+'<br>إجمالي السجلات: '+total+'</div>'+
+    '</div>'+
 
-  /* Top dusty locations table */
-  var dustyLocs=buildLocationCounts(cloudData||[],"مغبرة");
-  var tableY=chartY+122;
-  doc.setFillColor(14,42,92); doc.rect(margin, tableY, pageW-margin*2, 8, "F");
-  doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(255,255,255);
-  var tcols=["#","Tower","Floor","Parking","Column","Count","%"];
-  var tcw=(pageW-margin*2)/tcols.length;
-  tcols.forEach(function(h,i){doc.text(h,margin+i*tcw+tcw/2,tableY+5.5,{align:"center"});});
-  tableY+=8;
-  var rowH2=7;
-  dustyLocs.slice(0,8).forEach(function(it,i){
-    doc.setFillColor(i%2?248:255, i%2?249:255, i%2?252:255);
-    doc.rect(margin, tableY, pageW-margin*2, rowH2, "F");
-    doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(14,42,92);
-    var totalDusty2=dustyLocs.reduce(function(s,d){return s+d.count;},0)||1;
-    var cells=[String(i+1),it.tower,it.floor,it.parking!=="—"?it.parking:"",it.col!=="—"?it.col:"",String(it.count),Math.round(it.count/totalDusty2*100)+"%"];
-    cells.forEach(function(c,ci){doc.text(c,margin+ci*tcw+tcw/2,tableY+5,{align:"center"});});
-    tableY+=rowH2;
-  });
+    /* KPIs */
+    '<div class="kpi-grid">'+
+      '<div class="kpi kpi-total"><div class="kpi-val">'+total+'</div><div class="kpi-lbl">🚗 الإجمالي</div></div>'+
+      '<div class="kpi kpi-dust"><div class="kpi-val">'+dusty+'</div><div class="kpi-lbl">🔴 مغبرة</div></div>'+
+      '<div class="kpi kpi-mid"><div class="kpi-val">'+mid+'</div><div class="kpi-lbl">🟡 متوسطة</div></div>'+
+      '<div class="kpi kpi-fresh"><div class="kpi-val">'+fresh+'</div><div class="kpi-lbl">🟢 حديثة</div></div>'+
+      '<div class="kpi kpi-photos"><div class="kpi-val">'+photos+'</div><div class="kpi-lbl">📷 بصور</div></div>'+
+    '</div>'+
 
-  /* Footer all pages */
-  var totalPages=doc.getNumberOfPages();
-  for(var pp=1;pp<=totalPages;pp++){
-    doc.setPage(pp);
-    doc.setFillColor(14,42,92); doc.rect(0,pageH-8,pageW,8,"F");
-    doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(255,255,255);
-    doc.text("Rasad Al-Saiarat | Analytics Report | "+getNow(), margin, pageH-3);
-    doc.text("Page "+pp+" / "+totalPages, pageW-margin, pageH-3, {align:"right"});
-  }
+    /* Two-col: Tower breakdown + Status distribution */
+    '<div class="two-col">'+
+      '<div>'+
+        '<div class="section-title">🏢 توزيع المغبرة حسب البرج</div>'+
+        '<table><thead><tr><th>البرج</th><th>النسبة</th><th>عدد المغبرة</th><th>%</th></tr></thead>'+
+        '<tbody>'+towerRows+'</tbody></table>'+
+      '</div>'+
+      '<div>'+
+        '<div class="section-title">📊 توزيع الحالات</div>'+
+        '<div class="pie-legend">'+
+          [["🔴 مغبرة",dusty,"#dc2626"],["🟡 متوسطة",mid,"#d97706"],["🟢 حديثة",fresh,"#059669"]].map(function(d){
+            var pct3=Math.round(d[1]/total2*100);
+            return '<div class="pie-leg-row">'+
+              '<div class="pie-dot" style="background:'+d[2]+'"></div>'+
+              '<span style="min-width:70px;font-weight:600;">'+d[0]+'</span>'+
+              '<div class="pie-bar-wrap"><div class="pie-bar-fill" style="width:'+pct3+'%;background:'+d[2]+'"></div></div>'+
+              '<span style="min-width:30px;text-align:center;font-family:JetBrains Mono,monospace;font-weight:800;">'+d[1]+'</span>'+
+              '<span style="color:#475569;">'+pct3+'%</span>'+
+            '</div>';
+          }).join("")+
+        '</div>'+
+      '</div>'+
+    '</div>'+
 
-  doc.save("rasad_analytics_"+today+".pdf");
-  if(!wasVisible) backToMain();
+    /* Top dusty locations */
+    '<div class="section-title">📍 أكثر المواقع تكراراً في المغبرة</div>'+
+    '<table><thead><tr>'+
+      '<th style="width:30px;">#</th><th>البرج</th><th>الدور</th><th>رقم الموقف</th><th>رقم العامود</th>'+
+      '<th style="width:60px;">التكرار</th><th style="width:50px;">النسبة</th>'+
+    '</tr></thead><tbody>'+locRows+'</tbody></table>'+
+
+    '<div class="pdf-footer">'+
+      '<span>🚗 نظام رصد السيارات — تقرير التحليلات</span>'+
+      '<span>'+getNow()+'</span>'+
+    '</div>'+
+    '</body></html>';
+
+  openPrintWindow(html);
+  showToast("✅ تم فتح نافذة التحليلات — اضغط طباعة أو احفظ PDF","success",4000);
 }
-
 
 function normalizeDriveUrl(u){
   u=String(u||"").trim();if(!u)return "";
