@@ -919,8 +919,8 @@
     .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
     /* App hidden until login */
-    #appWrapper { display: none; }
-    #appWrapper.visible { display: block; }
+    #appWrapper { display: none; visibility: hidden; }
+    #appWrapper.visible { display: block; visibility: visible; }
 
     /* Session pill colors */
     .role-admin { background: rgba(124,58,237,.2); border-color: rgba(124,58,237,.3); color: #c4b5fd; }
@@ -1974,7 +1974,6 @@ function onLoginSuccess(){
 
   var pd = $("printDateInfo");
   var pg = $("printGuardInfo");
-  var pc = $("printCountInfo");
   if(pd){
     var now = new Date();
     var months=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
@@ -1987,12 +1986,11 @@ function onLoginSuccess(){
     if(banner) banner.style.display = "block";
   }
 
+  // أخفِ شاشة الدخول وأظهر التطبيق فوراً
   loginScreen.classList.add("hidden");
-  setTimeout(function(){
-    loginScreen.style.display = "none";
-    appWrapper.classList.add("visible");
-    loadFromCloud(true);
-  }, 500);
+  loginScreen.style.display = "none";
+  appWrapper.classList.add("visible");
+  loadFromCloud(true);
 }
 
 function doLogout(){
@@ -2004,6 +2002,8 @@ function doLogout(){
   loginEmpId.value = "";
   loginPassword.value = "";
   loginError.classList.remove("show");
+  // امسح البيانات من الشاشة
+  cloudData=[]; renderTable(); updateStats();
   loginEmpId.focus();
 }
 
