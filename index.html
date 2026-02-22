@@ -2443,6 +2443,8 @@ function updateStats(){
 /* ══════════════════════════════════
    ANALYTICS (NO DARK MODE)
 ══════════════════════════════════ */
+function A(id){ return document.getElementById(id); }
+
 function parseISODateSafe(s){
   s = String(s||"").trim();
   if(!s) return null;
@@ -2456,7 +2458,8 @@ function parseISODateSafe(s){
 }
 
 function filterByRange(list){
-  var mode = els.anaRange && els.anaRange.value ? els.anaRange.value : "all";
+  var sel = A("anaRange");
+  var mode = sel && sel.value ? sel.value : "all";
   if(mode === "all") return list.slice();
   var today = new Date();
   today.setHours(0,0,0,0);
@@ -2507,12 +2510,10 @@ function drawBarChart(canvas, labels, values){
   var w = canvas.width, h = canvas.height;
   ctx.clearRect(0,0,w,h);
 
-  // padding
   var padL = 46, padR = 12, padT = 14, padB = 42;
   var chartW = w - padL - padR;
   var chartH = h - padT - padB;
 
-  // axes
   ctx.strokeStyle = "rgba(14,42,92,.35)";
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -2526,7 +2527,6 @@ function drawBarChart(canvas, labels, values){
   var gap = 10;
   var barW = Math.max(18, (chartW - gap*(barCount+1)) / barCount);
 
-  // grid + y labels (0..max in 4 steps)
   ctx.fillStyle = "rgba(71,85,105,.9)";
   ctx.font = "11px 'IBM Plex Sans Arabic'";
   var steps = 4;
@@ -2538,27 +2538,22 @@ function drawBarChart(canvas, labels, values){
     ctx.fillText(String(val), 10, y+4);
   }
 
-  // bars
   for(var i=0;i<labels.length;i++){
     var v = values[i] || 0;
     var bh = (v/maxVal) * chartH;
     var x = padL + gap + i*(barW + gap);
     var y = padT + chartH - bh;
 
-    // bar
     ctx.fillStyle = "rgba(26,86,219,.85)";
     ctx.fillRect(x, y, barW, bh);
 
-    // value
     ctx.fillStyle = "rgba(14,42,92,1)";
     ctx.font = "12px 'JetBrains Mono'";
     ctx.fillText(String(v), x + (barW/2) - (String(v).length*3.2), y - 6);
 
-    // label
     ctx.fillStyle = "rgba(71,85,105,1)";
     ctx.font = "12px 'IBM Plex Sans Arabic'";
     var lbl = labels[i];
-    // center label
     var tw = ctx.measureText(lbl).width;
     ctx.fillText(lbl, x + (barW/2) - tw/2, padT + chartH + 26);
   }
@@ -2581,12 +2576,25 @@ function renderLocChips(container, items, statusEmoji){
 }
 
 function buildAnalytics(){
-  if(!els.analyticsView) return;
+  var view = A("analyticsView");
+  if(!view) return;
+
+  var anaDustyCount = A("anaDustyCount");
+  var anaMidCount   = A("anaMidCount");
+  var anaNewCount   = A("anaNewCount");
+  var anaTopTowerBadge = A("anaTopTowerBadge");
+  var anaTopTowerText  = A("anaTopTowerText");
+  var anaTopTowerMeta  = A("anaTopTowerMeta");
+  var chartCanvas = A("dustyByTowerChart");
+  var dustyTopTbody = A("anaDustyTopLocations");
+  var newLocBox = A("anaNewLocations");
+  var midLocBox = A("anaMidLocations");
+  var dustyLocBox = A("anaDustyLocations");
 
   var list = filterByRange(cloudData || []);
-  // counts by status
   var dusty=0, mid=0, fresh=0;
   var dustyByTower = {A:0,B:0,C:0,Other:0};
+
   list.forEach(function(v){
     var st = String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
     var tower = String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase();
@@ -2595,37 +2603,34 @@ function buildAnalytics(){
     else if(st==="حديثة"){ fresh++; }
   });
 
-  if(els.anaDustyCount) els.anaDustyCount.textContent = "🔴 مغبرة: " + dusty;
-  if(els.anaMidCount)   els.anaMidCount.textContent   = "🟡 متوسطة: " + mid;
-  if(els.anaNewCount)   els.anaNewCount.textContent   = "🟢 حديثة: " + fresh;
+  if(anaDustyCount) anaDustyCount.textContent = "🔴 مغبرة: " + dusty;
+  if(anaMidCount)   anaMidCount.textContent   = "🟡 متوسطة: " + mid;
+  if(anaNewCount)   anaNewCount.textContent   = "🟢 حديثة: " + fresh;
 
-  // Top tower dusty
   var entries = Object.keys(dustyByTower).filter(function(k){return k!=="Other";}).map(function(k){return [k,dustyByTower[k]];});
   entries.sort(function(a,b){return b[1]-a[1];});
   var top = entries[0] || ["—",0];
   var topTower = top[0], topCount = top[1];
-  if(els.anaTopTowerBadge){
+
+  if(anaTopTowerBadge){
     var cls = "tower-badge " + (topTower==="A"?"tower-A":topTower==="B"?"tower-B":topTower==="C"?"tower-C":"");
-    els.anaTopTowerBadge.className = cls;
-    els.anaTopTowerBadge.textContent = topTower;
+    anaTopTowerBadge.className = cls;
+    anaTopTowerBadge.textContent = topTower;
   }
-  if(els.anaTopTowerText) els.anaTopTowerText.textContent = topTower==="—" ? "لا توجد بيانات" : ("أعلى برج في المغبرة: برج " + topTower);
-  if(els.anaTopTowerMeta) els.anaTopTowerMeta.textContent = topTower==="—" ? "" : ("بعدد " + topCount + " سجلات مغبرة");
+  if(anaTopTowerText) anaTopTowerText.textContent = topTower==="—" ? "لا توجد بيانات" : ("أعلى برج في المغبرة: برج " + topTower);
+  if(anaTopTowerMeta) anaTopTowerMeta.textContent = topTower==="—" ? "" : ("بعدد " + topCount + " سجلات مغبرة");
 
-  // Bar chart dusty by tower
-  drawBarChart(els.dustyByTowerChart, ["A","B","C"], [dustyByTower.A||0, dustyByTower.B||0, dustyByTower.C||0]);
+  drawBarChart(chartCanvas, ["A","B","C"], [dustyByTower.A||0, dustyByTower.B||0, dustyByTower.C||0]);
 
-  // Top locations for dusty + chips for each status
   var dustyLocs = buildLocationCounts(list, "مغبرة");
   var midLocs   = buildLocationCounts(list, "متوسطة الغبار");
   var newLocs   = buildLocationCounts(list, "حديثة");
 
-  // table top 10 dusty locations
-  if(els.anaDustyTopLocations){
-    els.anaDustyTopLocations.innerHTML = "";
+  if(dustyTopTbody){
+    dustyTopTbody.innerHTML = "";
     var top10 = dustyLocs.slice(0,10);
     if(!top10.length){
-      els.anaDustyTopLocations.innerHTML = '<tr><td colspan="6" style="padding:14px;color:var(--border2);font-weight:800;">— لا توجد سجلات مغبرة ضمن هذا النطاق —</td></tr>';
+      dustyTopTbody.innerHTML = '<tr><td colspan="6" style="padding:14px;color:var(--border2);font-weight:800;">— لا توجد سجلات مغبرة ضمن هذا النطاق —</td></tr>';
     }else{
       top10.forEach(function(it){
         var tr = document.createElement("tr");
@@ -2637,22 +2642,22 @@ function buildAnalytics(){
           '<td style="padding:10px 12px;">'+(it.parking!=="—"?'<span class="parking-badge">'+it.parking+'</span>':'<span style="color:var(--border2);">—</span>')+'</td>'+
           '<td style="padding:10px 12px;">'+(it.col!=="—"?'<span class="col-num-badge">'+it.col+'</span>':'<span style="color:var(--border2);">—</span>')+'</td>'+
           '<td style="padding:10px 12px;font-weight:900;font-family:JetBrains Mono,monospace;">'+it.count+'</td>';
-        els.anaDustyTopLocations.appendChild(tr);
+        dustyTopTbody.appendChild(tr);
       });
     }
   }
 
-  renderLocChips(els.anaNewLocations, newLocs, "🟢");
-  renderLocChips(els.anaMidLocations, midLocs, "🟡");
-  renderLocChips(els.anaDustyLocations, dustyLocs, "🔴");
+  renderLocChips(newLocBox, newLocs, "🟢");
+  renderLocChips(midLocBox, midLocs, "🟡");
+  renderLocChips(dustyLocBox, dustyLocs, "🔴");
 }
 
 function showAnalytics(){
-  // ensure we have data
   if(!currentUser){ showToast("⚠️ يجب تسجيل الدخول أولاً", "warn"); return; }
-  els.analyticsView.style.display = "block";
-  // hide main content inside .main except analytics
-  // We'll hide the existing sections by hiding all direct children except analyticsView
+  var view = A("analyticsView");
+  if(!view){ showToast("⚠️ تعذر فتح التحليلات", "error"); return; }
+
+  view.style.display = "block";
   Array.from(document.querySelectorAll(".main > *")).forEach(function(ch){
     if(ch.id === "analyticsView") return;
     ch.style.display = "none";
@@ -2662,7 +2667,8 @@ function showAnalytics(){
 }
 
 function backToMain(){
-  els.analyticsView.style.display = "none";
+  var view = A("analyticsView");
+  if(view) view.style.display = "none";
   Array.from(document.querySelectorAll(".main > *")).forEach(function(ch){
     if(ch.id === "analyticsView") return;
     ch.style.display = "";
@@ -2670,15 +2676,14 @@ function backToMain(){
 }
 
 /* Wire analytics events */
-if(els.btnAnalytics){
-  els.btnAnalytics.addEventListener("click", showAnalytics);
-}
-if(els.btnBackToMain){
-  els.btnBackToMain.addEventListener("click", backToMain);
-}
-if(els.anaRange){
-  els.anaRange.addEventListener("change", function(){ buildAnalytics(); });
-}
+(function(){
+  var btn = A("btnAnalytics");
+  var back = A("btnBackToMain");
+  var range = A("anaRange");
+  if(btn) btn.addEventListener("click", showAnalytics);
+  if(back) back.addEventListener("click", backToMain);
+  if(range) range.addEventListener("change", buildAnalytics);
+})();
 
 
 function normalizeDriveUrl(u){
@@ -2956,7 +2961,7 @@ els.plate.addEventListener("input",function(){checkPlateExists(els.plate.value.t
 
 document.addEventListener("keydown",function(e){
   if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();addVehicle();}
-  if(e.key==="Escape"){closeCamera();els.imageModal.classList.remove("active");els.setupModal.classList.remove("active"); if(els.analyticsView && els.analyticsView.style.display==="block"){ backToMain(); }}
+  if(e.key==="Escape"){closeCamera();els.imageModal.classList.remove("active");els.setupModal.classList.remove("active"); if(A("analyticsView") && A("analyticsView").style.display==="block"){ backToMain(); }}
 });
 
 loadLocal();
