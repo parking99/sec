@@ -1278,8 +1278,118 @@
       .toast{ left: 16px; bottom: 16px; max-width: calc(100vw - 32px); }
     }
 
-  </style>
-<body>
+    /* ════ ANALYTICS ENHANCED ════ */
+    .ana-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding: 20px 24px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+    }
+    .ana-header-title { display: flex; align-items: center; gap: 14px; }
+    .ana-header-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 16px rgba(26,86,219,.3);
+    }
+
+    /* KPI Cards */
+    .ana-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 900px) { .ana-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .ana-kpi-grid { grid-template-columns: 1fr 1fr; } }
+
+    .ana-kpi-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .ana-kpi-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow-hover); }
+    .ana-kpi-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 4px;
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+    .ana-kpi-total::after { background: linear-gradient(90deg, var(--accent), #6366f1); }
+    .ana-kpi-dust::after  { background: linear-gradient(90deg, var(--red), #f97316); }
+    .ana-kpi-mid::after   { background: linear-gradient(90deg, var(--amber), #eab308); }
+    .ana-kpi-new::after   { background: linear-gradient(90deg, var(--green), #10b981); }
+    .ana-kpi-top::after   { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+    .ana-kpi-icon { font-size: 24px; margin-bottom: 8px; }
+    .ana-kpi-val  { font-size: 36px; font-weight: 800; letter-spacing: -1px; line-height: 1; color: var(--ink); }
+    .ana-kpi-label{ font-size: 11px; color: var(--ink3); font-weight: 600; margin-top: 4px; }
+    .ana-kpi-pct  { font-size: 12px; font-weight: 700; color: var(--ink3); margin-top: 6px;
+                    background: var(--paper); border-radius: 20px; padding: 2px 10px; display: inline-block; }
+
+    /* Charts Layout */
+    .ana-charts-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .ana-charts-row > .card { flex: 1; min-width: 260px; margin: 0; }
+
+    /* Floor Heatmap */
+    .floor-heat-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .floor-heat-label { font-size: 12px; font-weight: 700; color: var(--ink); width: 40px; text-align: left; flex-shrink: 0; }
+    .floor-heat-bar-wrap { flex: 1; background: var(--paper); border-radius: 6px; overflow: hidden; height: 22px; }
+    .floor-heat-bar { height: 100%; border-radius: 6px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-weight: 700; color: #fff; min-width: 4px; transition: width .5s ease; }
+    .floor-heat-count { font-size: 12px; font-weight: 800; color: var(--ink); width: 28px; text-align: right; }
+
+    /* Print Analytics */
+    .print-only { display: none; }
+    .ana-print-summary {
+      padding: 10px 0;
+    }
+    .ana-print-title {
+      font-size: 16px; font-weight: 800; color: var(--ink);
+      border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 12px;
+    }
+    .ana-print-kpis {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;
+    }
+    .ana-print-kpi {
+      flex: 1; min-width: 100px;
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 12px; text-align: center;
+    }
+    .ana-print-kpi-val { font-size: 22px; font-weight: 800; color: var(--ink); }
+    .ana-print-kpi-label { font-size: 10px; color: var(--ink3); }
+
+    @media print {
+      .ana-print-summary { display: block !important; page-break-before: always; }
+      .print-only { display: block !important; }
+      .no-print { display: none !important; }
+      #analyticsView { display: block !important; }
+      .ana-header, .ana-kpi-grid, .ana-charts-row { display: none !important; }
+    }
+
+  
 
 <!-- ══════════════════════════════════════
      LOGIN SCREEN
@@ -1540,112 +1650,162 @@
 
   <!-- ANALYTICS VIEW -->
   <div id="analyticsView" style="display:none;">
-    <div class="card no-print">
-      <div class="card-header">
-        <div class="card-title"><div class="card-title-icon">📊</div> لوحة التحليلات</div>
-        <div class="flex gap8">
-          <button class="btn btn-ghost btn-sm" id="btnBackToMain">↩️ رجوع</button>
+    <!-- Header -->
+    <div class="ana-header no-print">
+      <div class="ana-header-title">
+        <div class="ana-header-icon">📊</div>
+        <div>
+          <div style="font-size:20px;font-weight:800;color:var(--ink);">لوحة التحليلات</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:2px;">تحليل شامل لبيانات رصد المركبات</div>
         </div>
       </div>
-      <div class="card-body">
-        <div class="form-grid" style="align-items:end;">
-          <div class="form-group">
-            <label>نطاق التحليل</label>
-            <select id="anaRange">
-              <option value="all">كل البيانات</option>
-              <option value="today">اليوم</option>
-              <option value="7d">آخر 7 أيام</option>
-              <option value="30d">آخر 30 يوم</option>
-            </select>
-          </div>
-          <div class="form-group span2">
-            <label>ملخص سريع</label>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <span class="status-dust" id="anaDustyCount">🔴 مغبرة: 0</span>
-              <span class="status-mid" id="anaMidCount">🟡 متوسطة: 0</span>
-              <span class="status-new" id="anaNewCount">🟢 حديثة: 0</span>
-            </div>
-          </div>
-          <div class="form-group span2">
-            <label>أعلى برج (مغبرة)</label>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-              <span class="tower-badge tower-A" id="anaTopTowerBadge">—</span>
-              <span style="font-weight:800;color:var(--ink);" id="anaTopTowerText">—</span>
-              <span style="color:var(--ink3);font-size:12px;" id="anaTopTowerMeta"></span>
-            </div>
-          </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <select id="anaRange" style="width:auto;padding:8px 14px;font-size:13px;">
+          <option value="all">📅 كل البيانات</option>
+          <option value="today">اليوم</option>
+          <option value="7d">آخر 7 أيام</option>
+          <option value="30d">آخر 30 يوم</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="btnBackToMain">↩️ رجوع</button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="ana-kpi-grid no-print">
+      <div class="ana-kpi-card ana-kpi-total">
+        <div class="ana-kpi-icon">🚗</div>
+        <div class="ana-kpi-val" id="anaTotal">0</div>
+        <div class="ana-kpi-label">إجمالي السجلات</div>
+      </div>
+      <div class="ana-kpi-card ana-kpi-dust">
+        <div class="ana-kpi-icon">🔴</div>
+        <div class="ana-kpi-val" id="anaDustyVal">0</div>
+        <div class="ana-kpi-label">مغبرة</div>
+        <div class="ana-kpi-pct" id="anaDustyPct">—</div>
+      </div>
+      <div class="ana-kpi-card ana-kpi-mid">
+        <div class="ana-kpi-icon">🟡</div>
+        <div class="ana-kpi-val" id="anaMidVal">0</div>
+        <div class="ana-kpi-label">متوسطة الغبار</div>
+        <div class="ana-kpi-pct" id="anaMidPct">—</div>
+      </div>
+      <div class="ana-kpi-card ana-kpi-new">
+        <div class="ana-kpi-icon">🟢</div>
+        <div class="ana-kpi-val" id="anaNewVal">0</div>
+        <div class="ana-kpi-label">حديثة</div>
+        <div class="ana-kpi-pct" id="anaNewPct">—</div>
+      </div>
+      <div class="ana-kpi-card ana-kpi-top">
+        <div class="ana-kpi-icon">🏆</div>
+        <div class="ana-kpi-val" style="font-size:28px;" id="anaTopTower">—</div>
+        <div class="ana-kpi-label">أعلى برج مغبرة</div>
+        <div class="ana-kpi-pct" id="anaTopTowerN">—</div>
+      </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="ana-charts-row no-print">
+      <!-- Donut Chart - Status Distribution -->
+      <div class="card" style="margin:0;flex:1;min-width:260px;">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-icon">🍩</div> توزيع حالات المركبات</div>
         </div>
-
-        <hr class="divider"/>
-
-        <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
-          <div class="card" style="margin:0;">
-            <div class="card-header">
-              <div class="card-title"><div class="card-title-icon">🏢</div> توزيع السيارات المغبرة حسب البرج</div>
-            </div>
-            <div class="card-body">
-              <canvas id="dustyByTowerChart" width="600" height="260" style="width:100%;max-width:100%;"></canvas>
-              <div style="font-size:11px;color:var(--ink3);margin-top:8px;">يعرض عدد سجلات "مغبرة" في كل برج.</div>
-            </div>
-          </div>
-
-          <div class="card" style="margin:0;">
-            <div class="card-header">
-              <div class="card-title"><div class="card-title-icon">📍</div> أكثر المواقع تكراراً (مغبرة)</div>
-            </div>
-            <div class="card-body">
-              <div style="overflow:auto;border:1px solid var(--border);border-radius:12px;">
-                <table style="width:100%;border-collapse:collapse;min-width:520px;">
-                  <thead>
-                    <tr style="background:var(--ink);">
-                      <th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">الموقع</th>
-                      <th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">البرج</th>
-                      <th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">الدور</th>
-                      <th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">الموقف</th>
-                      <th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">العامود</th>
-                      <th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">العدد</th>
-                    </tr>
-                  </thead>
-                  <tbody id="anaDustyTopLocations"></tbody>
-                </table>
-              </div>
-              <div style="font-size:11px;color:var(--ink3);margin-top:8px;">الموقع محسوب من (برج + دور + موقف + عامود).</div>
-            </div>
-          </div>
+        <div class="card-body" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+          <canvas id="donutChart" width="220" height="220" style="max-width:220px;"></canvas>
+          <div id="donutLegend" style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;"></div>
         </div>
+      </div>
 
-        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);margin-top:16px;">
-          <div class="card" style="margin:0;">
-            <div class="card-header">
-              <div class="card-title"><div class="card-title-icon">🟢</div> أماكن "حديثة"</div>
-            </div>
-            <div class="card-body">
-              <div id="anaNewLocations" style="display:flex;flex-direction:column;gap:8px;"></div>
-            </div>
-          </div>
-          <div class="card" style="margin:0;">
-            <div class="card-header">
-              <div class="card-title"><div class="card-title-icon">🟡</div> أماكن "متوسطة"</div>
-            </div>
-            <div class="card-body">
-              <div id="anaMidLocations" style="display:flex;flex-direction:column;gap:8px;"></div>
-            </div>
-          </div>
-          <div class="card" style="margin:0;">
-            <div class="card-header">
-              <div class="card-title"><div class="card-title-icon">🔴</div> أماكن "مغبرة"</div>
-            </div>
-            <div class="card-body">
-              <div id="anaDustyLocations" style="display:flex;flex-direction:column;gap:8px;"></div>
-            </div>
-          </div>
+      <!-- Bar Chart by Tower -->
+      <div class="card" style="margin:0;flex:2;min-width:280px;">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-icon">🏢</div> توزيع الحالات حسب البرج</div>
         </div>
-
-        <div style="font-size:11px;color:var(--ink3);margin-top:14px;">
-          💡 ملاحظة: التحليلات تعتمد على البيانات التي تم تحميلها من Google Sheets (زر 🔄 تحديث).
+        <div class="card-body">
+          <canvas id="towerGroupChart" width="600" height="220" style="width:100%;"></canvas>
         </div>
       </div>
     </div>
+
+    <!-- Charts Row 2 -->
+    <div class="ana-charts-row no-print" style="margin-top:16px;">
+      <!-- Timeline Chart -->
+      <div class="card" style="margin:0;flex:2;min-width:280px;">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-icon">📈</div> الرصد اليومي (آخر 14 يوم)</div>
+        </div>
+        <div class="card-body">
+          <canvas id="timelineChart" width="700" height="200" style="width:100%;"></canvas>
+        </div>
+      </div>
+
+      <!-- Floor Heatmap -->
+      <div class="card" style="margin:0;flex:1;min-width:240px;">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-icon">🗺️</div> نشاط حسب الدور</div>
+        </div>
+        <div class="card-body">
+          <div id="floorHeatmap" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Locations Table + Location Chips -->
+    <div class="ana-charts-row no-print" style="margin-top:16px;">
+      <div class="card" style="margin:0;flex:1.5;">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-icon">📍</div> أكثر المواقع تكراراً (مغبرة)</div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div style="overflow:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+              <thead>
+                <tr style="background:var(--ink);">
+                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">#</th>
+                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">البرج</th>
+                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">الدور</th>
+                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">الموقف</th>
+                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">العامود</th>
+                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">العدد</th>
+                  <th style="padding:10px 14px;color:#fff;font-size:11px;text-align:right;">نسبة</th>
+                </tr>
+              </thead>
+              <tbody id="anaDustyTopLocations"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:220px;">
+        <div class="card" style="margin:0;flex:1;">
+          <div class="card-header" style="padding:12px 16px;">
+            <div class="card-title" style="font-size:13px;"><div class="card-title-icon">🟢</div> أماكن حديثة</div>
+          </div>
+          <div class="card-body" style="padding:10px 14px;">
+            <div id="anaNewLocations" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+        </div>
+        <div class="card" style="margin:0;flex:1;">
+          <div class="card-header" style="padding:12px 16px;">
+            <div class="card-title" style="font-size:13px;"><div class="card-title-icon">🟡</div> أماكن متوسطة</div>
+          </div>
+          <div class="card-body" style="padding:10px 14px;">
+            <div id="anaMidLocations" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Print Analytics Summary -->
+    <div class="ana-print-summary print-only">
+      <div class="ana-print-title">📊 ملخص التحليلات</div>
+      <div class="ana-print-kpis" id="anaPrintKpis"></div>
+      <div class="ana-print-charts">
+        <canvas id="printBarChart" width="500" height="180"></canvas>
+      </div>
+      <div id="anaPrintTopTable"></div>
+    </div>
+
   </div>
 
 </div><!-- /main -->
@@ -2101,11 +2261,9 @@ $("btnLogout").addEventListener("click", doLogout);
 
 /* ══ CHECK SESSION ON LOAD ══ */
 window.addEventListener("load", function(){
-  if(loadSession()){
-    onLoginSuccess();
-  } else {
-    loginEmpId.focus();
-  }
+  // دائماً ابدأ بشاشة الدخول
+  clearSession();
+  loginEmpId.focus();
 });
 
 /* ══════════════════════════════════
@@ -2457,233 +2615,300 @@ function parseISODateSafe(s){
   return null;
 }
 
+
+/* ══════════════════════════════════
+   ANALYTICS — ENHANCED
+══════════════════════════════════ */
+
 function filterByRange(list){
-  var sel = A("anaRange");
-  var mode = sel && sel.value ? sel.value : "all";
-  if(mode === "all") return list.slice();
-  var today = new Date();
-  today.setHours(0,0,0,0);
-  var start = new Date(today);
-  if(mode === "today"){
-    // start = today
-  } else if(mode === "7d"){
-    start.setDate(start.getDate() - 6);
-  } else if(mode === "30d"){
-    start.setDate(start.getDate() - 29);
-  }
+  var range = (typeof A !== 'undefined' && A("anaRange")) ? A("anaRange").value : "all";
+  if(range==="all") return list;
+  var now=new Date(), cutoff=new Date();
+  if(range==="today"){ cutoff.setHours(0,0,0,0); }
+  else if(range==="7d"){ cutoff.setDate(now.getDate()-7); }
+  else if(range==="30d"){ cutoff.setDate(now.getDate()-30); }
   return list.filter(function(v){
-    var d = parseISODateSafe(fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||""));
-    if(!d) return false;
-    d.setHours(0,0,0,0);
-    return d >= start && d <= today;
+    var d=fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"");
+    if(!d) return range==="all";
+    return new Date(d)>=cutoff;
   });
 }
 
-function normalizeLocParts(v){
-  var tower = String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase();
-  var floor = String(getField(v,["الدور","🔢 الدور"])||v.floor||"").trim().toUpperCase();
-  var parking = String(getField(v,["رقم الموقف","موقف"])||v.parkingNum||"").trim().toUpperCase();
-  var col = String(getField(v,["رقم العامود","عامود","العمود"])||v.colNum||"").trim().toUpperCase();
-  return {tower:tower||"—", floor:floor||"—", parking:parking||"—", col:col||"—"};
-}
-
-function buildLocationCounts(list, statusLabel){
-  var map = {};
+function buildLocationCounts(list,status){
+  var map={};
   list.forEach(function(v){
-    var st = String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
-    if(st !== statusLabel) return;
-    var p = normalizeLocParts(v);
-    var key = [p.tower,p.floor,p.parking,p.col].join("|");
-    map[key] = (map[key]||0) + 1;
+    var st=String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
+    if(st!==status) return;
+    var tower=String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim();
+    var floor=String(getField(v,["الدور","🔢 الدور"])||v.floor||"").trim();
+    var parking=String(v.parkingNum||getField(v,["رقم الموقف"])||"—").trim();
+    var col=String(v.colNum||getField(v,["رقم العامود"])||"—").trim();
+    var key=tower+"_"+floor+"_"+parking+"_"+col;
+    if(!map[key]) map[key]={tower:tower,floor:floor,parking:parking,col:col,count:0};
+    map[key].count++;
   });
-  var out = Object.keys(map).map(function(k){
-    var parts = k.split("|");
-    return {key:k, tower:parts[0], floor:parts[1], parking:parts[2], col:parts[3], count:map[k]};
-  });
-  out.sort(function(a,b){ return b.count - a.count; });
-  return out;
+  return Object.values(map).sort(function(a,b){return b.count-a.count;});
 }
 
-function drawBarChart(canvas, labels, values){
+function drawDonutChart(canvas,segments){
   if(!canvas) return;
-  var ctx = canvas.getContext("2d");
-  var w = canvas.width, h = canvas.height;
-  ctx.clearRect(0,0,w,h);
-
-  var padL = 46, padR = 12, padT = 14, padB = 42;
-  var chartW = w - padL - padR;
-  var chartH = h - padT - padB;
-
-  ctx.strokeStyle = "rgba(14,42,92,.35)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(padL, padT);
-  ctx.lineTo(padL, padT + chartH);
-  ctx.lineTo(padL + chartW, padT + chartH);
-  ctx.stroke();
-
-  var maxVal = Math.max.apply(null, values.concat([1]));
-  var barCount = labels.length || 1;
-  var gap = 10;
-  var barW = Math.max(18, (chartW - gap*(barCount+1)) / barCount);
-
-  ctx.fillStyle = "rgba(71,85,105,.9)";
-  ctx.font = "11px 'IBM Plex Sans Arabic'";
-  var steps = 4;
-  for(var s=0;s<=steps;s++){
-    var y = padT + chartH - (chartH*(s/steps));
-    ctx.strokeStyle = "rgba(226,232,240,1)";
-    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL+chartW, y); ctx.stroke();
-    var val = Math.round(maxVal*(s/steps));
-    ctx.fillText(String(val), 10, y+4);
-  }
-
-  for(var i=0;i<labels.length;i++){
-    var v = values[i] || 0;
-    var bh = (v/maxVal) * chartH;
-    var x = padL + gap + i*(barW + gap);
-    var y = padT + chartH - bh;
-
-    ctx.fillStyle = "rgba(26,86,219,.85)";
-    ctx.fillRect(x, y, barW, bh);
-
-    ctx.fillStyle = "rgba(14,42,92,1)";
-    ctx.font = "12px 'JetBrains Mono'";
-    ctx.fillText(String(v), x + (barW/2) - (String(v).length*3.2), y - 6);
-
-    ctx.fillStyle = "rgba(71,85,105,1)";
-    ctx.font = "12px 'IBM Plex Sans Arabic'";
-    var lbl = labels[i];
-    var tw = ctx.measureText(lbl).width;
-    ctx.fillText(lbl, x + (barW/2) - tw/2, padT + chartH + 26);
-  }
+  var ctx=canvas.getContext("2d");
+  var W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=Math.min(cx,cy)-14,ri=r*0.58;
+  ctx.clearRect(0,0,W,H);
+  var total=segments.reduce(function(s,x){return s+x.val;},0)||1;
+  var angle=-Math.PI/2;
+  segments.forEach(function(seg){
+    var sweep=(seg.val/total)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+sweep);ctx.closePath();
+    ctx.fillStyle=seg.color;ctx.fill();angle+=sweep;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,ri,0,Math.PI*2);ctx.fillStyle="#fff";ctx.fill();
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillStyle="#0e2a5c";ctx.font="bold 28px IBM Plex Sans Arabic";ctx.fillText(String(total),cx,cy-6);
+  ctx.fillStyle="#64748b";ctx.font="11px IBM Plex Sans Arabic";ctx.fillText("إجمالي",cx,cy+14);
 }
 
-function renderLocChips(container, items, statusEmoji){
-  if(!container) return;
-  container.innerHTML = "";
-  if(!items.length){
-    container.innerHTML = '<div style="color:var(--border2);font-weight:700;">— لا توجد بيانات —</div>';
-    return;
+function drawGroupedBarChart(canvas,labels,groups){
+  if(!canvas) return;
+  var ctx=canvas.getContext("2d");
+  var W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  var padL=46,padR=14,padT=14,padB=44;
+  var chartW=W-padL-padR,chartH=H-padT-padB;
+  var maxVal=1;
+  groups.forEach(function(g){g.values.forEach(function(v){if(v>maxVal)maxVal=v;});});
+  ctx.strokeStyle="rgba(226,232,240,1)";ctx.lineWidth=1;
+  var steps=4;
+  for(var s=0;s<=steps;s++){
+    var y=padT+chartH-(chartH*(s/steps));
+    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+chartW,y);ctx.stroke();
+    ctx.fillStyle="#94a3b8";ctx.font="10px IBM Plex Sans Arabic";ctx.textAlign="right";
+    ctx.fillText(String(Math.round(maxVal*(s/steps))),padL-4,y+4);
   }
-  items.slice(0,6).forEach(function(it){
-    var loc = "برج " + it.tower + " • دور " + it.floor + " • موقف " + it.parking + " • عامود " + it.col;
-    var div = document.createElement("div");
-    div.className = "loc-chip";
-    div.innerHTML = '<div><strong>'+statusEmoji+' '+loc+'</strong><div><span>تكرار</span> <b>'+it.count+'</b></div></div>';
-    container.appendChild(div);
+  ctx.strokeStyle="rgba(14,42,92,.3)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(padL,padT);ctx.lineTo(padL,padT+chartH);ctx.lineTo(padL+chartW,padT+chartH);ctx.stroke();
+  var groupW=chartW/labels.length,gapB=8,barW=Math.max(8,(groupW-gapB*2-gapB*(groups.length-1))/groups.length);
+  labels.forEach(function(lbl,li){
+    var gx=padL+li*groupW+gapB;
+    groups.forEach(function(g,gi){
+      var v=g.values[li]||0;
+      var bh=(v/maxVal)*chartH,bx=gx+gi*(barW+3),by=padT+chartH-bh;
+      ctx.fillStyle=g.color;ctx.fillRect(bx,by,barW,bh);
+      if(v>0){ctx.fillStyle="#0e2a5c";ctx.font="bold 10px JetBrains Mono";ctx.textAlign="center";ctx.fillText(String(v),bx+barW/2,by-4);}
+    });
+    ctx.fillStyle="#475569";ctx.font="11px IBM Plex Sans Arabic";ctx.textAlign="center";
+    ctx.fillText(lbl,padL+li*groupW+groupW/2,padT+chartH+20);
+  });
+  var lx=padL,ly=padT+chartH+36;
+  groups.forEach(function(g){
+    ctx.fillStyle=g.color;ctx.fillRect(lx,ly-8,12,10);
+    ctx.fillStyle="#475569";ctx.font="10px IBM Plex Sans Arabic";ctx.textAlign="left";
+    ctx.fillText(g.label,lx+16,ly+2);lx+=80;
+  });
+}
+
+function drawLineChart(canvas,labels,values){
+  if(!canvas) return;
+  var ctx=canvas.getContext("2d");
+  var W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  if(!labels.length) return;
+  var padL=42,padR=14,padT=14,padB=36;
+  var chartW=W-padL-padR,chartH=H-padT-padB;
+  var maxVal=Math.max.apply(null,values.concat([1]));
+  var grad=ctx.createLinearGradient(0,padT,0,padT+chartH);
+  grad.addColorStop(0,"rgba(26,86,219,.22)");grad.addColorStop(1,"rgba(26,86,219,.02)");
+  ctx.strokeStyle="rgba(226,232,240,1)";ctx.lineWidth=1;
+  for(var s=0;s<=4;s++){
+    var y=padT+chartH-(chartH*(s/4));
+    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+chartW,y);ctx.stroke();
+    ctx.fillStyle="#94a3b8";ctx.font="10px IBM Plex Sans Arabic";ctx.textAlign="right";
+    ctx.fillText(String(Math.round(maxVal*(s/4))),padL-4,y+4);
+  }
+  var n=labels.length;
+  var pts=labels.map(function(l,i){return {x:padL+i*(chartW/(n-1||1)),y:padT+chartH-(values[i]/maxVal)*chartH};});
+  ctx.beginPath();ctx.moveTo(pts[0].x,padT+chartH);
+  pts.forEach(function(p){ctx.lineTo(p.x,p.y);});
+  ctx.lineTo(pts[pts.length-1].x,padT+chartH);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.strokeStyle="#1a56db";ctx.lineWidth=2.5;ctx.lineJoin="round";
+  ctx.beginPath();pts.forEach(function(p,i){i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.stroke();
+  pts.forEach(function(p,i){
+    ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,Math.PI*2);
+    ctx.fillStyle="#fff";ctx.fill();ctx.strokeStyle="#1a56db";ctx.lineWidth=2;ctx.stroke();
+    if(values[i]>0){ctx.fillStyle="#0e2a5c";ctx.font="bold 9px JetBrains Mono";ctx.textAlign="center";ctx.fillText(String(values[i]),p.x,p.y-8);}
+  });
+  ctx.fillStyle="#94a3b8";ctx.font="9px IBM Plex Sans Arabic";ctx.textAlign="center";
+  pts.forEach(function(p,i){if(i%2===0)ctx.fillText(labels[i],p.x,padT+chartH+16);});
+}
+
+function renderFloorHeatmap(list){
+  var el=document.getElementById("floorHeatmap");if(!el) return;
+  var floorMap={};
+  list.forEach(function(v){
+    var f=String(getField(v,["الدور","🔢 الدور"])||v.floor||"").trim()||"غير محدد";
+    floorMap[f]=(floorMap[f]||0)+1;
+  });
+  var entries=Object.entries(floorMap).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+  var maxC=entries.length?entries[0][1]:1;
+  var colors=["#1a56db","#0e3a8c","#3b82f6","#60a5fa","#93c5fd","#bfdbfe","#dbeafe","#eff6ff"];
+  el.innerHTML="";
+  if(!entries.length){el.innerHTML='<div style="color:var(--border2);font-size:12px;text-align:center;padding:20px;">لا توجد بيانات</div>';return;}
+  entries.forEach(function(e,i){
+    var pct=Math.round((e[1]/maxC)*100);
+    var row=document.createElement("div");row.className="floor-heat-row";
+    row.innerHTML='<div class="floor-heat-label">'+e[0]+'</div>'+
+      '<div class="floor-heat-bar-wrap"><div class="floor-heat-bar" style="width:'+pct+'%;background:'+colors[i%colors.length]+';">'+
+      (pct>20?e[1]:"")+
+      '</div></div>'+
+      '<div class="floor-heat-count">'+e[1]+'</div>';
+    el.appendChild(row);
   });
 }
 
 function buildAnalytics(){
-  var view = A("analyticsView");
-  if(!view) return;
-
-  var anaDustyCount = A("anaDustyCount");
-  var anaMidCount   = A("anaMidCount");
-  var anaNewCount   = A("anaNewCount");
-  var anaTopTowerBadge = A("anaTopTowerBadge");
-  var anaTopTowerText  = A("anaTopTowerText");
-  var anaTopTowerMeta  = A("anaTopTowerMeta");
-  var chartCanvas = A("dustyByTowerChart");
-  var dustyTopTbody = A("anaDustyTopLocations");
-  var newLocBox = A("anaNewLocations");
-  var midLocBox = A("anaMidLocations");
-  var dustyLocBox = A("anaDustyLocations");
-
-  var list = filterByRange(cloudData || []);
-  var dusty=0, mid=0, fresh=0;
-  var dustyByTower = {A:0,B:0,C:0,Other:0};
-
+  var list=filterByRange(cloudData||[]);
+  var total=list.length,dusty=0,mid=0,fresh=0;
+  var td={A:{dusty:0,mid:0,fresh:0},B:{dusty:0,mid:0,fresh:0},C:{dusty:0,mid:0,fresh:0}};
   list.forEach(function(v){
-    var st = String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
-    var tower = String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase();
-    if(st==="مغبرة"){ dusty++; if(dustyByTower[tower]!==undefined) dustyByTower[tower]++; else dustyByTower.Other++; }
-    else if(st==="متوسطة الغبار"){ mid++; }
-    else if(st==="حديثة"){ fresh++; }
+    var st=String(getField(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"").trim();
+    var tw=String(getField(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase();
+    if(st==="مغبرة"){dusty++;if(td[tw])td[tw].dusty++;}
+    else if(st==="متوسطة الغبار"){mid++;if(td[tw])td[tw].mid++;}
+    else if(st==="حديثة"){fresh++;if(td[tw])td[tw].fresh++;}
   });
-
-  if(anaDustyCount) anaDustyCount.textContent = "🔴 مغبرة: " + dusty;
-  if(anaMidCount)   anaMidCount.textContent   = "🟡 متوسطة: " + mid;
-  if(anaNewCount)   anaNewCount.textContent   = "🟢 حديثة: " + fresh;
-
-  var entries = Object.keys(dustyByTower).filter(function(k){return k!=="Other";}).map(function(k){return [k,dustyByTower[k]];});
-  entries.sort(function(a,b){return b[1]-a[1];});
-  var top = entries[0] || ["—",0];
-  var topTower = top[0], topCount = top[1];
-
-  if(anaTopTowerBadge){
-    var cls = "tower-badge " + (topTower==="A"?"tower-A":topTower==="B"?"tower-B":topTower==="C"?"tower-C":"");
-    anaTopTowerBadge.className = cls;
-    anaTopTowerBadge.textContent = topTower;
+  var pct=function(n){return total?Math.round(n/total*100)+"%":"—";};
+  var set=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  set("anaTotal",total);
+  set("anaDustyVal",dusty);set("anaDustyPct",pct(dusty));
+  set("anaMidVal",mid);set("anaMidPct",pct(mid));
+  set("anaNewVal",fresh);set("anaNewPct",pct(fresh));
+  var topT="—",topN=0;
+  ["A","B","C"].forEach(function(t){if(td[t].dusty>topN){topN=td[t].dusty;topT=t;}});
+  set("anaTopTower",topT==="—"?"—":"برج "+topT);
+  set("anaTopTowerN",topN?topN+" سجل مغبر":"لا يوجد");
+  drawDonutChart(document.getElementById("donutChart"),[
+    {val:dusty,color:"#dc2626"},{val:mid,color:"#d97706"},{val:fresh,color:"#059669"}
+  ]);
+  var leg=document.getElementById("donutLegend");
+  if(leg) leg.innerHTML=[{c:"#dc2626",l:"مغبرة",n:dusty},{c:"#d97706",l:"متوسطة",n:mid},{c:"#059669",l:"حديثة",n:fresh}]
+    .map(function(x){return '<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;">'+
+      '<span style="width:12px;height:12px;border-radius:3px;background:'+x.c+';display:inline-block;"></span>'+
+      x.l+' <span style="color:'+x.c+';font-family:JetBrains Mono,monospace;">'+x.n+'</span></div>';}).join("");
+  drawGroupedBarChart(document.getElementById("towerGroupChart"),["برج A","برج B","برج C"],[
+    {label:"مغبرة",color:"#dc2626",values:[td.A.dusty,td.B.dusty,td.C.dusty]},
+    {label:"متوسطة",color:"#d97706",values:[td.A.mid,td.B.mid,td.C.mid]},
+    {label:"حديثة",color:"#059669",values:[td.A.fresh,td.B.fresh,td.C.fresh]},
+  ]);
+  var days=14,tlL=[],tlV=[];
+  for(var d=days-1;d>=0;d--){
+    var dt=new Date();dt.setDate(dt.getDate()-d);
+    var ds=dt.toISOString().slice(0,10);
+    tlL.push(dt.getDate()+"/"+(dt.getMonth()+1));
+    tlV.push(list.filter(function(v){
+      return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===ds;
+    }).length);
   }
-  if(anaTopTowerText) anaTopTowerText.textContent = topTower==="—" ? "لا توجد بيانات" : ("أعلى برج في المغبرة: برج " + topTower);
-  if(anaTopTowerMeta) anaTopTowerMeta.textContent = topTower==="—" ? "" : ("بعدد " + topCount + " سجلات مغبرة");
-
-  drawBarChart(chartCanvas, ["A","B","C"], [dustyByTower.A||0, dustyByTower.B||0, dustyByTower.C||0]);
-
-  var dustyLocs = buildLocationCounts(list, "مغبرة");
-  var midLocs   = buildLocationCounts(list, "متوسطة الغبار");
-  var newLocs   = buildLocationCounts(list, "حديثة");
-
-  if(dustyTopTbody){
-    dustyTopTbody.innerHTML = "";
-    var top10 = dustyLocs.slice(0,10);
-    if(!top10.length){
-      dustyTopTbody.innerHTML = '<tr><td colspan="6" style="padding:14px;color:var(--border2);font-weight:800;">— لا توجد سجلات مغبرة ضمن هذا النطاق —</td></tr>';
-    }else{
-      top10.forEach(function(it){
-        var tr = document.createElement("tr");
-        tr.style.borderBottom = "1px solid var(--border)";
-        tr.innerHTML =
-          '<td style="padding:10px 12px;font-weight:700;color:var(--ink);">برج '+it.tower+' • دور '+it.floor+'</td>'+
-          '<td style="padding:10px 12px;"><span class="tower-badge '+(it.tower==="A"?"tower-A":it.tower==="B"?"tower-B":it.tower==="C"?"tower-C":"")+'">'+it.tower+'</span></td>'+
-          '<td style="padding:10px 12px;"><span class="floor-badge">'+it.floor+'</span></td>'+
-          '<td style="padding:10px 12px;">'+(it.parking!=="—"?'<span class="parking-badge">'+it.parking+'</span>':'<span style="color:var(--border2);">—</span>')+'</td>'+
-          '<td style="padding:10px 12px;">'+(it.col!=="—"?'<span class="col-num-badge">'+it.col+'</span>':'<span style="color:var(--border2);">—</span>')+'</td>'+
-          '<td style="padding:10px 12px;font-weight:900;font-family:JetBrains Mono,monospace;">'+it.count+'</td>';
-        dustyTopTbody.appendChild(tr);
+  drawLineChart(document.getElementById("timelineChart"),tlL,tlV);
+  renderFloorHeatmap(list);
+  var dustyLocs=buildLocationCounts(list,"مغبرة");
+  var tbody=document.getElementById("anaDustyTopLocations");
+  if(tbody){
+    tbody.innerHTML="";
+    if(!dustyLocs.length){
+      tbody.innerHTML='<tr><td colspan="7" style="padding:16px;color:var(--border2);font-weight:800;text-align:center;">لا توجد سجلات مغبرة في هذا النطاق</td></tr>';
+    } else {
+      dustyLocs.slice(0,10).forEach(function(it,idx){
+        var rowPct=dusty?Math.round(it.count/dusty*100)+"%":"—";
+        var tr=document.createElement("tr");
+        tr.style.background=idx%2===0?"#fff":"#f8faff";
+        tr.style.borderBottom="1px solid var(--border)";
+        tr.innerHTML=
+          '<td style="padding:10px 14px;font-weight:800;color:var(--ink3);">'+( idx+1)+'</td>'+
+          '<td style="padding:10px 14px;"><span class="tower-badge '+( it.tower==="A"?"tower-A":it.tower==="B"?"tower-B":"tower-C")+'">'+it.tower+'</span></td>'+
+          '<td style="padding:10px 14px;"><span class="floor-badge">'+it.floor+'</span></td>'+
+          '<td style="padding:10px 14px;">'+( it.parking!=="—"?'<span class="parking-badge">'+it.parking+'</span>':' <span style="color:var(--border2);">—</span>')+'</td>'+
+          '<td style="padding:10px 14px;">'+( it.col!=="—"?'<span class="col-num-badge">'+it.col+'</span>':' <span style="color:var(--border2);">—</span>')+'</td>'+
+          '<td style="padding:10px 14px;font-weight:900;font-family:JetBrains Mono,monospace;font-size:15px;color:var(--red);">'+it.count+'</td>'+
+          '<td style="padding:10px 14px;"><span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;">'+rowPct+'</span></td>';
+        tbody.appendChild(tr);
       });
     }
   }
+  renderLocChips(document.getElementById("anaNewLocations"),buildLocationCounts(list,"حديثة"),"🟢","#059669");
+  renderLocChips(document.getElementById("anaMidLocations"),buildLocationCounts(list,"متوسطة الغبار"),"🟡","#d97706");
+  buildPrintSummary(total,dusty,mid,fresh,td,dustyLocs);
+}
 
-  renderLocChips(newLocBox, newLocs, "🟢");
-  renderLocChips(midLocBox, midLocs, "🟡");
-  renderLocChips(dustyLocBox, dustyLocs, "🔴");
+function renderLocChips(container,items,emoji,color){
+  if(!container) return;
+  container.innerHTML="";
+  if(!items.length){container.innerHTML='<div style="color:var(--border2);font-size:12px;padding:8px;">— لا توجد بيانات —</div>';return;}
+  items.slice(0,5).forEach(function(it){
+    var div=document.createElement("div");div.className="loc-chip";
+    div.innerHTML='<div style="flex:1;"><div style="font-size:12px;font-weight:700;color:var(--ink);">'+emoji+' برج '+it.tower+' • دور '+it.floor+'</div>'+
+      (it.parking!=="—"?'<div style="font-size:11px;color:var(--ink3);margin-top:2px;">موقف '+it.parking+(it.col!=="—"?' • عامود '+it.col:"")+'</div>':"")+
+      '</div><b style="background:'+color+'1a;color:'+color+';border:1px solid '+color+'33;padding:2px 10px;border-radius:999px;font-size:12px;font-family:JetBrains Mono,monospace;">'+it.count+'</b>';
+    container.appendChild(div);
+  });
+}
+
+function buildPrintSummary(total,dusty,mid,fresh,td,dustyLocs){
+  var kpiEl=document.getElementById("anaPrintKpis");
+  if(kpiEl) kpiEl.innerHTML=[{v:total,l:"الإجمالي",c:"#0e2a5c"},{v:dusty,l:"مغبرة",c:"#dc2626"},{v:mid,l:"متوسطة",c:"#d97706"},{v:fresh,l:"حديثة",c:"#059669"}]
+    .map(function(x){return '<div class="ana-print-kpi"><div class="ana-print-kpi-val" style="color:'+x.c+'">'+x.v+'</div><div class="ana-print-kpi-label">'+x.l+'</div></div>';}).join("");
+  setTimeout(function(){
+    drawGroupedBarChart(document.getElementById("printBarChart"),["برج A","برج B","برج C"],[
+      {label:"مغبرة",color:"#dc2626",values:[td.A.dusty,td.B.dusty,td.C.dusty]},
+      {label:"متوسطة",color:"#d97706",values:[td.A.mid,td.B.mid,td.C.mid]},
+      {label:"حديثة",color:"#059669",values:[td.A.fresh,td.B.fresh,td.C.fresh]},
+    ]);
+  },100);
+  var tbl=document.getElementById("anaPrintTopTable");
+  if(tbl&&dustyLocs.length){
+    tbl.innerHTML='<div style="font-size:12px;font-weight:800;color:#0e2a5c;margin:10px 0 6px;">أكثر المواقع المغبرة:</div>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:10px;">'+
+      '<thead><tr style="background:#0e2a5c;color:#fff;">'+
+      ["#","البرج","الدور","الموقف","العامود","العدد"].map(function(h){return '<th style="padding:6px 8px;text-align:right;">'+h+'</th>';}).join("")+
+      '</tr></thead><tbody>'+
+      dustyLocs.slice(0,8).map(function(it,i){return '<tr style="background:'+( i%2?"#f8f9fc":"#fff")+'">'+
+        '<td style="padding:6px 8px;">'+( i+1)+'</td>'+
+        '<td style="padding:6px 8px;">'+it.tower+'</td>'+
+        '<td style="padding:6px 8px;">'+it.floor+'</td>'+
+        '<td style="padding:6px 8px;">'+it.parking+'</td>'+
+        '<td style="padding:6px 8px;">'+it.col+'</td>'+
+        '<td style="padding:6px 8px;font-weight:800;color:#dc2626;">'+it.count+'</td></tr>';}).join("")+
+      '</tbody></table>';
+  }
 }
 
 function showAnalytics(){
-  if(!currentUser){ showToast("⚠️ يجب تسجيل الدخول أولاً", "warn"); return; }
-  var view = A("analyticsView");
-  if(!view){ showToast("⚠️ تعذر فتح التحليلات", "error"); return; }
-
-  view.style.display = "block";
+  if(!currentUser){showToast("⚠️ يجب تسجيل الدخول أولاً","warn");return;}
+  var view=A("analyticsView");if(!view) return;
+  view.style.display="block";
   Array.from(document.querySelectorAll(".main > *")).forEach(function(ch){
-    if(ch.id === "analyticsView") return;
-    ch.style.display = "none";
+    if(ch.id==="analyticsView") return;
+    ch.style.display="none";
   });
   buildAnalytics();
-  showToast("📊 تم فتح لوحة التحليلات", "success");
+  showToast("📊 تم فتح لوحة التحليلات","success");
 }
 
 function backToMain(){
-  var view = A("analyticsView");
-  if(view) view.style.display = "none";
+  var view=A("analyticsView");
+  if(view) view.style.display="none";
   Array.from(document.querySelectorAll(".main > *")).forEach(function(ch){
-    if(ch.id === "analyticsView") return;
-    ch.style.display = "";
+    if(ch.id==="analyticsView") return;
+    ch.style.display="";
   });
 }
 
-/* Wire analytics events */
 (function(){
-  var btn = A("btnAnalytics");
-  var back = A("btnBackToMain");
-  var range = A("anaRange");
-  if(btn) btn.addEventListener("click", showAnalytics);
-  if(back) back.addEventListener("click", backToMain);
-  if(range) range.addEventListener("change", buildAnalytics);
+  var btn=A("btnAnalytics");if(btn) btn.addEventListener("click",showAnalytics);
+  var back=A("btnBackToMain");if(back) back.addEventListener("click",backToMain);
+  var range=A("anaRange");if(range) range.addEventListener("change",buildAnalytics);
 })();
+
 
 
 function normalizeDriveUrl(u){
@@ -2939,7 +3164,12 @@ els.btnClearImg.addEventListener("click",function(){setImage(null);});
 
 els.btnAdd.addEventListener("click",addVehicle);
 els.btnExportCSV.addEventListener("click",exportCSV);
-els.btnPrint.addEventListener("click",function(){window.print();});
+els.btnPrint.addEventListener("click",function(){
+  // إذا كنا في صفحة التحليلات، جهّز ملخص الطباعة أولاً
+  var anaView=A("analyticsView");
+  if(anaView && anaView.style.display==="block") buildAnalytics();
+  setTimeout(function(){window.print();},200);
+});
 els.btnCamera.addEventListener("click",function(){els.vehicleImg.click();});
 els.btnClearLocal.addEventListener("click",function(){
   if(confirm("مسح البيانات المحلية فقط؟")){
