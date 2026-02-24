@@ -548,7 +548,7 @@ tr.processed-row:hover { background: #dcfce7; }
 .d-sec-title { font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
 .d-sec-title::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.06); }
 .d-charts-grid { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:18px; margin-bottom:28px; }
-.d-charts-grid2 { display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:18px; margin-bottom:28px; }
+.d-charts-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:28px; }
 .d-chart-card { background:#0d1b35; border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:20px 22px; animation:dFadeUp .5s ease both; }
 .d-chart-title { font-size:13px; font-weight:700; color:#e2e8f0; margin-bottom:4px; }
 .d-chart-subtitle { font-size:11px; color:#475569; margin-bottom:16px; }
@@ -561,10 +561,6 @@ tr.processed-row:hover { background: #dcfce7; }
 .d-prog-val { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; }
 .d-prog-track { height:6px; background:rgba(255,255,255,.06); border-radius:3px; overflow:hidden; }
 .d-prog-fill { height:100%; border-radius:3px; transition:width 1s cubic-bezier(.4,0,.2,1); }
-.d-hmap-grid { display:grid; grid-template-columns:repeat(12,1fr); gap:4px; padding:4px 0; }
-.d-heat-cell { aspect-ratio:1; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; transition:transform .15s; }
-.d-heat-cell:hover { transform:scale(1.2); }
-.d-heat-lbl { font-size:10px; color:#475569; margin-top:8px; display:grid; grid-template-columns:repeat(12,1fr); gap:4px; text-align:center; }
 .d-tbls-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:28px; }
 .d-tbl-card { background:#0d1b35; border:1px solid rgba(255,255,255,.06); border-radius:16px; overflow:hidden; }
 .d-tbl-hdr { padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); display:flex; align-items:center; justify-content:space-between; }
@@ -689,7 +685,8 @@ tr.processed-row:hover { background: #dcfce7; }
   <button class="tab-btn processed-tab" id="tabBtnProcessed" onclick="switchTab('processed')">
     ✅ المركبات المعالجة
     <span class="tab-badge teal" id="tabBadgeProcessed">0</span>
-    <button class="tab-btn dash-tab" id="tabBtnDashboard" onclick="switchTab('dashboard')">
+  </button>
+  <button class="tab-btn dash-tab" id="tabBtnDashboard" onclick="switchTab('dashboard')">
     📊 الداشبورد
     <span class="tab-badge" id="tabBadgeDash" style="background:#8b5cf6;">—</span>
   </button>
@@ -940,6 +937,7 @@ tr.processed-row:hover { background: #dcfce7; }
         <div style="display:flex;align-items:center;gap:14px;">
           <div class="d-live"><div class="d-live-dot"></div> متصل مباشر</div>
           <div class="d-banner-meta"><strong id="dBannerDate">—</strong><span id="dBannerTime">—</span></div>
+          <button onclick="openPdfModal()" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">📄 تصدير تقرير PDF</button>
         </div>
       </div>
       <div class="d-alert" id="dDustAlert" style="display:none;"><span style="font-size:20px;">⚠️</span><div><b id="dDustMsg"></b></div></div>
@@ -964,25 +962,28 @@ tr.processed-row:hover { background: #dcfce7; }
       <div class="d-charts-grid2">
         <div class="d-chart-card"><div class="d-chart-title">🔢 توزيع الأدوار</div><div class="d-chart-subtitle">LG مقابل B</div><div class="d-chart-wrap"><canvas id="dChartFloor"></canvas></div></div>
         <div class="d-chart-card"><div class="d-chart-title">👮 نشاط رجال الأمن</div><div class="d-chart-subtitle">عدد السجلات لكل حارس</div><div class="d-chart-wrap"><canvas id="dChartGuard"></canvas></div></div>
-        <div class="d-chart-card"><div class="d-chart-title">🕐 خريطة الحرارة — الساعات</div><div class="d-chart-subtitle">توزيع الرصد حسب ساعة اليوم</div><div style="padding-top:4px;"><div class="d-hmap-grid" id="dHeatGrid"></div><div class="d-heat-lbl" id="dHeatLbl"></div></div></div>
-      </div>
-      <!-- Tower detail -->
-      <div class="d-sec-title">تفصيل الأبراج</div>
-      <div class="d-tower-grid">
-        <div class="d-chart-card"><div class="d-chart-title"><span class="d-tower A" style="margin-left:8px;">A</span> برج A</div><div class="d-chart-subtitle" style="margin-bottom:16px;">توزيع الحالات</div><div class="d-prog-list" id="dTowerA"></div></div>
-        <div class="d-chart-card"><div class="d-chart-title"><span class="d-tower B" style="margin-left:8px;">B</span> برج B</div><div class="d-chart-subtitle" style="margin-bottom:16px;">توزيع الحالات</div><div class="d-prog-list" id="dTowerB"></div></div>
-        <div class="d-chart-card"><div class="d-chart-title"><span class="d-tower C" style="margin-left:8px;">C</span> برج C</div><div class="d-chart-subtitle" style="margin-bottom:16px;">توزيع الحالات</div><div class="d-prog-list" id="dTowerC"></div></div>
-      </div>
-      <!-- Tables -->
-      <div class="d-sec-title">أبرز السجلات</div>
-      <div class="d-tbls-grid">
-        <div class="d-tbl-card"><div class="d-tbl-hdr"><div class="d-tbl-title">🔴 المركبات المغبّرة <span class="d-badge red" id="dDustCount">0</span></div></div><div class="d-scroll"><table class="d-table"><thead><tr><th>اللوحة</th><th>البرج</th><th>الدور</th><th>تاريخ الرصد</th><th>رجل الأمن</th></tr></thead><tbody id="dDustTbody"></tbody></table></div></div>
-        <div class="d-tbl-card"><div class="d-tbl-hdr"><div class="d-tbl-title">✅ المركبات المعالجة <span class="d-badge cyan" id="dResolvedCount">0</span></div></div><div class="d-scroll"><table class="d-table"><thead><tr><th>اللوحة</th><th>المالك</th><th>الهوية</th><th>الجوال</th><th>تاريخ المعالجة</th></tr></thead><tbody id="dResolvedTbody"></tbody></table></div></div>
-      </div>
-      <!-- Activity -->
-      <div class="d-sec-title">آخر النشاطات</div>
-      <div class="d-tbl-card" style="margin-bottom:40px;"><div class="d-tbl-hdr"><div class="d-tbl-title">⏱️ آخر 10 سجلات مرصودة</div><span class="d-badge">حديث</span></div><div id="dActList" class="d-act-list"></div></div>
-    </div>
+
+```
+  </div>
+  <!-- Tower detail -->
+  <div class="d-sec-title">تفصيل الأبراج</div>
+  <div class="d-tower-grid">
+    <div class="d-chart-card"><div class="d-chart-title"><span class="d-tower A" style="margin-left:8px;">A</span> برج A</div><div class="d-chart-subtitle" style="margin-bottom:16px;">توزيع الحالات</div><div class="d-prog-list" id="dTowerA"></div></div>
+    <div class="d-chart-card"><div class="d-chart-title"><span class="d-tower B" style="margin-left:8px;">B</span> برج B</div><div class="d-chart-subtitle" style="margin-bottom:16px;">توزيع الحالات</div><div class="d-prog-list" id="dTowerB"></div></div>
+    <div class="d-chart-card"><div class="d-chart-title"><span class="d-tower C" style="margin-left:8px;">C</span> برج C</div><div class="d-chart-subtitle" style="margin-bottom:16px;">توزيع الحالات</div><div class="d-prog-list" id="dTowerC"></div></div>
+  </div>
+  <!-- Tables -->
+  <div class="d-sec-title">أبرز السجلات</div>
+  <div class="d-tbls-grid">
+    <div class="d-tbl-card"><div class="d-tbl-hdr"><div class="d-tbl-title">🔴 المركبات المغبّرة <span class="d-badge red" id="dDustCount">0</span></div></div><div class="d-scroll"><table class="d-table"><thead><tr><th>اللوحة</th><th>البرج</th><th>الدور</th><th>تاريخ الرصد</th><th>رجل الأمن</th></tr></thead><tbody id="dDustTbody"></tbody></table></div></div>
+    <div class="d-tbl-card"><div class="d-tbl-hdr"><div class="d-tbl-title">✅ المركبات المعالجة <span class="d-badge cyan" id="dResolvedCount">0</span></div></div><div class="d-scroll"><table class="d-table"><thead><tr><th>اللوحة</th><th>المالك</th><th>الهوية</th><th>الجوال</th><th>تاريخ المعالجة</th></tr></thead><tbody id="dResolvedTbody"></tbody></table></div></div>
+  </div>
+  <!-- Activity -->
+  <div class="d-sec-title">آخر النشاطات</div>
+  <div class="d-tbl-card" style="margin-bottom:40px;"><div class="d-tbl-hdr"><div class="d-tbl-title">⏱️ آخر 10 سجلات مرصودة</div><span class="d-badge">حديث</span></div><div id="dActList" class="d-act-list"></div></div>
+</div>
+```
+
   </div><!-- /tabDashboard -->
 
 </div><!-- /main -->
@@ -1340,13 +1341,55 @@ if(p===plate&&(!date||d===date)&&(!time||t===time)){sheet.getRange(r,12).setValu
   </div>
 </div>
 
+<!-- ══ PDF REPORT MODAL ══ -->
+
+<div class="modal" id="pdfModal" style="z-index:10001;">
+  <div class="modal-box" style="max-width:520px;width:100%;background:#0d1b35;border:1px solid rgba(255,255,255,.1);color:#e2e8f0;">
+    <button class="modal-close" id="closePdfModal" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#94a3b8;">×</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:44px;height:44px;background:linear-gradient(135deg,#7c3aed,#5b21b6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📄</div>
+      <div>
+        <div style="font-size:18px;font-weight:700;color:#fff;">تصدير تقرير PDF</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:2px;">اختر نوع التقرير المناسب</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <!-- Option 1: Full vehicles report -->
+      <div onclick="generatePDF('full')" style="background:rgba(26,86,219,.1);border:1px solid rgba(26,86,219,.25);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;" onmouseover="this.style.borderColor='rgba(26,86,219,.6)';this.style.background='rgba(26,86,219,.2)'" onmouseout="this.style.borderColor='rgba(26,86,219,.25)';this.style.background='rgba(26,86,219,.1)'">
+        <div style="width:44px;height:44px;background:rgba(26,86,219,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🚗</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#3b82f6;margin-bottom:4px;">تقرير السيارات الكامل</div>
+          <div style="font-size:11px;color:#94a3b8;">جميع السيارات المرصودة مع كافة التفاصيل: اللوحة، البرج، الدور، الحالة، رجل الأمن، التاريخ والوقت</div>
+        </div>
+      </div>
+      <!-- Option 2: Dashboard summary -->
+      <div onclick="generatePDF('summary')" style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;" onmouseover="this.style.borderColor='rgba(139,92,246,.6)';this.style.background='rgba(139,92,246,.2)'" onmouseout="this.style.borderColor='rgba(139,92,246,.25)';this.style.background='rgba(139,92,246,.1)'">
+        <div style="width:44px;height:44px;background:rgba(139,92,246,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📊</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#8b5cf6;margin-bottom:4px;">تقرير الداشبورد المختصر</div>
+          <div style="font-size:11px;color:#94a3b8;">ملخص إحصائي شامل مع الرسوم البيانية والمؤشرات الرئيسية والتحليل حسب الأبراج</div>
+        </div>
+      </div>
+      <!-- Option 3: Resolved vehicles -->
+      <div onclick="generatePDF('resolved')" style="background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;" onmouseover="this.style.borderColor='rgba(6,182,212,.5)';this.style.background='rgba(6,182,212,.18)'" onmouseout="this.style.borderColor='rgba(6,182,212,.2)';this.style.background='rgba(6,182,212,.08)'">
+        <div style="width:44px;height:44px;background:rgba(6,182,212,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">✅</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#06b6d4;margin-bottom:4px;">تقرير المركبات المعالجة</div>
+          <div style="font-size:11px;color:#94a3b8;">سجل المركبات التي تمّت معالجتها مع بيانات المالك: الاسم، الهوية، الجوال، سبب التوقف</div>
+        </div>
+      </div>
+    </div>
+    <div id="pdfGenStatus" style="margin-top:14px;text-align:center;font-size:13px;color:#94a3b8;display:none;"></div>
+  </div>
+</div>
+
 </div><!-- /appWrapper -->
 
 <script>
 (function(){
 "use strict";
 
-var GS_URL      = "https://script.google.com/macros/s/AKfycbxx8xMzCunM0fzxdijgRLJ4IjUyAZfCDcKcA0BOANExsy_TdCDFxIxnM2YrlJe2cewB_A/exec";
+var GS_URL      = "https://script.google.com/macros/s/AKfycbyFtxsv9ANULaIxzT84Ic71zpLhwQuAccP_Mb8EKCj63p2LeLj3SWwcyjgdGp9kDMfv/exec";
 var STORAGE_KEY = "parkingReport_v4";
 var SESSION_KEY = "parkingSession_v1";
 var RESOLVED_KEY= "parkingResolved_v1";
@@ -1535,13 +1578,6 @@ function renderDashboard(){
   var gLbls=gEntries.map(function(e){return e[0];}),gVals=gEntries.map(function(e){return e[1];});
   _dDestroy("guard");_dCharts["guard"]=new Chart($("dChartGuard"),{type:"bar",data:{labels:gLbls,datasets:[{data:gVals,backgroundColor:"rgba(139,92,246,.6)",borderColor:"rgba(139,92,246,1)",borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",plugins:{legend:{display:false},tooltip:{rtl:true,textDirection:"rtl",callbacks:{label:function(i){return " "+i.raw+" سجل";}}}},scales:{x:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"#475569",precision:0}},y:{grid:{display:false},ticks:{color:"#94a3b8",font:{size:10}}}}}});
 
-  // Heatmap
-  var hM={};for(var hh=0;hh<24;hh++)hM[hh]=0;
-  vehicles.forEach(function(v){if(v.time){var h2=parseInt(v.time.split(":")[0],10);if(!isNaN(h2)&&h2>=0&&h2<24)hM[h2]++;}});
-  var maxH=Math.max.apply(null,Object.values(hM))||1;
-  var hg=$("dHeatGrid"),hl=$("dHeatLbl");hg.innerHTML="";hl.innerHTML="";
-  for(var hh=0;hh<24;hh++){var ratio=hM[hh]/maxH,alpha=0.08+ratio*0.82,cell=document.createElement("div");cell.className="d-heat-cell";cell.style.background="rgba(26,86,219,"+alpha+")";cell.style.color=ratio>0.5?"#fff":"rgba(255,255,255,.4)";cell.textContent=hM[hh]||"";cell.title=hh+":00 — "+hM[hh]+" رصد";hg.appendChild(cell);}
-  for(var hh=0;hh<24;hh++){var s=document.createElement("span");s.textContent=hh;hl.appendChild(s);}
 
   // Tower Progress
   function towerProg(tId,elId){
@@ -2249,6 +2285,338 @@ loadResolvedLocal();
 try{for(var k in localStorage){if(k.indexOf("img_")===0){localImages[k.slice(4)]=localStorage.getItem(k);}}}catch(e){}
 
 setInterval(function(){if(currentUser)loadFromCloud(false);},60000);
+
+/* ══════════════════════════════════════
+   PDF REPORT GENERATION
+══════════════════════════════════════ */
+window.openPdfModal = function(){
+  $("pdfModal").classList.add("active");
+  $("pdfGenStatus").style.display="none";
+};
+$("closePdfModal").addEventListener("click",function(){$("pdfModal").classList.remove("active");});
+$("pdfModal").addEventListener("click",function(e){if(e.target===$("pdfModal"))$("pdfModal").classList.remove("active");});
+
+window.generatePDF = function(type) {
+  $("pdfModal").classList.remove("active");
+  setTimeout(function(){
+    if(type==="full") generateFullVehiclesPDF();
+    else if(type==="summary") generateSummaryPDF();
+    else if(type==="resolved") generateResolvedPDF();
+  }, 100);
+};
+
+function gf3(v,keys){
+  for(var i=0;i<keys.length;i++) if(v[keys[i]]!==undefined&&v[keys[i]]!=="") return String(v[keys[i]]);
+  return "";
+}
+function fd3(val){if(!val)return "";var s=String(val).trim();if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);return s.slice(0,10);}
+function ft3(val){if(!val&&val!==0)return "";var s=String(val).trim();if(/^\d{1,2}:\d{2}/.test(s))return s.slice(0,5);var n=parseFloat(s);if(!isNaN(n)&&n>=0){var f=n%1;if(f<0.0001)return "";var tm=Math.round(f*1440),h=Math.floor(tm/60),m=tm%60;return(h<10?"0":"")+h+":"+(m<10?"0":"")+m;}return s.slice(0,5);}
+
+function makeArabicPdfWindow(title, htmlContent) {
+  var w = window.open('', '_blank', 'width=1000,height=800');
+  if(!w){ alert("يرجى السماح بالنوافذ المنبثقة"); return; }
+  var now = new Date();
+  var months2=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  var dateStr = now.getDate()+" "+months2[now.getMonth()]+" "+now.getFullYear();
+  var timeStr = ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
+  var guardName = (currentUser&&currentUser.name)||"—";
+  var guardId   = (currentUser&&currentUser.empId)||"—";
+
+  w.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<title>${title}</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'IBM Plex Sans Arabic',sans-serif;background:#f8f9fc;color:#0e2a5c;font-size:12px;line-height:1.6;}
+  .page{max-width:1100px;margin:0 auto;padding:24px;}
+  /* HEADER */
+  .report-header{background:linear-gradient(135deg,#0e2a5c,#1a56db);color:#fff;padding:28px 32px;border-radius:16px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;}
+  .rh-logo{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;margin-left:16px;}
+  .rh-title{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+  .rh-sub{font-size:11px;opacity:.7;margin-top:3px;}
+  .rh-meta{text-align:left;}
+  .rh-meta-date{font-size:13px;font-weight:700;}
+  .rh-meta-guard{font-size:11px;opacity:.7;margin-top:3px;}
+  /* KPI CARDS */
+  .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
+  .kpi-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;box-shadow:0 1px 8px rgba(0,0,0,.04);}
+  .kpi-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;line-height:1;margin-bottom:4px;}
+  .kpi-lbl{font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+  .kpi-card.blue .kpi-val{color:#1a56db;} .kpi-card.green .kpi-val{color:#059669;} .kpi-card.red .kpi-val{color:#dc2626;} .kpi-card.amber .kpi-val{color:#d97706;} .kpi-card.cyan .kpi-val{color:#0891b2;}
+  /* SECTION */
+  .sec-title{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin:20px 0 12px;padding-bottom:8px;border-bottom:2px solid #e2e8f0;display:flex;align-items:center;gap:8px;}
+  .sec-title::before{content:'';display:inline-block;width:4px;height:16px;background:#1a56db;border-radius:2px;}
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:11px;}
+  thead tr{background:#0e2a5c;}
+  th{padding:10px 12px;color:rgba(255,255,255,.8);font-weight:700;font-size:10px;text-align:right;letter-spacing:.4px;}
+  tbody tr{border-bottom:1px solid #e2e8f0;}
+  tbody tr:nth-child(even){background:#f8f9fc;}
+  tbody tr:hover{background:#eff6ff;}
+  td{padding:9px 12px;color:#1e293b;vertical-align:middle;}
+  .plate-cell{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:12px;background:#0e2a5c;color:#fff;padding:3px 8px;border-radius:6px;letter-spacing:1px;}
+  .tower-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px;color:#fff;}
+  .tA{background:#1a56db;}.tB{background:#059669;}.tC{background:#dc2626;}
+  .floor-b{background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:4px;font-size:10px;}
+  .s-new{background:#dcfce7;color:#166534;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;}
+  .s-mid{background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;}
+  .s-dust{background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;}
+  .guard-p{background:#f5f3ff;color:#5b21b6;padding:2px 8px;border-radius:4px;font-size:10px;}
+  /* SUMMARY */
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+  .summary-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;}
+  .summary-card h4{font-size:12px;font-weight:700;color:#0e2a5c;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e2e8f0;}
+  .stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:11px;}
+  .stat-row:last-child{border-bottom:none;}
+  .stat-row .label{color:#64748b;}
+  .stat-row .value{font-family:'JetBrains Mono',monospace;font-weight:700;color:#0e2a5c;}
+  /* CHART */
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+  .chart-box{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;}
+  .chart-box h4{font-size:11px;font-weight:700;color:#0e2a5c;margin-bottom:12px;}
+  .chart-box canvas{max-height:180px;}
+  /* PRINT BTN */
+  .print-bar{background:#1a56db;color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-radius:12px;margin-bottom:20px;}
+  .print-bar h3{font-size:15px;font-weight:700;}
+  .print-btn{background:#fff;color:#1a56db;border:none;padding:9px 20px;border-radius:8px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;}
+  .print-btn:hover{background:#eff6ff;}
+  /* footer */
+  .rpt-footer{margin-top:24px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#94a3b8;}
+  @media print {
+    body{background:#fff;}
+    .page{padding:10px;max-width:100%;}
+    .print-bar{display:none!important;}
+    @page{size:A4;margin:10mm;}
+  }
+</style>
+
+</head>
+<body>
+<div class="page">
+  <div class="print-bar">
+    <h3>📄 ${title}</h3>
+    <button class="print-btn" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+  </div>
+  ${htmlContent}
+  <div class="rpt-footer">
+    <span>تم الإنشاء بواسطة: ${guardName} (${guardId})</span>
+    <span>نظام رصد السيارات — Google Sheets</span>
+    <span>${dateStr} — ${timeStr}</span>
+  </div>
+</div>
+</body>
+</html>`);
+  w.document.close();
+}
+
+function generateFullVehiclesPDF() {
+var vehicles = (cloudData||[]).map(function(v){return{
+plate:gf3(v,[“رقم اللوحة”,“🚗 رقم اللوحة”])||v.plate||””,
+tower:(gf3(v,[“البرج”,“🏢 البرج”])||v.tower||””).trim().toUpperCase(),
+floor:gf3(v,[“الدور”,“🔢 الدور”])||v.floor||””,
+date:fd3(gf3(v,[“تاريخ الرصد”,“📅 تاريخ الرصد”])||v.obsDate||v.date||””),
+time:ft3(gf3(v,[“الوقت”,“⏰ الوقت”])||v.time||””),
+status:gf3(v,[“حالة المركبة”,“🚦 حالة المركبة”])||v.carStatus||””,
+guard:gf3(v,[“رجل الأمن”,“👤 رجل الأمن”])||v.empName||””,
+parking:gf3(v,[“رقم الموقف”,“موقف”])||””,
+col:gf3(v,[“رقم العامود”,“عامود”])||””,
+notes:gf3(v,[“ملاحظات”,“📝 ملاحظات”])||v.notes||””,
+};}).reverse();
+
+var today = new Date().toISOString().slice(0,10);
+var todayC = vehicles.filter(function(v){return v.date===today;}).length;
+var dustC  = vehicles.filter(function(v){return v.status===“مغبرة”;}).length;
+var midC   = vehicles.filter(function(v){return v.status===“متوسطة الغبار”;}).length;
+var newC   = vehicles.filter(function(v){return v.status===“حديثة”;}).length;
+var resolvedC = (resolvedData||[]).length;
+
+function sc(v,st){return v===“حديثة”&&st===“new”||v===“متوسطة الغبار”&&st===“mid”||v===“مغبرة”&&st===“dust”;}
+function statusHtml(v){if(v===“حديثة”)return ‘<span class="s-new">🟢 حديثة</span>’;if(v===“متوسطة الغبار”)return ‘<span class="s-mid">🟡 متوسطة</span>’;if(v===“مغبرة”)return ‘<span class="s-dust">🔴 مغبّرة</span>’;return v?’<span style="font-size:10px;">’+v+’</span>’:’—’;}
+function towerHtml(t){return t?’<span class="tower-badge t'+t+'">’+t+’</span>’:’—’;}
+
+var rows = vehicles.map(function(v,i){
+return ‘<tr>’
++’<td style="text-align:center;color:#94a3b8;font-size:10px;">’+(i+1)+’</td>’
++’<td><span class="plate-cell">’+v.plate+’</span></td>’
++’<td style="text-align:center;">’+towerHtml(v.tower)+’</td>’
++’<td><span class="floor-b">’+v.floor+’</span></td>’
++(v.parking?’<td><span style="background:#e0f2fe;color:#0369a1;padding:2px 7px;border-radius:4px;font-size:10px;">’+v.parking+’</span></td>’:’<td style="color:#94a3b8;">—</td>’)
++(v.col?’<td><span style="background:#fdf4ff;color:#7e22ce;padding:2px 7px;border-radius:4px;font-size:10px;">’+v.col+’</span></td>’:’<td style="color:#94a3b8;">—</td>’)
++’<td>’+statusHtml(v.status)+’</td>’
++’<td style="font-size:10px;color:#374151;">’+v.date+’</td>’
++’<td style="font-family:JetBrains Mono,monospace;font-size:10px;color:#374151;">’+v.time+’</td>’
++’<td><span class="guard-p">’+v.guard+’</span></td>’
++’<td style="max-width:120px;font-size:10px;color:#64748b;">’+v.notes+’</td>’
++’</tr>’;
+}).join(’’);
+
+var now=new Date();var months2=[“يناير”,“فبراير”,“مارس”,“أبريل”,“مايو”,“يونيو”,“يوليو”,“أغسطس”,“سبتمبر”,“أكتوبر”,“نوفمبر”,“ديسمبر”];
+var tA=vehicles.filter(function(v){return v.tower===“A”;}).length;
+var tB=vehicles.filter(function(v){return v.tower===“B”;}).length;
+var tC=vehicles.filter(function(v){return v.tower===“C”;}).length;
+
+var html = ` <div class="report-header"> <div style="display:flex;align-items:center;"> <div class="rh-logo">🚗</div> <div> <div class="rh-title">تقرير السيارات المرصودة الكامل</div> <div class="rh-sub">نظام المراقبة الذكي — Google Sheets</div> </div> </div> <div class="rh-meta"> <div class="rh-meta-date">${now.getDate()+" "+months2[now.getMonth()]+" "+now.getFullYear()}</div> <div class="rh-meta-guard">إجمالي السجلات: ${vehicles.length}</div> </div> </div> <div class="kpi-row"> <div class="kpi-card blue"><div class="kpi-val">${vehicles.length}</div><div class="kpi-lbl">إجمالي المرصودة</div></div> <div class="kpi-card green"><div class="kpi-val">${todayC}</div><div class="kpi-lbl">رُصدت اليوم</div></div> <div class="kpi-card red"><div class="kpi-val">${dustC}</div><div class="kpi-lbl">مغبّرة</div></div> <div class="kpi-card amber"><div class="kpi-val">${midC}</div><div class="kpi-lbl">متوسطة</div></div> <div class="kpi-card cyan"><div class="kpi-val">${resolvedC}</div><div class="kpi-lbl">تمت معالجتها</div></div> </div> <div class="sec-title">سجل جميع السيارات المرصودة (${vehicles.length} سجل)</div> <table> <thead><tr> <th style="width:32px;text-align:center;">#</th> <th>رقم اللوحة</th> <th style="width:60px;text-align:center;">البرج</th> <th style="width:60px;">الدور</th> <th style="width:70px;">رقم الموقف</th> <th style="width:70px;">رقم العامود</th> <th style="width:90px;">الحالة</th> <th style="width:90px;">تاريخ الرصد</th> <th style="width:60px;">الوقت</th> <th>رجل الأمن</th> <th>ملاحظات</th> </tr></thead> <tbody>${rows}</tbody> </table> <div class="summary-grid"> <div class="summary-card"> <h4>📊 توزيع الحالات</h4> <div class="stat-row"><span class="label">🟢 حديثة</span><span class="value">${newC}</span></div> <div class="stat-row"><span class="label">🟡 متوسطة الغبار</span><span class="value">${midC}</span></div> <div class="stat-row"><span class="label">🔴 مغبّرة</span><span class="value">${dustC}</span></div> <div class="stat-row"><span class="label">✅ تمّت معالجتها</span><span class="value">${resolvedC}</span></div> </div> <div class="summary-card"> <h4>🏢 توزيع الأبراج</h4> <div class="stat-row"><span class="label">🔵 برج A</span><span class="value">${tA}</span></div> <div class="stat-row"><span class="label">🟢 برج B</span><span class="value">${tB}</span></div> <div class="stat-row"><span class="label">🔴 برج C</span><span class="value">${tC}</span></div> <div class="stat-row"><span class="label">🗓️ رُصدت اليوم</span><span class="value">${todayC}</span></div> </div> </div>`;
+
+makeArabicPdfWindow(“تقرير السيارات المرصودة الكامل”, html);
+}
+
+function generateSummaryPDF() {
+var vehicles = (cloudData||[]).map(function(v){return{
+plate:gf3(v,[“رقم اللوحة”,“🚗 رقم اللوحة”])||v.plate||””,
+tower:(gf3(v,[“البرج”,“🏢 البرج”])||v.tower||””).trim().toUpperCase(),
+floor:gf3(v,[“الدور”,“🔢 الدور”])||v.floor||””,
+date:fd3(gf3(v,[“تاريخ الرصد”,“📅 تاريخ الرصد”])||v.obsDate||v.date||””),
+time:ft3(gf3(v,[“الوقت”,“⏰ الوقت”])||v.time||””),
+status:gf3(v,[“حالة المركبة”,“🚦 حالة المركبة”])||v.carStatus||””,
+guard:gf3(v,[“رجل الأمن”,“👤 رجل الأمن”])||v.empName||””,
+};});
+
+var today = new Date().toISOString().slice(0,10);
+var todayC = vehicles.filter(function(v){return v.date===today;}).length;
+var dustC  = vehicles.filter(function(v){return v.status===“مغبرة”;}).length;
+var midC   = vehicles.filter(function(v){return v.status===“متوسطة الغبار”;}).length;
+var newC   = vehicles.filter(function(v){return v.status===“حديثة”;}).length;
+var resolvedC=(resolvedData||[]).length;
+var tA=vehicles.filter(function(v){return v.tower===“A”;}).length;
+var tB=vehicles.filter(function(v){return v.tower===“B”;}).length;
+var tC=vehicles.filter(function(v){return v.tower===“C”;}).length;
+var gM={};vehicles.forEach(function(v){if(v.guard){var g=v.guard.split(” “).slice(0,2).join(” “);gM[g]=(gM[g]||0)+1;}});
+var gTop=Object.entries(gM).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+
+// Build last 7 days
+var days7={};for(var i=6;i>=0;i–){var d2=new Date();d2.setDate(d2.getDate()-i);days7[d2.toISOString().slice(0,10)]=0;}
+vehicles.forEach(function(v){if(days7[v.date]!==undefined)days7[v.date]++;});
+var dayLbls=Object.keys(days7).map(function(d){return d.slice(5);});
+var dayVals=Object.values(days7);
+
+var dustTop = vehicles.filter(function(v){return v.status===“مغبرة”;}).slice(-5).reverse();
+var dustRows = dustTop.map(function(v){
+return ‘<tr><td><span style="font-family:JetBrains Mono,monospace;font-weight:800;background:#0e2a5c;color:#fff;padding:2px 8px;border-radius:4px;">’+v.plate+’</span></td>’
++’<td style="text-align:center;"><span style=“display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-family:JetBrains Mono,monospace;font-weight:800;font-size:10px;color:#fff;background:’+(v.tower===“A”?”#1a56db”:v.tower===“B”?”#059669”:”#dc2626”)+’;”>’+v.tower+’</span></td>’
++’<td>’+v.floor+’</td><td>’+v.date+’</td><td>’+v.guard+’</td></tr>’;
+}).join(’’);
+
+var pct=function(n){return vehicles.length>0?Math.round(n/vehicles.length*100):0;};
+
+var now=new Date();var months2=[“يناير”,“فبراير”,“مارس”,“أبريل”,“مايو”,“يونيو”,“يوليو”,“أغسطس”,“سبتمبر”,“أكتوبر”,“نوفمبر”,“ديسمبر”];
+
+var html=`
+<div class="report-header">
+<div style="display:flex;align-items:center;">
+<div class="rh-logo">📊</div>
+<div>
+<div class="rh-title">تقرير الداشبورد المختصر</div>
+<div class="rh-sub">ملخص إحصائي شامل لعمليات رصد المركبات</div>
+</div>
+</div>
+<div class="rh-meta">
+<div class="rh-meta-date">${now.getDate()+” “+months2[now.getMonth()]+” “+now.getFullYear()}</div>
+<div class="rh-meta-guard">تقرير تلقائي — آخر تحديث: ${(“0”+now.getHours()).slice(-2)+”:”+(“0”+now.getMinutes()).slice(-2)}</div>
+</div>
+</div>
+
+```
+<div class="kpi-row">
+  <div class="kpi-card blue"><div class="kpi-val">${vehicles.length}</div><div class="kpi-lbl">إجمالي المرصودة</div></div>
+  <div class="kpi-card green"><div class="kpi-val">${todayC}</div><div class="kpi-lbl">رُصدت اليوم</div></div>
+  <div class="kpi-card red"><div class="kpi-val">${dustC}</div><div class="kpi-lbl">مغبّرة (${pct(dustC)}٪)</div></div>
+  <div class="kpi-card amber"><div class="kpi-val">${midC}</div><div class="kpi-lbl">متوسطة (${pct(midC)}٪)</div></div>
+  <div class="kpi-card cyan"><div class="kpi-val">${resolvedC}</div><div class="kpi-lbl">تمّت معالجتها</div></div>
+</div>
+
+<div class="chart-grid">
+  <div class="chart-box">
+    <h4>📈 الرصد اليومي — آخر 7 أيام</h4>
+    <canvas id="rptChartDaily"></canvas>
+  </div>
+  <div class="chart-box">
+    <h4>🚦 توزيع حالات المركبات</h4>
+    <canvas id="rptChartStatus"></canvas>
+  </div>
+  <div class="chart-box">
+    <h4>🏢 مقارنة الأبراج</h4>
+    <canvas id="rptChartTower"></canvas>
+  </div>
+</div>
+
+<div class="summary-grid">
+  <div class="summary-card">
+    <h4>📊 تحليل الحالات التفصيلي</h4>
+    <div class="stat-row"><span class="label">🟢 حديثة</span><span class="value">${newC} (${pct(newC)}٪)</span></div>
+    <div class="stat-row"><span class="label">🟡 متوسطة الغبار</span><span class="value">${midC} (${pct(midC)}٪)</span></div>
+    <div class="stat-row"><span class="label">🔴 مغبّرة</span><span class="value">${dustC} (${pct(dustC)}٪)</span></div>
+    <div class="stat-row"><span class="label">✅ تمّت معالجتها</span><span class="value">${resolvedC}</span></div>
+    <div class="stat-row"><span class="label">📅 رُصدت اليوم</span><span class="value">${todayC}</span></div>
+  </div>
+  <div class="summary-card">
+    <h4>🏢 تفصيل الأبراج</h4>
+    <div class="stat-row"><span class="label">🔵 برج A</span><span class="value">${tA} (${tA+tB+tC>0?Math.round(tA/(tA+tB+tC)*100):0}٪)</span></div>
+    <div class="stat-row"><span class="label">🟢 برج B</span><span class="value">${tB} (${tA+tB+tC>0?Math.round(tB/(tA+tB+tC)*100):0}٪)</span></div>
+    <div class="stat-row"><span class="label">🔴 برج C</span><span class="value">${tC} (${tA+tB+tC>0?Math.round(tC/(tA+tB+tC)*100):0}٪)</span></div>
+  </div>
+  <div class="summary-card">
+    <h4>👮 أكثر رجال الأمن نشاطاً</h4>
+    ${gTop.map(function(g){return '<div class="stat-row"><span class="label">'+g[0]+'</span><span class="value">'+g[1]+' سجل</span></div>';}).join('')}
+    ${gTop.length===0?'<div style="color:#94a3b8;font-size:11px;padding:8px 0;">لا توجد بيانات</div>':''}
+  </div>
+  <div class="summary-card">
+    <h4>⚠️ ملاحظات تشغيلية</h4>
+    <div class="stat-row"><span class="label">نسبة المعالجة</span><span class="value" style="color:${resolvedC>0?"#059669":"#dc2626"};">${vehicles.length>0?Math.round(resolvedC/vehicles.length*100):0}٪</span></div>
+    <div class="stat-row"><span class="label">مغبّرة غير معالجة</span><span class="value" style="color:#dc2626;">${dustC}</span></div>
+    <div class="stat-row"><span class="label">أجمالي الأبراج</span><span class="value">A:${tA} · B:${tB} · C:${tC}</span></div>
+  </div>
+</div>
+
+${dustC>0?`
+<div class="sec-title">⚠️ السيارات المغبّرة — تحتاج متابعة فورية</div>
+<table>
+  <thead><tr><th>رقم اللوحة</th><th style="width:60px;text-align:center;">البرج</th><th style="width:60px;">الدور</th><th>تاريخ الرصد</th><th>رجل الأمن</th></tr></thead>
+  <tbody>${dustRows}</tbody>
+</table>`:''}
+
+<script>
+  Chart.defaults.font.family="'IBM Plex Sans Arabic',sans-serif";Chart.defaults.font.size=10;Chart.defaults.color="#64748b";
+  new Chart(document.getElementById("rptChartDaily"),{type:"bar",data:{labels:${JSON.stringify(dayLbls)},datasets:[{data:${JSON.stringify(dayVals)},backgroundColor:"rgba(26,86,219,.6)",borderColor:"rgba(26,86,219,1)",borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:"rgba(0,0,0,.04)"}},y:{grid:{color:"rgba(0,0,0,.04)"},ticks:{precision:0}}}}});
+  new Chart(document.getElementById("rptChartStatus"),{type:"doughnut",data:{labels:["مغبّرة","متوسطة","حديثة"],datasets:[{data:[${dustC},${midC},${newC}],backgroundColor:["rgba(220,38,38,.8)","rgba(217,119,6,.8)","rgba(5,150,105,.8)"],borderWidth:1.5,hoverOffset:4}]},options:{responsive:true,cutout:"60%",plugins:{legend:{position:"bottom",labels:{padding:8,boxWidth:10}}}}});
+  new Chart(document.getElementById("rptChartTower"),{type:"bar",data:{labels:["برج A","برج B","برج C"],datasets:[{data:[${tA},${tB},${tC}],backgroundColor:["rgba(26,86,219,.7)","rgba(5,150,105,.7)","rgba(220,38,38,.7)"],borderRadius:4,borderWidth:1.5,borderColor:["#1a56db","#059669","#dc2626"]}]},options:{responsive:true,indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{grid:{color:"rgba(0,0,0,.04)"},ticks:{precision:0}},y:{grid:{display:false}}}}});
+<\/script>`;
+```
+
+makeArabicPdfWindow(“تقرير الداشبورد المختصر”, html);
+}
+
+function generateResolvedPDF() {
+var resolved=(resolvedData||[]).slice().reverse();
+if(!resolved.length){ alert(“لا توجد مركبات معالجة بعد”); return; }
+var now=new Date();var months2=[“يناير”,“فبراير”,“مارس”,“أبريل”,“مايو”,“يونيو”,“يوليو”,“أغسطس”,“سبتمبر”,“أكتوبر”,“نوفمبر”,“ديسمبر”];
+var today=new Date().toISOString().slice(0,10);
+var todayC=resolved.filter(function(v){return fd3(v[“تاريخ المعالجة”]||””)===today;}).length;
+var withId=resolved.filter(function(v){return String(v[“رقم الهوية”]||””).trim()!==””}).length;
+var withPhone=resolved.filter(function(v){return String(v[“رقم الجوال”]||””).trim()!==””}).length;
+
+var rows=resolved.map(function(v,i){
+var tower=String(v[“البرج”]||””).trim().toUpperCase();
+return ‘<tr>’
++’<td style="text-align:center;color:#94a3b8;font-size:10px;">’+(i+1)+’</td>’
++’<td><span style="font-family:JetBrains Mono,monospace;font-weight:800;background:#0891b2;color:#fff;padding:2px 8px;border-radius:4px;">’+String(v[“رقم اللوحة”]||””)+’</span></td>’
++’<td style="text-align:center;"><span style=“display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-family:JetBrains Mono,monospace;font-weight:800;font-size:10px;color:#fff;background:’+(tower===“A”?”#1a56db”:tower===“B”?”#059669”:”#dc2626”)+’;”>’+tower+’</span></td>’
++’<td style="font-weight:700;color:#0e2a5c;">’+String(v[“اسم المالك”]||”—”)+’</td>’
++’<td style="font-family:JetBrains Mono,monospace;font-size:10px;">’+String(v[“رقم الهوية”]||”—”)+’</td>’
++’<td style="font-family:JetBrains Mono,monospace;font-size:10px;color:#0891b2;">’+String(v[“رقم الجوال”]||”—”)+’</td>’
++’<td style="max-width:130px;font-size:10px;color:#374151;">’+String(v[“سبب التوقف”]||”—”)+’</td>’
++’<td style="font-size:10px;">’+fd3(v[“تاريخ المعالجة”]||””)+’</td>’
++’<td><span style="background:#f5f3ff;color:#5b21b6;padding:2px 7px;border-radius:4px;font-size:10px;">’+String(v[“رجل الأمن”]||”—”)+’</span></td>’
++’</tr>’;
+}).join(’’);
+
+var html=` <div class="report-header" style="background:linear-gradient(135deg,#0e7490,#0891b2);"> <div style="display:flex;align-items:center;"> <div class="rh-logo">✅</div> <div> <div class="rh-title">تقرير المركبات المعالجة</div> <div class="rh-sub">سجل كامل بمعالجة المركبات وبيانات أصحابها</div> </div> </div> <div class="rh-meta"> <div class="rh-meta-date">${now.getDate()+" "+months2[now.getMonth()]+" "+now.getFullYear()}</div> <div class="rh-meta-guard">إجمالي: ${resolved.length} سجل</div> </div> </div> <div class="kpi-row"> <div class="kpi-card cyan"><div class="kpi-val">${resolved.length}</div><div class="kpi-lbl">إجمالي المعالجة</div></div> <div class="kpi-card green"><div class="kpi-val">${todayC}</div><div class="kpi-lbl">معالجة اليوم</div></div> <div class="kpi-card blue"><div class="kpi-val">${withId}</div><div class="kpi-lbl">مع هوية</div></div> <div class="kpi-card amber"><div class="kpi-val">${withPhone}</div><div class="kpi-lbl">مع جوال</div></div> <div class="kpi-card red"><div class="kpi-val">${resolved.length-withId}</div><div class="kpi-lbl">بدون هوية</div></div> </div> <div class="sec-title">سجل المركبات المعالجة (${resolved.length} سجل)</div> <table> <thead><tr> <th style="width:32px;text-align:center;">#</th> <th>رقم اللوحة</th> <th style="width:50px;text-align:center;">البرج</th> <th>اسم المالك</th> <th style="width:110px;">رقم الهوية</th> <th style="width:100px;">رقم الجوال</th> <th>سبب التوقف</th> <th style="width:90px;">تاريخ المعالجة</th> <th>رجل الأمن</th> </tr></thead> <tbody>${rows}</tbody> </table>`;
+
+makeArabicPdfWindow(“تقرير المركبات المعالجة”, html);
+}
 
 })();
 </script>
