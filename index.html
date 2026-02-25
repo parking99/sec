@@ -29,7 +29,6 @@
       --radius-sm: 10px;
     }
 
-```
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -91,6 +90,13 @@ body {
 .password-toggle { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255,255,255,.4); cursor: pointer; font-size: 16px; padding: 4px; transition: color .2s; z-index: 2; }
 .password-toggle:hover { color: rgba(255,255,255,.7); }
 .login-input.has-toggle { padding-left: 44px; }
+
+/* --- FIX: RTL password field alignment --- */
+.login-input-wrap { direction: rtl; }
+.password-toggle { right: 14px; left: auto; }
+.login-input.has-toggle { padding-right: 44px; padding-left: 16px; }
+/* --- END FIX --- */
+
 .login-btn { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 15px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 12px; padding: 15px; cursor: pointer; width: 100%; transition: all .2s; margin-top: 4px; box-shadow: 0 4px 20px rgba(26,86,219,.4); letter-spacing: 0.3px; }
 .login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(26,86,219,.55); }
 .login-btn:active { transform: translateY(0); }
@@ -651,9 +657,15 @@ tr.processed-row:hover { background: #dcfce7; }
 .owner-modal-close { position: absolute; top: 14px; left: 14px; width: 30px; height: 30px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; transition: all .15s; }
 .owner-modal-close:hover { background: rgba(220,38,38,.3); border-color: rgba(220,38,38,.4); }
 .owner-resolve-date { background: linear-gradient(135deg, #ecfeff, #cffafe); border: 1px solid #a5f3fc; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #0e7490; font-weight: 600; margin-bottom: 16px; }
-```
 
-  </style>
+  
+/* ===== FIX LOGIN PASSWORD ALIGNMENT (RTL) ===== */
+.login-input-wrap { position: relative; direction: rtl; }
+.password-toggle { right: 14px; left: auto; }
+.login-input.has-toggle { padding-right: 44px; padding-left: 16px; }
+/* ===== END FIX ===== */
+
+</style>
 </head>
 <body>
 
@@ -775,7 +787,6 @@ tr.processed-row:hover { background: #dcfce7; }
 
   <div class="tab-content active" id="tabMonitor">
 
-```
 <!-- STATS -->
 <div class="stats-grid no-print">
   <div class="stat-card blue"><div class="stat-value" id="statTotal">0</div><div class="stat-label">إجمالي المرصودة</div></div>
@@ -937,7 +948,6 @@ tr.processed-row:hover { background: #dcfce7; }
     </table>
   </div>
 </div>
-```
 
   </div><!-- /tab monitor -->
 
@@ -945,7 +955,6 @@ tr.processed-row:hover { background: #dcfce7; }
 
   <div class="tab-content" id="tabProcessed">
 
-```
 <div class="stats-grid no-print">
   <div class="stat-card teal"><div class="stat-value" id="statProcessedTotal">0</div><div class="stat-label">إجمالي المعالجة</div></div>
   <div class="stat-card green"><div class="stat-value" id="statProcessedToday">0</div><div class="stat-label">معالجة اليوم</div></div>
@@ -981,7 +990,6 @@ tr.processed-row:hover { background: #dcfce7; }
     </table>
   </div>
 </div>
-```
 
   </div><!-- /tab processed -->
   <!-- ═══ TAB: DASHBOARD ═══ -->
@@ -1019,7 +1027,6 @@ tr.processed-row:hover { background: #dcfce7; }
         <div class="d-chart-card"><div class="d-chart-title">🔢 توزيع الأدوار</div><div class="d-chart-subtitle">LG مقابل B</div><div class="d-chart-wrap"><canvas id="dChartFloor"></canvas></div></div>
         <div class="d-chart-card"><div class="d-chart-title">👮 نشاط رجال الأمن</div><div class="d-chart-subtitle">عدد السجلات لكل حارس</div><div class="d-chart-wrap"><canvas id="dChartGuard"></canvas></div></div>
 
-```
   </div>
   <!-- Tower detail -->
   <div class="d-sec-title">تفصيل الأبراج</div>
@@ -1038,7 +1045,6 @@ tr.processed-row:hover { background: #dcfce7; }
   <div class="d-sec-title">آخر النشاطات</div>
   <div class="d-tbl-card" style="margin-bottom:40px;"><div class="d-tbl-hdr"><div class="d-tbl-title">⏱️ آخر 10 سجلات مرصودة</div><span class="d-badge">حديث</span></div><div id="dActList" class="d-act-list"></div></div>
 </div>
-```
 
   </div><!-- /tabDashboard -->
 
@@ -1050,7 +1056,6 @@ tr.processed-row:hover { background: #dcfce7; }
   <div class="resolve-box">
     <button class="modal-close" id="closeResolve">×</button>
 
-```
 <div class="resolve-header">
   <div class="resolve-header-icon">✅</div>
   <div>
@@ -1093,7 +1098,6 @@ tr.processed-row:hover { background: #dcfce7; }
   <button class="btn btn-ghost" id="cancelResolve">إلغاء</button>
   <button class="btn btn-teal" id="confirmResolve" style="font-size:14px;padding:12px 28px;">✅ تأكيد إنهاء الإجراءات</button>
 </div>
-```
 
   </div>
 </div>
@@ -1106,7 +1110,6 @@ tr.processed-row:hover { background: #dcfce7; }
     <h2 style="margin:0 0 6px;font-size:20px;">⚙️ إعداد Google Apps Script</h2>
     <p style="color:var(--ink3);font-size:13px;margin-bottom:16px;">انسخ الكود والصقه في Apps Script ثم انشر من جديد</p>
 
-```
 <div class="setup-step" style="background:#ecfeff;border-color:#a5f3fc;">
   <strong style="color:#0e7490;">🆕 تحديث: إضافة ورقة المعالجة</strong>
   <p style="font-size:12px;margin:6px 0 0;">أضف ورقة باسم <b>المعالجة</b> في Sheets تلقائياً عند أول حفظ</p>
@@ -1123,34 +1126,33 @@ tr.processed-row:hover { background: #dcfce7; }
     <button class="btn btn-primary btn-sm" onclick="copyScript()">📋 نسخ الكود</button>
   </div>
   <div class="code-box"><pre id="scriptCode">const SHEET_NAME     = "رصد السيارات";
-```
 
-const GUARDS_SHEET   = “الموظفون”;
-const RESOLVED_SHEET = “المعالجة”;
-const DRIVE_FOLDER   = “صور مركبات الرصد”;
+const GUARDS_SHEET   = "الموظفون";
+const RESOLVED_SHEET = "المعالجة";
+const DRIVE_FOLDER   = "صور مركبات الرصد";
 
 function doGet(e) {
 const p      = (e && e.parameter) ? e.parameter : {};
-const cb     = p.callback || “”;
-const action = p.action   || “getAll”;
-if (action === “add”)         return handleAdd(p, cb);
-if (action === “getAll”)      return handleGetAll(cb);
-if (action === “getResolved”) return handleGetResolved(cb);
-if (action === “addResolved”) return handleAddResolved(p, cb);
-if (action === “getGuard”)    return handleGetGuard(p, cb);
-if (action === “login”)       return handleLogin(p, cb);
-if (action === “uploadImage”) return handleImageUpload(p, cb);
-return makeResponse({ error: “unknown_action” }, cb);
+const cb     = p.callback || "";
+const action = p.action   || "getAll";
+if (action === "add")         return handleAdd(p, cb);
+if (action === "getAll")      return handleGetAll(cb);
+if (action === "getResolved") return handleGetResolved(cb);
+if (action === "addResolved") return handleAddResolved(p, cb);
+if (action === "getGuard")    return handleGetGuard(p, cb);
+if (action === "login")       return handleLogin(p, cb);
+if (action === "uploadImage") return handleImageUpload(p, cb);
+return makeResponse({ error: "unknown_action" }, cb);
 }
 
 function doPost(e) {
 try {
-const body = JSON.parse((e && e.postData && e.postData.contents) ? e.postData.contents : “{}”);
-if (body.action === “uploadImage”) return handleImageUpload(body);
-if (body.action === “addResolved”) return handleAddResolved(body, “”);
-return handleAdd(body, “”);
+const body = JSON.parse((e && e.postData && e.postData.contents) ? e.postData.contents : "{}");
+if (body.action === "uploadImage") return handleImageUpload(body);
+if (body.action === "addResolved") return handleAddResolved(body, "");
+return handleAdd(body, "");
 } catch (err) {
-return makeResponse({ error: String(err && err.message ? err.message : err) }, “”);
+return makeResponse({ error: String(err && err.message ? err.message : err) }, "");
 }
 }
 
@@ -1164,65 +1166,65 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 let s = ss.getSheetByName(RESOLVED_SHEET);
 if (!s) {
 s = ss.insertSheet(RESOLVED_SHEET);
-const h = [“رقم اللوحة”,“البرج”,“الدور”,“اسم المالك”,“رقم الهوية”,“رقم الجوال”,“سبب التوقف”,“تاريخ المعالجة”,“وقت المعالجة”,“ملاحظات”,“رجل الأمن”,“الرقم الوظيفي”,“وقت الإضافة”];
-s.getRange(1,1,1,h.length).setValues([h]).setBackground(”#0891b2”).setFontColor(”#ffffff”).setFontWeight(“bold”).setFontSize(11).setHorizontalAlignment(“center”);
+const h = ["رقم اللوحة","البرج","الدور","اسم المالك","رقم الهوية","رقم الجوال","سبب التوقف","تاريخ المعالجة","وقت المعالجة","ملاحظات","رجل الأمن","الرقم الوظيفي","وقت الإضافة"];
+s.getRange(1,1,1,h.length).setValues([h]).setBackground("#0891b2").setFontColor("#ffffff").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 s.setRowHeight(1,36); s.setFrozenRows(1); s.setRightToLeft(true);
 }
 return s;
 }
 
 function setupHeaders_(sheet) {
-const h = [“البرج”,“الدور”,“رقم اللوحة”,“تاريخ الرصد”,“الوقت”,“حالة المركبة”,“ملاحظات”,“رجل الأمن”,“الرقم الوظيفي”,“صورة”,“وقت الإضافة”,“رابط الصورة”,“رقم الموقف”,“رقم العامود”];
-sheet.getRange(1,1,1,h.length).setValues([h]).setBackground(”#0e2a5c”).setFontColor(”#ffffff”).setFontWeight(“bold”).setFontSize(11).setHorizontalAlignment(“center”);
+const h = ["البرج","الدور","رقم اللوحة","تاريخ الرصد","الوقت","حالة المركبة","ملاحظات","رجل الأمن","الرقم الوظيفي","صورة","وقت الإضافة","رابط الصورة","رقم الموقف","رقم العامود"];
+sheet.getRange(1,1,1,h.length).setValues([h]).setBackground("#0e2a5c").setFontColor("#ffffff").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 sheet.setRowHeight(1,36); sheet.setFrozenRows(1); sheet.setRightToLeft(true);
 }
 
 function formatRow_(sheet, row) {
-sheet.getRange(row,1,1,12).setBackground(row%2===0?”#f0f4ff”:”#ffffff”).setFontSize(10).setVerticalAlignment(“middle”);
+sheet.getRange(row,1,1,12).setBackground(row%2===0?"#f0f4ff":"#ffffff").setFontSize(10).setVerticalAlignment("middle");
 sheet.setRowHeight(row,30);
-const sv = String(sheet.getRange(row,6).getValue()||””).trim();
-if(sv===“مغبرة”) sheet.getRange(row,6).setBackground(”#fee2e2”).setFontColor(”#991b1b”).setFontWeight(“bold”);
-else if(sv===“متوسطة الغبار”) sheet.getRange(row,6).setBackground(”#fef9c3”).setFontColor(”#854d0e”).setFontWeight(“bold”);
-else if(sv===“حديثة”) sheet.getRange(row,6).setBackground(”#dcfce7”).setFontColor(”#166534”).setFontWeight(“bold”);
+const sv = String(sheet.getRange(row,6).getValue()||"").trim();
+if(sv==="مغبرة") sheet.getRange(row,6).setBackground("#fee2e2").setFontColor("#991b1b").setFontWeight("bold");
+else if(sv==="متوسطة الغبار") sheet.getRange(row,6).setBackground("#fef9c3").setFontColor("#854d0e").setFontWeight("bold");
+else if(sv==="حديثة") sheet.getRange(row,6).setBackground("#dcfce7").setFontColor("#166534").setFontWeight("bold");
 }
 
 function makeResponse(data, cb) {
 const json = JSON.stringify(data);
-const out  = (cb&&cb!==””)?(cb+”(”+json+”);”):json;
-const mime = (cb&&cb!==””) ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON;
+const out  = (cb&&cb!=="")?(cb+"("+json+");"):json;
+const mime = (cb&&cb!=="") ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON;
 return ContentService.createTextOutput(out).setMimeType(mime);
 }
 
 function handleLogin(p, cb) {
-const id  = String(p.empId||””).trim();
-const pwd = String(p.password||””).trim();
-if(!id || !pwd) return makeResponse({error:“missing_fields”}, cb);
+const id  = String(p.empId||"").trim();
+const pwd = String(p.password||"").trim();
+if(!id || !pwd) return makeResponse({error:"missing_fields"}, cb);
 const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GUARDS_SHEET);
-if(!sheet) return makeResponse({error:“no_sheet”, msg:“أنشئ ورقة: “+GUARDS_SHEET}, cb);
+if(!sheet) return makeResponse({error:"no_sheet", msg:"أنشئ ورقة: "+GUARDS_SHEET}, cb);
 const rows = sheet.getDataRange().getValues();
 for(let i=1; i<rows.length; i++) {
 if(String(rows[i][0]).trim() === id) {
-const storedPwd = String(rows[i][3]||””).trim();
+const storedPwd = String(rows[i][3]||"").trim();
 if(storedPwd === pwd) {
 return makeResponse({
 success: true, empId: id,
-name: String(rows[i][1]||””),
-dept: String(rows[i][2]||””),
-role: String(rows[i][4]||“guard”)
+name: String(rows[i][1]||""),
+dept: String(rows[i][2]||""),
+role: String(rows[i][4]||"guard")
 }, cb);
 } else {
-return makeResponse({error:“wrong_password”}, cb);
+return makeResponse({error:"wrong_password"}, cb);
 }
 }
 }
-return makeResponse({error:“not_found”}, cb);
+return makeResponse({error:"not_found"}, cb);
 }
 
 function handleAdd(p, cb) {
 const sheet = getSheet_();
 if(sheet.getLastRow()===0) setupHeaders_(sheet);
 const nextRow = sheet.getLastRow()+1;
-sheet.getRange(nextRow,1,1,14).setValues([[p.tower||””,p.floor||””,p.plate||””,p.obsDate||p.date||””,p.time||””,p.carStatus||””,p.notes||””,p.empName||””,p.empId||””,p.hasImage||“لا”,new Date().toLocaleString(“ar-SA”),””,p.parkingNum||””,p.colNum||””]]);
+sheet.getRange(nextRow,1,1,14).setValues([[p.tower||"",p.floor||"",p.plate||"",p.obsDate||p.date||"",p.time||"",p.carStatus||"",p.notes||"",p.empName||"",p.empId||"",p.hasImage||"لا",new Date().toLocaleString("ar-SA"),"",p.parkingNum||"",p.colNum||""]]);
 formatRow_(sheet, nextRow);
 SpreadsheetApp.flush();
 return makeResponse({success:true, row:nextRow}, cb);
@@ -1231,8 +1233,8 @@ return makeResponse({success:true, row:nextRow}, cb);
 function handleAddResolved(p, cb) {
 const sheet = getResolvedSheet_();
 const nextRow = sheet.getLastRow()+1;
-sheet.getRange(nextRow,1,1,13).setValues([[p.plate||””,p.tower||””,p.floor||””,p.ownerName||””,p.ownerIdNum||””,p.ownerPhone||””,p.ownerReason||””,p.resolveDate||””,p.resolveTime||””,p.resolveNotes||””,p.empName||””,p.empId||””,new Date().toLocaleString(“ar-SA”)]]);
-sheet.getRange(nextRow,1,1,13).setBackground(nextRow%2===0?”#ecfeff”:”#ffffff”).setFontSize(10).setVerticalAlignment(“middle”);
+sheet.getRange(nextRow,1,1,13).setValues([[p.plate||"",p.tower||"",p.floor||"",p.ownerName||"",p.ownerIdNum||"",p.ownerPhone||"",p.ownerReason||"",p.resolveDate||"",p.resolveTime||"",p.resolveNotes||"",p.empName||"",p.empId||"",new Date().toLocaleString("ar-SA")]]);
+sheet.getRange(nextRow,1,1,13).setBackground(nextRow%2===0?"#ecfeff":"#ffffff").setFontSize(10).setVerticalAlignment("middle");
 sheet.setRowHeight(nextRow,30);
 SpreadsheetApp.flush();
 return makeResponse({success:true, row:nextRow}, cb);
@@ -1249,8 +1251,8 @@ const obj = {};
 headers.forEach((h,i) => {
 let val = r[i];
 if(val instanceof Date) {
-if(val.getFullYear()<=1900){const hh=val.getHours(),mm=val.getMinutes();val=(hh<10?“0”:””)+hh+”:”+(mm<10?“0”:””)+mm;}
-else val = Utilities.formatDate(val,tz,“yyyy-MM-dd”);
+if(val.getFullYear()<=1900){const hh=val.getHours(),mm=val.getMinutes();val=(hh<10?"0":"")+hh+":"+(mm<10?"0":"")+mm;}
+else val = Utilities.formatDate(val,tz,"yyyy-MM-dd");
 }
 obj[String(h)] = val;
 });
@@ -1270,8 +1272,8 @@ const obj = {};
 headers.forEach((h,i) => {
 let val = r[i];
 if(val instanceof Date) {
-if(val.getFullYear()<=1900){const hh=val.getHours(),mm=val.getMinutes();val=(hh<10?“0”:””)+hh+”:”+(mm<10?“0”:””)+mm;}
-else val = Utilities.formatDate(val,tz,“yyyy-MM-dd”);
+if(val.getFullYear()<=1900){const hh=val.getHours(),mm=val.getMinutes();val=(hh<10?"0":"")+hh+":"+(mm<10?"0":"")+mm;}
+else val = Utilities.formatDate(val,tz,"yyyy-MM-dd");
 }
 obj[String(h)] = val;
 });
@@ -1281,34 +1283,34 @@ return makeResponse(rows,cb);
 }
 
 function handleGetGuard(p, cb) {
-const id = String(p.empId||””).trim();
-if(!id) return makeResponse({error:“no_id”},cb);
+const id = String(p.empId||"").trim();
+if(!id) return makeResponse({error:"no_id"},cb);
 const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GUARDS_SHEET);
-if(!sheet) return makeResponse({error:“no_sheet”,msg:“أنشئ ورقة: “+GUARDS_SHEET},cb);
+if(!sheet) return makeResponse({error:"no_sheet",msg:"أنشئ ورقة: "+GUARDS_SHEET},cb);
 const rows = sheet.getDataRange().getValues();
 for(let i=1;i<rows.length;i++) {
-if(String(rows[i][0]).trim()===id) return makeResponse({success:true,empId:id,name:String(rows[i][1]||””),dept:String(rows[i][2]||””)},cb);
+if(String(rows[i][0]).trim()===id) return makeResponse({success:true,empId:id,name:String(rows[i][1]||""),dept:String(rows[i][2]||"")},cb);
 }
-return makeResponse({error:“not_found”},cb);
+return makeResponse({error:"not_found"},cb);
 }
 
 function handleImageUpload(p, cb) {
-cb = cb||””;
+cb = cb||"";
 try {
-const plate=String(p.plate||“unknown”).replace(/[^A-Za-z0-9]/g,””).toUpperCase();
-const date=String(p.date||””).trim(), time=String(p.time||””).trim();
-const imgData=String(p.imgData||””), rowHint=Number(p.row||0)||0;
-if(!imgData) return makeResponse({error:“no_image”},””);
-const base64 = imgData.indexOf(”,”)>-1 ? imgData.split(”,”)[1] : imgData;
-const filename=[plate,date,time?time.replace(”:”,”-”):””].filter(Boolean).join(”*”)+”.jpg”;
-const blob = Utilities.newBlob(Utilities.base64Decode(base64),“image/jpeg”,filename);
+const plate=String(p.plate||"unknown").replace(/[^A-Za-z0-9]/g,"").toUpperCase();
+const date=String(p.date||"").trim(), time=String(p.time||"").trim();
+const imgData=String(p.imgData||""), rowHint=Number(p.row||0)||0;
+if(!imgData) return makeResponse({error:"no_image"},"");
+const base64 = imgData.indexOf(",")>-1 ? imgData.split(",")[1] : imgData;
+const filename=[plate,date,time?time.replace(":","-"):""].filter(Boolean).join("*")+".jpg";
+const blob = Utilities.newBlob(Utilities.base64Decode(base64),"image/jpeg",filename);
 const folders=DriveApp.getFoldersByName(DRIVE_FOLDER);
 const folder=folders.hasNext()?folders.next():DriveApp.createFolder(DRIVE_FOLDER);
 const file=folder.createFile(blob);
 file.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW);
 const fileId=file.getId();
-const viewUrl=“https://drive.google.com/uc?export=view&id=”+fileId;
-const thumbUrl=“https://drive.google.com/thumbnail?id=”+fileId+”&sz=w800”;
+const viewUrl="https://drive.google.com/uc?export=view&id="+fileId;
+const thumbUrl="https://drive.google.com/thumbnail?id="+fileId+"&sz=w800";
 updateImageUrl*(plate,date,time,thumbUrl,rowHint);
 return makeResponse({success:true,viewUrl,thumbUrl,fileId},cb);
 } catch(err) {
@@ -1320,17 +1322,16 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
 const sheet=SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
 if(!sheet) return;
 const data=sheet.getDataRange().getValues();
-if(rowHint&&rowHint>=2&&rowHint<=data.length){sheet.getRange(rowHint,12).setValue(url);sheet.getRange(rowHint,10).setValue(“نعم”);return;}
+if(rowHint&&rowHint>=2&&rowHint<=data.length){sheet.getRange(rowHint,12).setValue(url);sheet.getRange(rowHint,10).setValue("نعم");return;}
 for(let r=data.length;r>=2;r–){
-const p=String(data[r-1][2]||””).trim().toUpperCase();
-const d=String(data[r-1][3]||””).trim();
-const t=String(data[r-1][4]||””).trim();
-if(p===plate&&(!date||d===date)&&(!time||t===time)){sheet.getRange(r,12).setValue(url);sheet.getRange(r,10).setValue(“نعم”);return;}
+const p=String(data[r-1][2]||"").trim().toUpperCase();
+const d=String(data[r-1][3]||"").trim();
+const t=String(data[r-1][4]||"").trim();
+if(p===plate&&(!date||d===date)&&(!time||t===time)){sheet.getRange(r,12).setValue(url);sheet.getRange(r,10).setValue("نعم");return;}
 }
 }</pre></div>
 </div>
 
-```
 <div class="setup-step">
   <strong><span class="step-num">2</span> انشر التحديث:</strong>
   <p style="font-size:12px;margin:6px 0 0;">Deploy → Manage deployments → ✏️ → New version → Anyone → Deploy</p>
@@ -1349,7 +1350,6 @@ if(p===plate&&(!date||d===date)&&(!time||t===time)){sheet.getRange(r,12).setValu
   </div>
   <div id="testResultModal" style="margin-top:10px;font-size:13px;"></div>
 </div>
-```
 
   </div>
 </div>
@@ -2698,76 +2698,76 @@ function makeArabicPdfWindow(title, htmlContent) {
 
 function generateFullVehiclesPDF() {
 var vehicles = (cloudData||[]).map(function(v){return{
-plate:gf3(v,[“رقم اللوحة”,“🚗 رقم اللوحة”])||v.plate||””,
-tower:(gf3(v,[“البرج”,“🏢 البرج”])||v.tower||””).trim().toUpperCase(),
-floor:gf3(v,[“الدور”,“🔢 الدور”])||v.floor||””,
-date:fd3(gf3(v,[“تاريخ الرصد”,“📅 تاريخ الرصد”])||v.obsDate||v.date||””),
-time:ft3(gf3(v,[“الوقت”,“⏰ الوقت”])||v.time||””),
-status:gf3(v,[“حالة المركبة”,“🚦 حالة المركبة”])||v.carStatus||””,
-guard:gf3(v,[“رجل الأمن”,“👤 رجل الأمن”])||v.empName||””,
-parking:gf3(v,[“رقم الموقف”,“موقف”])||””,
-col:gf3(v,[“رقم العامود”,“عامود”])||””,
-notes:gf3(v,[“ملاحظات”,“📝 ملاحظات”])||v.notes||””,
+plate:gf3(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"",
+tower:(gf3(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
+floor:gf3(v,["الدور","🔢 الدور"])||v.floor||"",
+date:fd3(gf3(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||""),
+time:ft3(gf3(v,["الوقت","⏰ الوقت"])||v.time||""),
+status:gf3(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"",
+guard:gf3(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||"",
+parking:gf3(v,["رقم الموقف","موقف"])||"",
+col:gf3(v,["رقم العامود","عامود"])||"",
+notes:gf3(v,["ملاحظات","📝 ملاحظات"])||v.notes||"",
 };}).reverse();
 
 var today = new Date().toISOString().slice(0,10);
 var todayC = vehicles.filter(function(v){return v.date===today;}).length;
-var dustC  = vehicles.filter(function(v){return v.status===“مغبرة”;}).length;
-var midC   = vehicles.filter(function(v){return v.status===“متوسطة الغبار”;}).length;
-var newC   = vehicles.filter(function(v){return v.status===“حديثة”;}).length;
+var dustC  = vehicles.filter(function(v){return v.status==="مغبرة";}).length;
+var midC   = vehicles.filter(function(v){return v.status==="متوسطة الغبار";}).length;
+var newC   = vehicles.filter(function(v){return v.status==="حديثة";}).length;
 var resolvedC = (resolvedData||[]).length;
 
-function sc(v,st){return v===“حديثة”&&st===“new”||v===“متوسطة الغبار”&&st===“mid”||v===“مغبرة”&&st===“dust”;}
-function statusHtml(v){if(v===“حديثة”)return ‘<span class="s-new">🟢 حديثة</span>’;if(v===“متوسطة الغبار”)return ‘<span class="s-mid">🟡 متوسطة</span>’;if(v===“مغبرة”)return ‘<span class="s-dust">🔴 مغبّرة</span>’;return v?’<span style="font-size:10px;">’+v+’</span>’:’—’;}
-function towerHtml(t){return t?’<span class="tower-badge t'+t+'">’+t+’</span>’:’—’;}
+function sc(v,st){return v==="حديثة"&&st==="new"||v==="متوسطة الغبار"&&st==="mid"||v==="مغبرة"&&st==="dust";}
+function statusHtml(v){if(v==="حديثة")return '<span class="s-new">🟢 حديثة</span>';if(v==="متوسطة الغبار")return '<span class="s-mid">🟡 متوسطة</span>';if(v==="مغبرة")return '<span class="s-dust">🔴 مغبّرة</span>';return v?'<span style="font-size:10px;">'+v+'</span>':'—';}
+function towerHtml(t){return t?'<span class="tower-badge t'+t+'">'+t+'</span>':'—';}
 
 var rows = vehicles.map(function(v,i){
-return ‘<tr>’
-+’<td style="text-align:center;color:#94a3b8;font-size:10px;">’+(i+1)+’</td>’
-+’<td><span class="plate-cell">’+v.plate+’</span></td>’
-+’<td style="text-align:center;">’+towerHtml(v.tower)+’</td>’
-+’<td><span class="floor-b">’+v.floor+’</span></td>’
-+(v.parking?’<td><span style="background:#e0f2fe;color:#0369a1;padding:2px 7px;border-radius:4px;font-size:10px;">’+v.parking+’</span></td>’:’<td style="color:#94a3b8;">—</td>’)
-+(v.col?’<td><span style="background:#fdf4ff;color:#7e22ce;padding:2px 7px;border-radius:4px;font-size:10px;">’+v.col+’</span></td>’:’<td style="color:#94a3b8;">—</td>’)
-+’<td>’+statusHtml(v.status)+’</td>’
-+’<td style="font-size:10px;color:#374151;">’+v.date+’</td>’
-+’<td style="font-family:JetBrains Mono,monospace;font-size:10px;color:#374151;">’+v.time+’</td>’
-+’<td><span class="guard-p">’+v.guard+’</span></td>’
-+’<td style="max-width:120px;font-size:10px;color:#64748b;">’+v.notes+’</td>’
-+’</tr>’;
-}).join(’’);
+return '<tr>'
++'<td style="text-align:center;color:#94a3b8;font-size:10px;">'+(i+1)+'</td>'
++'<td><span class="plate-cell">'+v.plate+'</span></td>'
++'<td style="text-align:center;">'+towerHtml(v.tower)+'</td>'
++'<td><span class="floor-b">'+v.floor+'</span></td>'
++(v.parking?'<td><span style="background:#e0f2fe;color:#0369a1;padding:2px 7px;border-radius:4px;font-size:10px;">'+v.parking+'</span></td>':'<td style="color:#94a3b8;">—</td>')
++(v.col?'<td><span style="background:#fdf4ff;color:#7e22ce;padding:2px 7px;border-radius:4px;font-size:10px;">'+v.col+'</span></td>':'<td style="color:#94a3b8;">—</td>')
++'<td>'+statusHtml(v.status)+'</td>'
++'<td style="font-size:10px;color:#374151;">'+v.date+'</td>'
++'<td style="font-family:JetBrains Mono,monospace;font-size:10px;color:#374151;">'+v.time+'</td>'
++'<td><span class="guard-p">'+v.guard+'</span></td>'
++'<td style="max-width:120px;font-size:10px;color:#64748b;">'+v.notes+'</td>'
++'</tr>';
+}).join('');
 
-var now=new Date();var months2=[“يناير”,“فبراير”,“مارس”,“أبريل”,“مايو”,“يونيو”,“يوليو”,“أغسطس”,“سبتمبر”,“أكتوبر”,“نوفمبر”,“ديسمبر”];
-var tA=vehicles.filter(function(v){return v.tower===“A”;}).length;
-var tB=vehicles.filter(function(v){return v.tower===“B”;}).length;
-var tC=vehicles.filter(function(v){return v.tower===“C”;}).length;
+var now=new Date();var months2=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+var tA=vehicles.filter(function(v){return v.tower==="A";}).length;
+var tB=vehicles.filter(function(v){return v.tower==="B";}).length;
+var tC=vehicles.filter(function(v){return v.tower==="C";}).length;
 
 var html = ` <div class="report-header"> <div style="display:flex;align-items:center;"> <div class="rh-logo">🚗</div> <div> <div class="rh-title">تقرير السيارات المرصودة الكامل</div> <div class="rh-sub">نظام المراقبة الذكي — Google Sheets</div> </div> </div> <div class="rh-meta"> <div class="rh-meta-date">${now.getDate()+" "+months2[now.getMonth()]+" "+now.getFullYear()}</div> <div class="rh-meta-guard">إجمالي السجلات: ${vehicles.length}</div> </div> </div> <div class="kpi-row"> <div class="kpi-card blue"><div class="kpi-val">${vehicles.length}</div><div class="kpi-lbl">إجمالي المرصودة</div></div> <div class="kpi-card green"><div class="kpi-val">${todayC}</div><div class="kpi-lbl">رُصدت اليوم</div></div> <div class="kpi-card red"><div class="kpi-val">${dustC}</div><div class="kpi-lbl">مغبّرة</div></div> <div class="kpi-card amber"><div class="kpi-val">${midC}</div><div class="kpi-lbl">متوسطة</div></div> <div class="kpi-card cyan"><div class="kpi-val">${resolvedC}</div><div class="kpi-lbl">تمت معالجتها</div></div> </div> <div class="sec-title">سجل جميع السيارات المرصودة (${vehicles.length} سجل)</div> <table> <thead><tr> <th style="width:32px;text-align:center;">#</th> <th>رقم اللوحة</th> <th style="width:60px;text-align:center;">البرج</th> <th style="width:60px;">الدور</th> <th style="width:70px;">رقم الموقف</th> <th style="width:70px;">رقم العامود</th> <th style="width:90px;">الحالة</th> <th style="width:90px;">تاريخ الرصد</th> <th style="width:60px;">الوقت</th> <th>رجل الأمن</th> <th>ملاحظات</th> </tr></thead> <tbody>${rows}</tbody> </table> <div class="summary-grid"> <div class="summary-card"> <h4>📊 توزيع الحالات</h4> <div class="stat-row"><span class="label">🟢 حديثة</span><span class="value">${newC}</span></div> <div class="stat-row"><span class="label">🟡 متوسطة الغبار</span><span class="value">${midC}</span></div> <div class="stat-row"><span class="label">🔴 مغبّرة</span><span class="value">${dustC}</span></div> <div class="stat-row"><span class="label">✅ تمّت معالجتها</span><span class="value">${resolvedC}</span></div> </div> <div class="summary-card"> <h4>🏢 توزيع الأبراج</h4> <div class="stat-row"><span class="label">🔵 برج A</span><span class="value">${tA}</span></div> <div class="stat-row"><span class="label">🟢 برج B</span><span class="value">${tB}</span></div> <div class="stat-row"><span class="label">🔴 برج C</span><span class="value">${tC}</span></div> <div class="stat-row"><span class="label">🗓️ رُصدت اليوم</span><span class="value">${todayC}</span></div> </div> </div>`;
 
-makeArabicPdfWindow(“تقرير السيارات المرصودة الكامل”, html);
+makeArabicPdfWindow("تقرير السيارات المرصودة الكامل", html);
 }
 
 function generateSummaryPDF() {
 var vehicles = (cloudData||[]).map(function(v){return{
-plate:gf3(v,[“رقم اللوحة”,“🚗 رقم اللوحة”])||v.plate||””,
-tower:(gf3(v,[“البرج”,“🏢 البرج”])||v.tower||””).trim().toUpperCase(),
-floor:gf3(v,[“الدور”,“🔢 الدور”])||v.floor||””,
-date:fd3(gf3(v,[“تاريخ الرصد”,“📅 تاريخ الرصد”])||v.obsDate||v.date||””),
-time:ft3(gf3(v,[“الوقت”,“⏰ الوقت”])||v.time||””),
-status:gf3(v,[“حالة المركبة”,“🚦 حالة المركبة”])||v.carStatus||””,
-guard:gf3(v,[“رجل الأمن”,“👤 رجل الأمن”])||v.empName||””,
+plate:gf3(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"",
+tower:(gf3(v,["البرج","🏢 البرج"])||v.tower||"").trim().toUpperCase(),
+floor:gf3(v,["الدور","🔢 الدور"])||v.floor||"",
+date:fd3(gf3(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||""),
+time:ft3(gf3(v,["الوقت","⏰ الوقت"])||v.time||""),
+status:gf3(v,["حالة المركبة","🚦 حالة المركبة"])||v.carStatus||"",
+guard:gf3(v,["رجل الأمن","👤 رجل الأمن"])||v.empName||"",
 };});
 
 var today = new Date().toISOString().slice(0,10);
 var todayC = vehicles.filter(function(v){return v.date===today;}).length;
-var dustC  = vehicles.filter(function(v){return v.status===“مغبرة”;}).length;
-var midC   = vehicles.filter(function(v){return v.status===“متوسطة الغبار”;}).length;
-var newC   = vehicles.filter(function(v){return v.status===“حديثة”;}).length;
+var dustC  = vehicles.filter(function(v){return v.status==="مغبرة";}).length;
+var midC   = vehicles.filter(function(v){return v.status==="متوسطة الغبار";}).length;
+var newC   = vehicles.filter(function(v){return v.status==="حديثة";}).length;
 var resolvedC=(resolvedData||[]).length;
-var tA=vehicles.filter(function(v){return v.tower===“A”;}).length;
-var tB=vehicles.filter(function(v){return v.tower===“B”;}).length;
-var tC=vehicles.filter(function(v){return v.tower===“C”;}).length;
-var gM={};vehicles.forEach(function(v){if(v.guard){var g=v.guard.split(” “).slice(0,2).join(” “);gM[g]=(gM[g]||0)+1;}});
+var tA=vehicles.filter(function(v){return v.tower==="A";}).length;
+var tB=vehicles.filter(function(v){return v.tower==="B";}).length;
+var tC=vehicles.filter(function(v){return v.tower==="C";}).length;
+var gM={};vehicles.forEach(function(v){if(v.guard){var g=v.guard.split(" ").slice(0,2).join(" ");gM[g]=(gM[g]||0)+1;}});
 var gTop=Object.entries(gM).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
 
 // Build last 7 days
@@ -2776,16 +2776,16 @@ vehicles.forEach(function(v){if(days7[v.date]!==undefined)days7[v.date]++;});
 var dayLbls=Object.keys(days7).map(function(d){return d.slice(5);});
 var dayVals=Object.values(days7);
 
-var dustTop = vehicles.filter(function(v){return v.status===“مغبرة”;}).slice(-5).reverse();
+var dustTop = vehicles.filter(function(v){return v.status==="مغبرة";}).slice(-5).reverse();
 var dustRows = dustTop.map(function(v){
-return ‘<tr><td><span style="font-family:JetBrains Mono,monospace;font-weight:800;background:#0e2a5c;color:#fff;padding:2px 8px;border-radius:4px;">’+v.plate+’</span></td>’
-+’<td style="text-align:center;"><span style=“display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-family:JetBrains Mono,monospace;font-weight:800;font-size:10px;color:#fff;background:’+(v.tower===“A”?”#1a56db”:v.tower===“B”?”#059669”:”#dc2626”)+’;”>’+v.tower+’</span></td>’
-+’<td>’+v.floor+’</td><td>’+v.date+’</td><td>’+v.guard+’</td></tr>’;
-}).join(’’);
+return '<tr><td><span style="font-family:JetBrains Mono,monospace;font-weight:800;background:#0e2a5c;color:#fff;padding:2px 8px;border-radius:4px;">'+v.plate+'</span></td>'
++'<td style="text-align:center;"><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-family:JetBrains Mono,monospace;font-weight:800;font-size:10px;color:#fff;background:'+(v.tower==="A"?"#1a56db":v.tower==="B"?"#059669":"#dc2626")+';">'+v.tower+'</span></td>'
++'<td>'+v.floor+'</td><td>'+v.date+'</td><td>'+v.guard+'</td></tr>';
+}).join('');
 
 var pct=function(n){return vehicles.length>0?Math.round(n/vehicles.length*100):0;};
 
-var now=new Date();var months2=[“يناير”,“فبراير”,“مارس”,“أبريل”,“مايو”,“يونيو”,“يوليو”,“أغسطس”,“سبتمبر”,“أكتوبر”,“نوفمبر”,“ديسمبر”];
+var now=new Date();var months2=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
 
 var html=`
 <div class="report-header">
@@ -2797,12 +2797,11 @@ var html=`
 </div>
 </div>
 <div class="rh-meta">
-<div class="rh-meta-date">${now.getDate()+” “+months2[now.getMonth()]+” “+now.getFullYear()}</div>
-<div class="rh-meta-guard">تقرير تلقائي — آخر تحديث: ${(“0”+now.getHours()).slice(-2)+”:”+(“0”+now.getMinutes()).slice(-2)}</div>
+<div class="rh-meta-date">${now.getDate()+" "+months2[now.getMonth()]+" "+now.getFullYear()}</div>
+<div class="rh-meta-guard">تقرير تلقائي — آخر تحديث: ${("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)}</div>
 </div>
 </div>
 
-```
 <div class="kpi-row">
   <div class="kpi-card blue"><div class="kpi-val">${vehicles.length}</div><div class="kpi-lbl">إجمالي المرصودة</div></div>
   <div class="kpi-card green"><div class="kpi-val">${todayC}</div><div class="kpi-lbl">رُصدت اليوم</div></div>
@@ -2867,38 +2866,37 @@ ${dustC>0?`
   new Chart(document.getElementById("rptChartStatus"),{type:"doughnut",data:{labels:["مغبّرة","متوسطة","حديثة"],datasets:[{data:[${dustC},${midC},${newC}],backgroundColor:["rgba(220,38,38,.8)","rgba(217,119,6,.8)","rgba(5,150,105,.8)"],borderWidth:1.5,hoverOffset:4}]},options:{responsive:true,cutout:"60%",plugins:{legend:{position:"bottom",labels:{padding:8,boxWidth:10}}}}});
   new Chart(document.getElementById("rptChartTower"),{type:"bar",data:{labels:["برج A","برج B","برج C"],datasets:[{data:[${tA},${tB},${tC}],backgroundColor:["rgba(26,86,219,.7)","rgba(5,150,105,.7)","rgba(220,38,38,.7)"],borderRadius:4,borderWidth:1.5,borderColor:["#1a56db","#059669","#dc2626"]}]},options:{responsive:true,indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{grid:{color:"rgba(0,0,0,.04)"},ticks:{precision:0}},y:{grid:{display:false}}}}});
 <\/script>`;
-```
 
-makeArabicPdfWindow(“تقرير الداشبورد المختصر”, html);
+makeArabicPdfWindow("تقرير الداشبورد المختصر", html);
 }
 
 function generateResolvedPDF() {
 var resolved=(resolvedData||[]).slice().reverse();
-if(!resolved.length){ alert(“لا توجد مركبات معالجة بعد”); return; }
-var now=new Date();var months2=[“يناير”,“فبراير”,“مارس”,“أبريل”,“مايو”,“يونيو”,“يوليو”,“أغسطس”,“سبتمبر”,“أكتوبر”,“نوفمبر”,“ديسمبر”];
+if(!resolved.length){ alert("لا توجد مركبات معالجة بعد"); return; }
+var now=new Date();var months2=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
 var today=new Date().toISOString().slice(0,10);
-var todayC=resolved.filter(function(v){return fd3(v[“تاريخ المعالجة”]||””)===today;}).length;
-var withId=resolved.filter(function(v){return String(v[“رقم الهوية”]||””).trim()!==””}).length;
-var withPhone=resolved.filter(function(v){return String(v[“رقم الجوال”]||””).trim()!==””}).length;
+var todayC=resolved.filter(function(v){return fd3(v["تاريخ المعالجة"]||"")===today;}).length;
+var withId=resolved.filter(function(v){return String(v["رقم الهوية"]||"").trim()!==""}).length;
+var withPhone=resolved.filter(function(v){return String(v["رقم الجوال"]||"").trim()!==""}).length;
 
 var rows=resolved.map(function(v,i){
-var tower=String(v[“البرج”]||””).trim().toUpperCase();
-return ‘<tr>’
-+’<td style="text-align:center;color:#94a3b8;font-size:10px;">’+(i+1)+’</td>’
-+’<td><span style="font-family:JetBrains Mono,monospace;font-weight:800;background:#0891b2;color:#fff;padding:2px 8px;border-radius:4px;">’+String(v[“رقم اللوحة”]||””)+’</span></td>’
-+’<td style="text-align:center;"><span style=“display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-family:JetBrains Mono,monospace;font-weight:800;font-size:10px;color:#fff;background:’+(tower===“A”?”#1a56db”:tower===“B”?”#059669”:”#dc2626”)+’;”>’+tower+’</span></td>’
-+’<td style="font-weight:700;color:#0e2a5c;">’+String(v[“اسم المالك”]||”—”)+’</td>’
-+’<td style="font-family:JetBrains Mono,monospace;font-size:10px;">’+String(v[“رقم الهوية”]||”—”)+’</td>’
-+’<td style="font-family:JetBrains Mono,monospace;font-size:10px;color:#0891b2;">’+String(v[“رقم الجوال”]||”—”)+’</td>’
-+’<td style="max-width:130px;font-size:10px;color:#374151;">’+String(v[“سبب التوقف”]||”—”)+’</td>’
-+’<td style="font-size:10px;">’+fd3(v[“تاريخ المعالجة”]||””)+’</td>’
-+’<td><span style="background:#f5f3ff;color:#5b21b6;padding:2px 7px;border-radius:4px;font-size:10px;">’+String(v[“رجل الأمن”]||”—”)+’</span></td>’
-+’</tr>’;
-}).join(’’);
+var tower=String(v["البرج"]||"").trim().toUpperCase();
+return '<tr>'
++'<td style="text-align:center;color:#94a3b8;font-size:10px;">'+(i+1)+'</td>'
++'<td><span style="font-family:JetBrains Mono,monospace;font-weight:800;background:#0891b2;color:#fff;padding:2px 8px;border-radius:4px;">'+String(v["رقم اللوحة"]||"")+'</span></td>'
++'<td style="text-align:center;"><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-family:JetBrains Mono,monospace;font-weight:800;font-size:10px;color:#fff;background:'+(tower==="A"?"#1a56db":tower==="B"?"#059669":"#dc2626")+';">'+tower+'</span></td>'
++'<td style="font-weight:700;color:#0e2a5c;">'+String(v["اسم المالك"]||"—")+'</td>'
++'<td style="font-family:JetBrains Mono,monospace;font-size:10px;">'+String(v["رقم الهوية"]||"—")+'</td>'
++'<td style="font-family:JetBrains Mono,monospace;font-size:10px;color:#0891b2;">'+String(v["رقم الجوال"]||"—")+'</td>'
++'<td style="max-width:130px;font-size:10px;color:#374151;">'+String(v["سبب التوقف"]||"—")+'</td>'
++'<td style="font-size:10px;">'+fd3(v["تاريخ المعالجة"]||"")+'</td>'
++'<td><span style="background:#f5f3ff;color:#5b21b6;padding:2px 7px;border-radius:4px;font-size:10px;">'+String(v["رجل الأمن"]||"—")+'</span></td>'
++'</tr>';
+}).join('');
 
 var html=` <div class="report-header" style="background:linear-gradient(135deg,#0e7490,#0891b2);"> <div style="display:flex;align-items:center;"> <div class="rh-logo">✅</div> <div> <div class="rh-title">تقرير المركبات المعالجة</div> <div class="rh-sub">سجل كامل بمعالجة المركبات وبيانات أصحابها</div> </div> </div> <div class="rh-meta"> <div class="rh-meta-date">${now.getDate()+" "+months2[now.getMonth()]+" "+now.getFullYear()}</div> <div class="rh-meta-guard">إجمالي: ${resolved.length} سجل</div> </div> </div> <div class="kpi-row"> <div class="kpi-card cyan"><div class="kpi-val">${resolved.length}</div><div class="kpi-lbl">إجمالي المعالجة</div></div> <div class="kpi-card green"><div class="kpi-val">${todayC}</div><div class="kpi-lbl">معالجة اليوم</div></div> <div class="kpi-card blue"><div class="kpi-val">${withId}</div><div class="kpi-lbl">مع هوية</div></div> <div class="kpi-card amber"><div class="kpi-val">${withPhone}</div><div class="kpi-lbl">مع جوال</div></div> <div class="kpi-card red"><div class="kpi-val">${resolved.length-withId}</div><div class="kpi-lbl">بدون هوية</div></div> </div> <div class="sec-title">سجل المركبات المعالجة (${resolved.length} سجل)</div> <table> <thead><tr> <th style="width:32px;text-align:center;">#</th> <th>رقم اللوحة</th> <th style="width:50px;text-align:center;">البرج</th> <th>اسم المالك</th> <th style="width:110px;">رقم الهوية</th> <th style="width:100px;">رقم الجوال</th> <th>سبب التوقف</th> <th style="width:90px;">تاريخ المعالجة</th> <th>رجل الأمن</th> </tr></thead> <tbody>${rows}</tbody> </table>`;
 
-makeArabicPdfWindow(“تقرير المركبات المعالجة”, html);
+makeArabicPdfWindow("تقرير المركبات المعالجة", html);
 }
 
 })();
