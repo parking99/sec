@@ -195,9 +195,14 @@
     .form-group.span2 { grid-column: span 2; }
     .form-group.span3 { grid-column: span 3; }
     label { font-size: 11px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .6px; }
-    input, select, textarea { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 13px; color: var(--ink); background: var(--paper); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 13px; transition: border-color .18s, box-shadow .18s, background .18s; width: 100%; }
+    input, select, textarea { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 13px; color: var(--ink); background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 13px; transition: border-color .18s, box-shadow .18s, background .18s; width: 100%; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
     input[readonly] { background: #f1f5f9; color: var(--ink3); cursor: default; }
+    /* ── FORM SECTIONS ── */
+    .form-section { background: var(--paper); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+    .form-section:last-of-type { margin-bottom: 0; }
+    .form-section-label { font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .form-section-label span { display: inline-block; width: 20px; height: 20px; background: #eff6ff; border-radius: 6px; text-align: center; line-height: 20px; font-size: 11px; }
 
     /* ── PLATE CELLS ── */
     .plate-cells-wrap { flex: 1; }
@@ -763,59 +768,68 @@
           <div class="owner-info-grid" id="oaItems"></div>
         </div>
 
-        <div class="form-grid">
-          <div class="form-group">
-            <label>البرج</label>
-            <select id="tower"><option value="">— اختر —</option><option>A</option><option>B</option><option>C</option></select>
-          </div>
-          <div class="form-group">
-            <label>الدور</label>
-            <select id="floor"><option value="">— اختر —</option><option>LG</option><option>B</option></select>
-          </div>
-          <div class="form-group span2">
-            <label>رقم اللوحة</label>
-            <div class="flex gap8 items-end">
-              <div class="plate-cells-wrap" id="plateCellsWrap">
-                <div class="plate-cells" id="plateCells">
-                  <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="0"/>
-                  <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="1"/>
-                  <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="2"/>
-                  <div class="plate-sep"></div>
-                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3"/>
-                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4"/>
-                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="5"/>
-                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6"/>
-                </div>
-                <input id="plate" type="hidden" value=""/>
-              </div>
-              <button id="btnOcrCamera" class="btn btn-ghost btn-icon" title="قراءة بالكاميرا أو رفع صورة">📷</button>
-              <input type="file" id="ocrFileInput" accept="image/*" style="display:none;"/>
+        <div class="form-section">
+          <div class="form-section-label"><span>📍</span> موقع المركبة</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>البرج</label>
+              <select id="tower"><option value="">— اختر —</option><option>A</option><option>B</option><option>C</option></select>
+            </div>
+            <div class="form-group">
+              <label>الدور</label>
+              <select id="floor"><option value="">— اختر —</option><option>LG</option><option>B</option></select>
+            </div>
+            <div class="form-group">
+              <label>رقم الموقف</label>
+              <input id="parkingNum" placeholder="مثال: P12" maxlength="10"/>
+            </div>
+            <div class="form-group">
+              <label>رقم العامود</label>
+              <input id="colNum" placeholder="مثال: C4" maxlength="10"/>
             </div>
           </div>
-          <div class="form-group">
-            <label>تاريخ الرصد</label>
-            <input type="date" id="obsDate"/>
-          </div>
-          <div class="form-group span2">
-            <label>حالة المركبة</label>
-            <select id="carStatus">
-              <option value="">— اختر —</option>
-              <option value="حديثة">🟢 حديثة</option>
-              <option value="متوسطة الغبار">🟡 متوسطة الغبار</option>
-              <option value="مغبرة">🔴 مغبرة</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>رقم الموقف</label>
-            <input id="parkingNum" placeholder="مثال: P12" maxlength="10"/>
-          </div>
-          <div class="form-group">
-            <label>رقم العامود</label>
-            <input id="colNum" placeholder="مثال: C4" maxlength="10"/>
-          </div>
-          <div class="form-group span2">
-            <label>ملاحظات</label>
-            <input id="notes" placeholder="اختياري…"/>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-label"><span>🚗</span> بيانات المركبة</div>
+          <div class="form-grid">
+            <div class="form-group span2">
+              <label>رقم اللوحة</label>
+              <div class="flex gap8 items-end">
+                <div class="plate-cells-wrap" id="plateCellsWrap">
+                  <div class="plate-cells" id="plateCells">
+                    <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="0"/>
+                    <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="1"/>
+                    <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="2"/>
+                    <div class="plate-sep"></div>
+                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3"/>
+                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4"/>
+                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="5"/>
+                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6"/>
+                  </div>
+                  <input id="plate" type="hidden" value=""/>
+                </div>
+                <button id="btnOcrCamera" class="btn btn-ghost btn-icon" title="قراءة بالكاميرا أو رفع صورة">📷</button>
+                <input type="file" id="ocrFileInput" accept="image/*" style="display:none;"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>تاريخ الرصد</label>
+              <input type="date" id="obsDate"/>
+            </div>
+            <div class="form-group span2">
+              <label>حالة المركبة</label>
+              <select id="carStatus">
+                <option value="">— اختر —</option>
+                <option value="حديثة">🟢 حديثة</option>
+                <option value="متوسطة الغبار">🟡 متوسطة الغبار</option>
+                <option value="مغبرة">🔴 مغبرة</option>
+              </select>
+            </div>
+            <div class="form-group span2">
+              <label>ملاحظات</label>
+              <input id="notes" placeholder="اختياري…"/>
+            </div>
           </div>
         </div>
 
@@ -1598,6 +1612,7 @@ window.switchTab=function(tab){
   $("tab"+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add("active");
   $("tabBtn"+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add("active");
   if(tab==="dashboard")renderDashboard();
+  if(tab==="processed")renderProcessedTable();
 };
 
 /* ══ APP STATE ══ */
