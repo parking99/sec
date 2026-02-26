@@ -1358,7 +1358,7 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
 (function(){
 "use strict";
 
-var GS_URL      = "https://script.google.com/macros/s/AKfycbyFtxsv9ANULaIxzT84Ic71zpLhwQuAccP_Mb8EKCj63p2LeLj3SWwcyjgdGp9kDMfv/exec";
+
 var STORAGE_KEY = "parkingReport_v4";
 var SESSION_KEY = "parkingSession_v1";
 var RESOLVED_KEY= "parkingResolved_v1";
@@ -2376,7 +2376,15 @@ function makeArabicPdfWindow(title, htmlContent) {
     <span>${dateStr} — ${timeStr}</span>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://tukktfedwhzkwenhzyyj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_UZjT8CUOT6d3OC6lV3j2FA_ocQfC5BS";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
 </body>
+
 </html>`);
   w.document.close();
 }
@@ -2675,5 +2683,13 @@ function generateResolvedPDF() {
 
 })();
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://tukktfedwhzkwenhzyyj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_UZjT8CUOT6d3OC6lV3j2FA_ocQfC5BS";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
 </body>
+
 </html>
