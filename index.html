@@ -1354,19 +1354,11 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
 
 </div><!-- /appWrapper -->
 
-
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const SUPABASE_URL = "https://tukktfedwhzkwenhzyyj.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_UZjT8CUOT6d3OC6lV3j2FA_ocQfC5BS";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-</script>
-
 <script>
 (function(){
 "use strict";
 
+var GS_URL      = "https://script.google.com/macros/s/AKfycbyFtxsv9ANULaIxzT84Ic71zpLhwQuAccP_Mb8EKCj63p2LeLj3SWwcyjgdGp9kDMfv/exec";
 var STORAGE_KEY = "parkingReport_v4";
 var SESSION_KEY = "parkingSession_v1";
 var RESOLVED_KEY= "parkingResolved_v1";
@@ -1412,24 +1404,16 @@ async function doLogin(){
   if(!id||!pwd){showLoginError("أدخل الرقم الوظيفي وكلمة السر");return;}
   loginBtn.disabled=true;loginBtn.textContent="⏳ جارٍ التحقق…";loginError.classList.remove("show");
   try{
-    const { data, error } = await sb
-      .from("employees")
-      .select("emp_id,name,dept,role,password")
-      .eq("emp_id", id)
-      .maybeSingle();
-
-    if(error) throw error;
-    if(!data){showLoginError("❌ الرقم الوظيفي غير موجود");return;}
-    if(String(data.password)!==pwd){showLoginError("❌ كلمة السر غير صحيحة");return;}
-
-    saveSession({empId:data.emp_id,name:data.name,dept:data.dept||"",role:data.role||"guard"});
-    onLoginSuccess();
-  }catch(err){
-    showLoginError("❌ تعذّر الاتصال
-"+(err.message||err));
-  }finally{
-    loginBtn.disabled=false;loginBtn.textContent="🔐 تسجيل الدخول";
-  }
+    var data=await jsonpCall(GS_URL+"?action=login&empId="+encodeURIComponent(id)+"&password="+encodeURIComponent(pwd),15000);
+    if(!data){showLoginError("❌ لم يصل رد من الخادم");return;}
+    if(data.success){saveSession({empId:data.empId,name:data.name,dept:data.dept||"",role:data.role||"guard"});onLoginSuccess();}
+    else if(data.error==="no_sheet"){showLoginError("⚠️ ورقة 'الموظفون' غير موجودة");}
+    else if(data.error==="wrong_password"){showLoginError("❌ كلمة السر غير صحيحة");}
+    else if(data.error==="not_found"){showLoginError("❌ الرقم الوظيفي غير موجود");}
+    else if(data.error==="unknown_action"){await fallbackLogin(id);}
+    else{showLoginError("❌ خطأ: "+(data.error||""));}
+  }catch(err){showLoginError("❌ تعذّر الاتصال\n"+err.message);}
+  finally{loginBtn.disabled=false;loginBtn.textContent="🔐 تسجيل الدخول";}
 }
 
 async function fallbackLogin(id){
@@ -1723,28 +1707,22 @@ async function loadFromCloud(showLoader){
   if(showLoader)els.loadingOverlay.classList.add("active");
   setSyncStatus("loading","⏳ جارٍ جلب البيانات…");
   try{
-    const { data, error } = await sb
-      .from("vehicles")
-      .select("*")
-      .order("id",{ascending:false});
-    if(error) throw error;
-
-    cloudData = Array.isArray(data) ? data : [];
-    // لا يوجد جدول "processed/resolved" هنا إلا إذا أنشأته؛ نخليها فاضية لتجنب الأخطاء
-    resolvedData = resolvedData || [];
+    var data=await jsonpCall(GS_URL+"?action=getAll",15000);
+    if(!Array.isArray(data))throw new Error("بيانات غير صحيحة");
+    cloudData=data;
+    // جلب المعالجة
+    try{
+      var rData=await jsonpCall(GS_URL+"?action=getResolved",10000);
+      if(Array.isArray(rData))resolvedData=rData;
+    }catch(e){/* نتحمل الخطأ */}
     renderTable();renderProcessedTable();updateStats();
-    setSyncStatus("ok","✅ "+cloudData.length+" سجل | "+new Date().toLocaleTimeString("ar-SA"));
-    setStatus("تم تحميل "+cloudData.length+" سجل");
-    var p=els.plate.value.trim().toUpperCase();if(p)applyPlateHighlight(p);
+    setSyncStatus("ok","✅ "+data.length+" سجل | "+new Date().toLocaleTimeString("ar-SA"));
+    setStatus("تم تحميل "+data.length+" سجل");
+    var p=els.plate.value.trim().toUpperCase();if(p)checkPlateExists(p);
   }catch(err){
-    setSyncStatus("error","❌ تعذّر الاتصال");
-    setStatus("❌ تعذّر الاتصال");
-    cloudData=[];
-    renderTable();renderProcessedTable();updateStats();
-    console.error(err);
+    setSyncStatus("error","⚠️ "+err.message);setStatus("❌ تعذّر الاتصال");cloudData=[];renderTable();renderProcessedTable();updateStats();
   }finally{
-    isSyncing=false;els.btnSync.disabled=false;
-    if(showLoader)els.loadingOverlay.classList.remove("active");
+    isSyncing=false;els.btnSync.disabled=false;if(showLoader)els.loadingOverlay.classList.remove("active");
   }
 }
 
@@ -1904,64 +1882,34 @@ function saveResolvedLocal(){try{localStorage.setItem(RESOLVED_KEY,JSON.stringif
 function loadResolvedLocal(){try{var d=localStorage.getItem(RESOLVED_KEY);if(d){resolvedData=JSON.parse(d);return true;}}catch(e){}return false;}
 
 async function addToCloud(v){
-  const payload = {
-    tower: v.tower,
-    floor: v.floor,
-    plate: v.plate,
-    obs_date: v.obsDate || v.date || null,
-    obs_time: v.time || null,
-    car_status: v.carStatus || "",
-    notes: v.notes || "",
-    emp_name: report.guard.name,
-    emp_id: report.guard.empId,
-    has_image: v.hasImage || "لا",
-    parking_num: v.parkingNum || "",
-    col_num: v.colNum || ""
-  };
-
-  const { data, error } = await sb
-    .from("vehicles")
-    .insert(payload)
-    .select("id")
-    .single();
-
-  if(error) throw error;
-  return { success:true, row: data?.id || 0 };
+  var params=["action=add","tower="+encodeURIComponent(v.tower),"floor="+encodeURIComponent(v.floor),"plate="+encodeURIComponent(v.plate),"obsDate="+encodeURIComponent(v.obsDate),"date="+encodeURIComponent(v.date),"time="+encodeURIComponent(v.time),"carStatus="+encodeURIComponent(v.carStatus||""),"notes="+encodeURIComponent(v.notes||""),"empName="+encodeURIComponent(report.guard.name),"empId="+encodeURIComponent(report.guard.empId),"hasImage="+encodeURIComponent(v.hasImage||"لا"),"parkingNum="+encodeURIComponent(v.parkingNum||""),"colNum="+encodeURIComponent(v.colNum||"")].join("&");
+  return await jsonpCall(GS_URL+"?"+params,20000);
 }
 
 async function uploadImageToDrive(v,imgB64){
-  // رفع الصور إلى Supabase Storage (Bucket: vehicle-images)
   setSyncStatus("loading","📤 جارٍ رفع الصورة…");
+  var imgUrl=null;
   try{
     var small=await compressImage(imgB64,900,0.75);
     var base64=(small.indexOf(",")>-1?small.split(",")[1]:small);
-    var bin=atob(base64);
-    var arr=new Uint8Array(bin.length);
-    for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
-    var blob=new Blob([arr],{type:"image/jpeg"});
-
-    var bucket="vehicle-images";
-    var filePath="plates/"+(v.plate||"unknown")+"_"+Date.now()+".jpg";
-
-    var up=await sb.storage.from(bucket).upload(filePath, blob, { upsert:true, contentType:"image/jpeg" });
-    if(up.error) throw up.error;
-
-    var pub=sb.storage.from(bucket).getPublicUrl(filePath);
-    var url = (pub && pub.data && pub.data.publicUrl) ? pub.data.publicUrl : null;
-
-    // تحديث السجل (يتطلب وجود image_url/has_image في جدول vehicles)
-    if(url && v._row){
-      var u = await sb.from("vehicles").update({ image_url:url, has_image:"نعم" }).eq("id", v._row);
-      if(u.error) console.warn(u.error);
-    }
-
-    setSyncStatus("ok","✅ تم رفع الصورة");
-    return url;
-  }catch(err){
-    console.error(err);
-    setSyncStatus("error","⚠️ تعذر رفع الصورة (تأكد من إنشاء bucket vehicle-images وجعله Public)");
-    return null;
+    var resp=await fetch(GS_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"uploadImage",plate:v.plate,date:v.date,time:v.time,row:v._row||0,imgData:base64})});
+    if(resp.ok){var txt=await resp.text();try{var result=JSON.parse(txt);if(result&&(result.thumbUrl||result.viewUrl)){imgUrl=result.thumbUrl||result.viewUrl;}}catch(e){}}
+  }catch(fe){console.warn("fetch فشل:",fe.message);}
+  if(!imgUrl){
+    try{
+      setSyncStatus("loading","📤 الرفع عبر JSONP…");
+      var tiny=await compressImage(imgB64,400,0.5);
+      var tinyB64=(tiny.indexOf(",")>-1?tiny.split(",")[1]:tiny);
+      var jpResult=await jsonpCall(GS_URL+"?action=uploadImage&plate="+encodeURIComponent(v.plate)+"&date="+encodeURIComponent(v.date)+"&time="+encodeURIComponent(v.time)+"&row="+encodeURIComponent(v._row||0)+"&imgData="+encodeURIComponent(tinyB64),35000);
+      if(jpResult&&(jpResult.thumbUrl||jpResult.viewUrl))imgUrl=jpResult.thumbUrl||jpResult.viewUrl;
+    }catch(je){console.warn("JSONP رفع الصورة فشل:",je.message);}
   }
+  if(imgUrl){
+    localImages["plate_"+v.plate]=imgUrl;
+    try{localStorage.setItem("img_plate_"+v.plate,imgUrl);}catch(e){}
+    setSyncStatus("ok","✅ تم رفع الصورة");
+    setTimeout(function(){loadFromCloud(false);},800);
+  }else{setSyncStatus("error","⚠️ الصورة محفوظة محلياً — تعذّر الرفع على Drive");}
 }
 
 function compressImage(base64,maxSize,quality){
@@ -2428,6 +2376,99 @@ function makeArabicPdfWindow(title, htmlContent) {
     <span>${dateStr} — ${timeStr}</span>
   </div>
 </div>
+
+<!-- Supabase (added) -->
+<script>
+(function(){
+  const SUPABASE_URL = "https://tukktfedwhzkwenhzyyj.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_UZjT8CUOT6d3OC6lV3j2FA_ocQfC5BS";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Override Google-Sheets JSONP bridge with Supabase bridge (no UI/feature change)
+  window.GS_URL = window.GS_URL || "";
+  window.jsonpCall = async function(url, timeoutMs){
+    // Accept both full Google Script URLs and relative '?action=...'
+    const u = String(url || "");
+    const query = u.includes("?") ? u.split("?").slice(1).join("?") : "";
+    const params = new URLSearchParams(query);
+    const action = params.get("action");
+
+    if(!action) {
+      throw new Error("Invalid request (missing action)");
+    }
+
+    // Helpers
+    const pick = (k) => {
+      const v = params.get(k);
+      return v === null ? "" : v;
+    };
+
+    if(action === "ping" || action === "test" || action === "testConnection") {
+      const { count, error } = await sb.from("vehicles").select("*", { count: "exact", head: true });
+      if(error) throw error;
+      return { success: true, count: count || 0 };
+    }
+
+    if(action === "login") {
+      const empId = pick("empId");
+      const password = pick("password");
+      const { data, error } = await sb
+        .from("employees")
+        .select("emp_id,name,dept,role,password")
+        .eq("emp_id", empId)
+        .maybeSingle();
+      if(error) throw error;
+      if(!data) return { success:false, error:"not_found" };
+      if(String(data.password) !== String(password)) return { success:false, error:"bad_password" };
+      return { success:true, empId:data.emp_id, name:data.name, dept:data.dept||"", role:data.role||"guard" };
+    }
+
+    if(action === "getGuard") {
+      const empId = pick("empId");
+      const { data, error } = await sb
+        .from("employees")
+        .select("emp_id,name,dept,role")
+        .eq("emp_id", empId)
+        .maybeSingle();
+      if(error) throw error;
+      if(!data) return { success:false };
+      return { success:true, empId:data.emp_id, name:data.name, dept:data.dept||"", role:data.role||"guard" };
+    }
+
+    if(action === "getAll") {
+      const { data, error } = await sb.from("vehicles").select("*").order("id", { ascending:false });
+      if(error) throw error;
+      // Many parts of the old app expect an array
+      return Array.isArray(data) ? data : [];
+    }
+
+    if(action === "add") {
+      const payload = {
+        tower: pick("tower") || null,
+        floor: pick("floor") || null,
+        plate: pick("plate") || null,
+        obs_date: pick("obsDate") || null,
+        obs_time: pick("obsTime") || null,
+        car_status: pick("carStatus") || null,
+        notes: pick("notes") || null,
+        emp_name: pick("empName") || null,
+        emp_id: pick("empId") || null,
+        has_image: pick("hasImage") || "لا",
+        image_url: pick("imageUrl") || null,
+        parking_num: pick("parkingNum") || null,
+        col_num: pick("colNum") || null
+      };
+      const { data, error } = await sb.from("vehicles").insert(payload).select("id").single();
+      if(error) throw error;
+      return { success:true, row:data.id };
+    }
+
+    // Unknown action
+    throw new Error("Unsupported action: " + action);
+  };
+})();
+</script>
+
 </body>
 </html>`);
   w.document.close();
@@ -2727,5 +2768,99 @@ function generateResolvedPDF() {
 
 })();
 </script>
+
+<!-- Supabase (added) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const SUPABASE_URL = "https://tukktfedwhzkwenhzyyj.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_UZjT8CUOT6d3OC6lV3j2FA_ocQfC5BS";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Override Google-Sheets JSONP bridge with Supabase bridge (no UI/feature change)
+  window.GS_URL = window.GS_URL || "";
+  window.jsonpCall = async function(url, timeoutMs){
+    // Accept both full Google Script URLs and relative '?action=...'
+    const u = String(url || "");
+    const query = u.includes("?") ? u.split("?").slice(1).join("?") : "";
+    const params = new URLSearchParams(query);
+    const action = params.get("action");
+
+    if(!action) {
+      throw new Error("Invalid request (missing action)");
+    }
+
+    // Helpers
+    const pick = (k) => {
+      const v = params.get(k);
+      return v === null ? "" : v;
+    };
+
+    if(action === "ping" || action === "test" || action === "testConnection") {
+      const { count, error } = await sb.from("vehicles").select("*", { count: "exact", head: true });
+      if(error) throw error;
+      return { success: true, count: count || 0 };
+    }
+
+    if(action === "login") {
+      const empId = pick("empId");
+      const password = pick("password");
+      const { data, error } = await sb
+        .from("employees")
+        .select("emp_id,name,dept,role,password")
+        .eq("emp_id", empId)
+        .maybeSingle();
+      if(error) throw error;
+      if(!data) return { success:false, error:"not_found" };
+      if(String(data.password) !== String(password)) return { success:false, error:"bad_password" };
+      return { success:true, empId:data.emp_id, name:data.name, dept:data.dept||"", role:data.role||"guard" };
+    }
+
+    if(action === "getGuard") {
+      const empId = pick("empId");
+      const { data, error } = await sb
+        .from("employees")
+        .select("emp_id,name,dept,role")
+        .eq("emp_id", empId)
+        .maybeSingle();
+      if(error) throw error;
+      if(!data) return { success:false };
+      return { success:true, empId:data.emp_id, name:data.name, dept:data.dept||"", role:data.role||"guard" };
+    }
+
+    if(action === "getAll") {
+      const { data, error } = await sb.from("vehicles").select("*").order("id", { ascending:false });
+      if(error) throw error;
+      // Many parts of the old app expect an array
+      return Array.isArray(data) ? data : [];
+    }
+
+    if(action === "add") {
+      const payload = {
+        tower: pick("tower") || null,
+        floor: pick("floor") || null,
+        plate: pick("plate") || null,
+        obs_date: pick("obsDate") || null,
+        obs_time: pick("obsTime") || null,
+        car_status: pick("carStatus") || null,
+        notes: pick("notes") || null,
+        emp_name: pick("empName") || null,
+        emp_id: pick("empId") || null,
+        has_image: pick("hasImage") || "لا",
+        image_url: pick("imageUrl") || null,
+        parking_num: pick("parkingNum") || null,
+        col_num: pick("colNum") || null
+      };
+      const { data, error } = await sb.from("vehicles").insert(payload).select("id").single();
+      if(error) throw error;
+      return { success:true, row:data.id };
+    }
+
+    // Unknown action
+    throw new Error("Unsupported action: " + action);
+  };
+})();
+</script>
+
 </body>
 </html>
