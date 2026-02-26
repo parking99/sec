@@ -1827,7 +1827,7 @@ function checkPlateExists(plateVal){
 
   // فحص في المعالجة (بيانات صاحب المركبة)
   var ownerMatches=resolvedData.filter(function(v){
-    var p=String(v["رقم اللوحة"]||"").trim().toUpperCase().replace(/\s/g,"");
+    var p=String(v["رقم اللوحة"]||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
     return p===target&&p!=="";
   });
   if(ownerMatches.length){
@@ -1835,12 +1835,12 @@ function checkPlateExists(plateVal){
     els.oaItems.innerHTML="";
     var latest=ownerMatches[ownerMatches.length-1];
     var fields=[
-      {label:"اسم المالك",val:latest["اسم المالك"]||""},
-      {label:"رقم الهوية",val:latest["رقم الهوية"]||""},
-      {label:"رقم الجوال",val:latest["رقم الجوال"]||""},
-      {label:"سبب التوقف",val:latest["سبب التوقف"]||""},
-      {label:"تاريخ المعالجة",val:fixExcelDate(latest["تاريخ المعالجة"]||"")},
-      {label:"رجل الأمن",val:latest["رجل الأمن"]||""}
+      {label:"اسم المالك",val:latest["اسم المالك"]||latest.ownerName||""},
+      {label:"رقم الهوية",val:latest["رقم الهوية"]||latest.ownerIdNum||""},
+      {label:"رقم الجوال",val:latest["رقم الجوال"]||latest.ownerPhone||""},
+      {label:"سبب التوقف",val:latest["سبب التوقف"]||latest.ownerReason||""},
+      {label:"تاريخ المعالجة",val:fixExcelDate(latest["تاريخ المعالجة"]||latest.resolveDate||"")},
+      {label:"رجل الأمن",val:latest["رجل الأمن"]||latest.empName||""}
     ];
     fields.forEach(function(f){
       if(f.val){
@@ -1869,14 +1869,14 @@ function openResolveModal(record){
 
   // ملء البيانات المعروفة من صاحب مركبة سابق
   var ownerMatch=resolvedData.filter(function(v){
-    var p=String(v["رقم اللوحة"]||"").trim().toUpperCase().replace(/\s/g,"");
+    var p=String(v["رقم اللوحة"]||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
     return p===plate.trim().toUpperCase().replace(/\s/g,"")&&p!=="";
   });
   if(ownerMatch.length){
     var last=ownerMatch[ownerMatch.length-1];
-    $("ownerName").value=last["اسم المالك"]||"";
-    $("ownerIdNum").value=last["رقم الهوية"]||"";
-    $("ownerPhone").value=last["رقم الجوال"]||"";
+    $("ownerName").value=last["اسم المالك"]||last.ownerName||"";
+    $("ownerIdNum").value=last["رقم الهوية"]||last.ownerIdNum||"";
+    $("ownerPhone").value=last["رقم الجوال"]||last.ownerPhone||"";
     $("ownerReason").value="";
   }else{
     $("ownerName").value="";$("ownerIdNum").value="";$("ownerPhone").value="";$("ownerReason").value="";
@@ -2018,7 +2018,7 @@ async function addVehicle(){
 function isResolved(plate){
   plate=String(plate||"").trim().toUpperCase().replace(/\s/g,"");
   return resolvedData.some(function(v){
-    var p=String(v["رقم اللوحة"]||"").trim().toUpperCase().replace(/\s/g,"");
+    var p=String(v["رقم اللوحة"]||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
     return p===plate&&p!=="";
   });
 }
@@ -2034,9 +2034,9 @@ function updateStats(){
 
   // stats in processed tab
   $("statProcessedTotal").textContent=resolvedData.length;
-  $("statProcessedToday").textContent=resolvedData.filter(function(v){return fixExcelDate(v["تاريخ المعالجة"]||"")===today;}).length;
-  $("statWithIdCard").textContent=resolvedData.filter(function(v){return String(v["رقم الهوية"]||"").trim()!=="";}).length;
-  $("statWithPhone").textContent=resolvedData.filter(function(v){return String(v["رقم الجوال"]||"").trim()!=="";}).length;
+  $("statProcessedToday").textContent=resolvedData.filter(function(v){var d=fixExcelDate(v["تاريخ المعالجة"]||v.resolveDate||"");return d===today;}).length;
+  $("statWithIdCard").textContent=resolvedData.filter(function(v){return String(v["رقم الهوية"]||v.ownerIdNum||"").trim()!=="";}).length;
+  $("statWithPhone").textContent=resolvedData.filter(function(v){return String(v["رقم الجوال"]||v.ownerPhone||"").trim()!=="";}).length;
 }
 
 function normalizeDriveUrl(u){
@@ -2135,6 +2135,13 @@ function renderTable(){
   var pc2=$("printCountInfo");if(pc2)pc2.textContent="إجمالي السجلات: "+cloudData.length;
 }
 
+function getRF(v,arKey,enKey){
+  /* يقرأ الحقل من مصدرين: المفتاح العربي (بيانات السيرفر) أو المفتاح الإنجليزي (بيانات محلية) */
+  var val=v[arKey];
+  if(val===undefined||val===null||val==="")val=enKey?v[enKey]:"";
+  return String(val||"").trim();
+}
+
 function renderProcessedTable(){
   var tbody=$("processedBody");
   tbody.innerHTML="";
@@ -2146,24 +2153,32 @@ function renderProcessedTable(){
   rows.forEach(function(v,i){
     var tr=document.createElement("tr");
     tr.classList.add("processed-row");
-    var date=fixExcelDate(v["تاريخ المعالجة"]||"");
-    var time=fixExcelTime(v["وقت المعالجة"]||"");
-    var tower=String(v["البرج"]||"").trim().toUpperCase();
+    var plateVal  = getRF(v,"رقم اللوحة","plate");
+    var tower     = getRF(v,"البرج","tower").toUpperCase();
+    var floor     = getRF(v,"الدور","floor");
+    var ownerName = getRF(v,"اسم المالك","ownerName");
+    var ownerId   = getRF(v,"رقم الهوية","ownerIdNum");
+    var ownerPh   = getRF(v,"رقم الجوال","ownerPhone");
+    var reason    = getRF(v,"سبب التوقف","ownerReason");
+    var notes     = getRF(v,"ملاحظات","resolveNotes");
+    var guard     = getRF(v,"رجل الأمن","empName");
+    var date      = fixExcelDate(getRF(v,"تاريخ المعالجة","resolveDate"));
+    var time      = fixExcelTime(getRF(v,"وقت المعالجة","resolveTime"));
     var towerClass="tower-badge tower-"+(["A","B","C"].includes(tower)?tower:"");
-    var notesTxt=String(v["ملاحظات"]||"");
+    var dash='<span style="color:var(--border2);font-size:16px;">—</span>';
     tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
-      '<td>'+renderPlate(v["رقم اللوحة"]||"")+'</td>'+
-      '<td>'+(tower?'<span class="'+towerClass+'">'+tower+'</span>':'<span style="color:var(--border);">—</span>')+'</td>'+
-      '<td>'+(v["الدور"]?'<span class="floor-badge">'+v["الدور"]+'</span>':'<span style="color:var(--border);">—</span>')+'</td>'+
-      '<td><b style="color:var(--ink);">'+(v["اسم المالك"]||'<span style="color:var(--border);">—</span>')+'</b></td>'+
-      '<td><span style="font-family:JetBrains Mono,monospace;font-size:12px;">'+(v["رقم الهوية"]||'<span style="color:var(--border);">—</span>')+'</span></td>'+
-      '<td><span style="font-family:JetBrains Mono,monospace;font-size:12px;">'+(v["رقم الجوال"]||'<span style="color:var(--border);">—</span>')+'</span></td>'+
-      '<td><span class="notes-text">'+(v["سبب التوقف"]||'<span style="color:var(--border);">—</span>')+'</span></td>'+
-      '<td><span class="date-pill">'+date+'</span></td>'+
-      '<td><span class="time-pill">'+time+'</span></td>'+
-      '<td><span class="notes-text">'+(notesTxt?notesTxt.slice(0,30)+(notesTxt.length>30?"…":""):'<span style="color:var(--border);">—</span>')+'</span></td>'+
-      '<td>'+(v["رجل الأمن"]?'<span class="guard-pill">'+v["رجل الأمن"]+'</span>':'<span style="color:var(--border);">—</span>')+'</td>';
+      '<td>'+renderPlate(plateVal)+'</td>'+
+      '<td>'+(tower?'<span class="'+towerClass+'">'+tower+'</span>':dash)+'</td>'+
+      '<td>'+(floor?'<span class="floor-badge">'+floor+'</span>':dash)+'</td>'+
+      '<td><b style="color:var(--ink);">'+(ownerName||dash)+'</b></td>'+
+      '<td><span style="font-family:JetBrains Mono,monospace;font-size:12px;">'+(ownerId||dash)+'</span></td>'+
+      '<td><span style="font-family:JetBrains Mono,monospace;font-size:12px;">'+(ownerPh||dash)+'</span></td>'+
+      '<td><span class="notes-text">'+(reason||dash)+'</span></td>'+
+      '<td>'+(date?'<span class="date-pill">'+date+'</span>':dash)+'</td>'+
+      '<td>'+(time?'<span class="time-pill">'+time+'</span>':dash)+'</td>'+
+      '<td><span class="notes-text">'+(notes?notes.slice(0,30)+(notes.length>30?"…":""):dash)+'</span></td>'+
+      '<td>'+(guard?'<span class="guard-pill">'+guard+'</span>':dash)+'</td>';
     tbody.appendChild(tr);
   });
   $("processedFooterCount").textContent=resolvedData.length+" سجل";
