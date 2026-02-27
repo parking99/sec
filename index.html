@@ -2186,7 +2186,7 @@ async function addVehicle(){
     if(res&&res.success){
       v._row=res.row||0;report.addedCount=(report.addedCount||0)+1;saveLocal();
       if(savedImg){localImages["plate_"+v.plate]=savedImg;try{localStorage.setItem("img_plate_"+v.plate,savedImg);}catch(e){}}
-      clearForm();setStatus("✅ تم حفظ "+plate);renderTable();
+      cloudData.push(v);clearForm();setStatus("✅ تم حفظ "+plate);renderTable();
       setTimeout(function(){loadFromCloud(false);},1500);
       if(savedImg){setTimeout(function(){uploadImageToDrive(v,savedImg);},2500);}
       else{setSyncStatus("ok","✅ تم حفظ "+plate);}
