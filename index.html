@@ -2196,15 +2196,20 @@ async function addVehicle(){
   }finally{els.btnAdd.disabled=false;els.btnAdd.innerHTML="➕ إضافة وحفظ";updateStats();}
 }
 
-function isResolved(plate,obsDate){
+function isResolved(plate,obsDate,obsTime){
   plate=String(plate||"").trim().toUpperCase().replace(/\s/g,"");
   return resolvedData.some(function(v){
     var p=String(v["رقم اللوحة"]||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
     if(p!==plate||p==="")return false;
-    /* إذا تاريخ الرصد أحدث من تاريخ المعالجة → مركبة جديدة وليست معالجة */
+    /* إذا تاريخ+وقت الرصد أحدث من تاريخ+وقت المعالجة → مركبة جديدة */
     if(obsDate){
       var resolveDate=String(v["تاريخ المعالجة"]||v.resolveDate||"").trim();
-      if(resolveDate&&obsDate>resolveDate)return false;
+      var resolveTime=String(v["وقت المعالجة"]||v.resolveTime||"00:00").trim();
+      if(resolveDate){
+        var obsStamp=obsDate+"T"+(obsTime||"00:00");
+        var resStamp=resolveDate+"T"+resolveTime;
+        if(obsStamp>resStamp)return false;
+      }
     }
     return true;
   });
@@ -2216,7 +2221,8 @@ function updateStats(){
   var activeList=list.filter(function(v){
     var vPlate=String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
     var vDate=fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"");
-    return !isResolved(vPlate,vDate);
+    var vTime=String(getField(v,["الوقت","⏰ الوقت"])||v.time||"");
+    return !isResolved(vPlate,vDate,vTime);
   });
   els.statTotal.textContent=activeList.length;
   els.statToday.textContent=activeList.filter(function(v){return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===today;}).length;
@@ -2256,7 +2262,8 @@ function renderTable(){
   var activeData=cloudData.filter(function(v){
     var vPlate=String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
     var vDate=fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"");
-    return !isResolved(vPlate,vDate);
+    var vTime=String(getField(v,["الوقت","⏰ الوقت"])||v.time||"");
+    return !isResolved(vPlate,vDate,vTime);
   });
   if(!activeData.length){
     els.tableBody.innerHTML='<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🚗</div><div class="empty-title">لا توجد بيانات بعد</div><div class="empty-sub">أضف سجلاً أو اضغط "تحديث"</div></div></td></tr>';
@@ -2282,7 +2289,7 @@ function renderTable(){
   }).reverse();
 
   rows.forEach(function(v,i){
-    var resolved=isResolved(v.plate,v.date);
+    var resolved=isResolved(v.plate,v.date,v.time);
     var tr=document.createElement("tr");
     if(resolved)tr.classList.add("processed-row");
     var driveUrl=normalizeDriveUrl(v.driveUrlRaw);
