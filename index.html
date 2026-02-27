@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>رصد السيارات — تسجيل الدخول</title>
+  <title>رصد السيارات — النسخة فائقة الذكاء</title>
   <meta name="theme-color" content="#0b1f45">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="dns-prefetch" href="https://script.google.com">
@@ -639,6 +639,32 @@
     /* ── PRINT REPORT HEADER ── */
     .print-report-header { display: none; }
 
+    /* ── SMART FEATURES ── */
+    .smart-alert {
+      animation: slideDown 0.3s ease;
+    }
+    
+    #guardPerformanceContainer {
+      margin-top: 20px;
+    }
+    
+    .anomaly-badge {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    
+    .prediction-card {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin: 10px 0;
+    }
+    
     @media (max-width: 900px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .header { padding: 0 20px; }
@@ -805,7 +831,7 @@
     <div class="login-logo">
       <div class="login-logo-icon">🚗</div>
       <div class="login-title">رصد السيارات</div>
-      <div class="login-subtitle">نظام المراقبة الذكي — Google Sheets</div>
+      <div class="login-subtitle">نظام المراقبة الذكي — النسخة فائقة الذكاء</div>
     </div>
     <div class="login-form">
       <div class="login-field">
@@ -847,7 +873,7 @@
     <div class="header-icon">🚗</div>
     <div>
       <div class="header-title">رصد السيارات</div>
-      <div class="header-sub">نظام المراقبة الذكي — Google Sheets</div>
+      <div class="header-sub">نظام المراقبة الذكي — النسخة فائقة الذكاء</div>
     </div>
   </div>
   <div class="header-actions">
@@ -860,6 +886,7 @@
     <button class="btn btn-ghost btn-sm no-print" id="btnExportCSV">📄 CSV</button>
     <button class="btn btn-ghost btn-sm no-print" id="btnShowSetup">⚙️ إعداد</button>
     <button class="btn btn-primary btn-sm no-print" id="btnSync">🔄 تحديث</button>
+    <button class="btn btn-ghost btn-sm no-print" id="btnShowPerformance">📊 تحليل الأداء</button>
   </div>
 </header>
 
@@ -896,6 +923,7 @@
   <div class="sync-dot" id="syncDot"></div>
   <span id="syncMsg">جارٍ الاتصال بالسحابة…</span>
   <span id="status" style="margin-right: auto; color: var(--ink); font-weight:600;"></span>
+  <span id="smartAlert" style="margin-right: 10px; font-size: 11px;"></span>
 </div>
 
 <div class="main">
@@ -909,6 +937,17 @@
       <div class="stat-card green"><div class="stat-card-icon">📅</div><div class="stat-value" id="statToday">0</div><div class="stat-label">اليوم</div></div>
       <div class="stat-card amber"><div class="stat-card-icon">📷</div><div class="stat-value" id="statWithPhotos">0</div><div class="stat-label">بصور</div></div>
       <div class="stat-card teal"><div class="stat-card-icon">✅</div><div class="stat-value" id="statProcessed">0</div><div class="stat-label">تم معالجتها</div></div>
+    </div>
+
+    <!-- SMART PREDICTION CARD (يظهر فقط عند التوقع) -->
+    <div class="prediction-card no-print" id="smartPredictionCard" style="display:none;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:24px;">🔮</span>
+        <div>
+          <strong style="font-size:14px;">توقع ذكي</strong>
+          <p id="predictionText" style="font-size:12px; opacity:.9; margin-top:3px;"></p>
+        </div>
+      </div>
     </div>
 
     <!-- GUARD CARD -->
@@ -937,6 +976,7 @@
     <div class="card no-print">
       <div class="card-header">
         <div class="card-title"><div class="card-title-icon">➕</div> إضافة مركبة</div>
+        <span class="anomaly-badge" id="anomalyBadge" style="display:none;"></span>
       </div>
       <div class="card-body">
 
@@ -1118,7 +1158,17 @@
       </div>
     </div>
 
+    <!-- PERFORMANCE ANALYSIS CARD (يظهر في تبويب المعالجة) -->
+    <div class="card no-print" id="performanceCard" style="display:none;">
+      <div class="card-header">
+        <div class="card-title"><div class="card-title-icon purple-bg">📊</div> تحليل أداء رجال الأمن</div>
+        <button class="btn btn-ghost btn-sm" id="closePerformance">❌ إغلاق</button>
+      </div>
+      <div class="card-body" id="guardPerformanceContainer"></div>
+    </div>
+
   </div><!-- /tab processed -->
+
   <!-- ═══ TAB: DASHBOARD ═══ -->
   <div class="tab-content" id="tabDashboard">
     <div class="dash-inner">
@@ -1153,7 +1203,6 @@
       <div class="d-charts-grid2">
         <div class="d-chart-card"><div class="d-chart-title">🔢 توزيع الأدوار</div><div class="d-chart-subtitle">LG مقابل B</div><div class="d-chart-wrap"><canvas id="dChartFloor"></canvas></div></div>
         <div class="d-chart-card"><div class="d-chart-title">👮 نشاط رجال الأمن</div><div class="d-chart-subtitle">عدد السجلات لكل حارس</div><div class="d-chart-wrap"><canvas id="dChartGuard"></canvas></div></div>
-
       </div>
       <!-- Tower detail -->
       <div class="d-sec-title">تفصيل الأبراج</div>
@@ -1173,7 +1222,6 @@
       <div class="d-tbl-card" style="margin-bottom:40px;"><div class="d-tbl-hdr"><div class="d-tbl-title">⏱️ آخر 10 سجلات مرصودة</div><span class="d-badge">حديث</span></div><div id="dActList" class="d-act-list"></div></div>
     </div>
   </div><!-- /tabDashboard -->
-
 
 </div><!-- /main -->
 
@@ -1499,6 +1547,7 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
           <div id="ocrAlternatives" style="margin-top:4px;font-size:11px;color:var(--ink3);"></div>
         </div>
         <button class="btn btn-success btn-sm" id="btnUseOcrPlate">✔ استخدام</button>
+        <button class="btn btn-ghost btn-sm" id="btnCorrectOcr">🔧 تصحيح</button>
       </div>
     </div>
     <div class="flex gap8 mt16" style="justify-content:center;flex-wrap:wrap;">
@@ -1517,7 +1566,6 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
   </div>
 </div>
 
-
 <!-- ══ PDF REPORT MODAL ══ -->
 <div class="modal" id="pdfModal" style="z-index:10001;">
   <div class="modal-box" style="max-width:520px;width:100%;background:#0d1b35;border:1px solid rgba(255,255,255,.1);color:#e2e8f0;">
@@ -1530,28 +1578,32 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:14px;">
-      <!-- Option 1: Full vehicles report -->
       <div onclick="generatePDF('full')" style="background:rgba(26,86,219,.1);border:1px solid rgba(26,86,219,.25);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;" onmouseover="this.style.borderColor='rgba(26,86,219,.6)';this.style.background='rgba(26,86,219,.2)'" onmouseout="this.style.borderColor='rgba(26,86,219,.25)';this.style.background='rgba(26,86,219,.1)'">
         <div style="width:44px;height:44px;background:rgba(26,86,219,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🚗</div>
         <div>
           <div style="font-size:14px;font-weight:700;color:#3b82f6;margin-bottom:4px;">تقرير السيارات الكامل</div>
-          <div style="font-size:11px;color:#94a3b8;">جميع السيارات المرصودة مع كافة التفاصيل: اللوحة، البرج، الدور، الحالة، رجل الأمن، التاريخ والوقت</div>
+          <div style="font-size:11px;color:#94a3b8;">جميع السيارات المرصودة مع كافة التفاصيل</div>
         </div>
       </div>
-      <!-- Option 2: Dashboard summary -->
       <div onclick="generatePDF('summary')" style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;" onmouseover="this.style.borderColor='rgba(139,92,246,.6)';this.style.background='rgba(139,92,246,.2)'" onmouseout="this.style.borderColor='rgba(139,92,246,.25)';this.style.background='rgba(139,92,246,.1)'">
         <div style="width:44px;height:44px;background:rgba(139,92,246,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📊</div>
         <div>
           <div style="font-size:14px;font-weight:700;color:#8b5cf6;margin-bottom:4px;">تقرير الداشبورد المختصر</div>
-          <div style="font-size:11px;color:#94a3b8;">ملخص إحصائي شامل مع الرسوم البيانية والمؤشرات الرئيسية والتحليل حسب الأبراج</div>
+          <div style="font-size:11px;color:#94a3b8;">ملخص إحصائي شامل مع الرسوم البيانية</div>
         </div>
       </div>
-      <!-- Option 3: Resolved vehicles -->
       <div onclick="generatePDF('resolved')" style="background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;" onmouseover="this.style.borderColor='rgba(6,182,212,.5)';this.style.background='rgba(6,182,212,.18)'" onmouseout="this.style.borderColor='rgba(6,182,212,.2)';this.style.background='rgba(6,182,212,.08)'">
         <div style="width:44px;height:44px;background:rgba(6,182,212,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">✅</div>
         <div>
           <div style="font-size:14px;font-weight:700;color:#06b6d4;margin-bottom:4px;">تقرير المركبات المعالجة</div>
-          <div style="font-size:11px;color:#94a3b8;">سجل المركبات التي تمّت معالجتها مع بيانات المالك: الاسم، الهوية، الجوال، سبب التوقف</div>
+          <div style="font-size:11px;color:#94a3b8;">سجل المركبات التي تمّت معالجتها مع بيانات المالك</div>
+        </div>
+      </div>
+      <div onclick="generatePDF('performance')" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;" onmouseover="this.style.borderColor='rgba(245,158,11,.5)';this.style.background='rgba(245,158,11,.18)'" onmouseout="this.style.borderColor='rgba(245,158,11,.2)';this.style.background='rgba(245,158,11,.08)'">
+        <div style="width:44px;height:44px;background:rgba(245,158,11,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📈</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#f59e0b;margin-bottom:4px;">تقرير تحليل الأداء</div>
+          <div style="font-size:11px;color:#94a3b8;">تحليل أداء رجال الأمن والأنماط الشاذة والتوقعات</div>
         </div>
       </div>
     </div>
@@ -1592,7 +1644,468 @@ function jsonpCall(url,ms){
   });
 }
 
-/* ══ LOGIN ══ */
+/* ══ SMART FEATURES ══ */
+
+// ============================================================
+// 1. نظام تنبؤي ذكي (Predictive Intelligence)
+// ============================================================
+const SmartPredictor = {
+  peakHours: {},
+  frequentVehicles: {},
+  
+  analyzePeakHours: function(vehicles) {
+    const hours = {};
+    vehicles.forEach(v => {
+      const time = v.time || getField(v, ["الوقت", "⏰ الوقت"]) || "";
+      if (!time) return;
+      const hour = time.split(":")[0];
+      const tower = v.tower || getField(v, ["البرج", "🏢 البرج"]) || "";
+      if (!tower) return;
+      if (!hours[tower]) hours[tower] = {};
+      if (!hours[tower][hour]) hours[tower][hour] = 0;
+      hours[tower][hour]++;
+    });
+    this.peakHours = hours;
+    return hours;
+  },
+  
+  predictTodayCongestion: function() {
+    const today = new Date().getDay();
+    const predictions = {};
+    Object.keys(this.peakHours).forEach(tower => {
+      predictions[tower] = {};
+      const similarDays = cloudData.filter(v => {
+        const d = fixExcelDate(getField(v, ["تاريخ الرصد", "📅 تاريخ الرصد"]) || "");
+        if (!d) return false;
+        const day = new Date(d).getDay();
+        return day === today && (getField(v, ["البرج", "🏢 البرج"]) || "") === tower;
+      });
+      similarDays.forEach(v => {
+        const time = getField(v, ["الوقت", "⏰ الوقت"]) || "";
+        const hour = time.split(":")[0];
+        if (!hour) return;
+        predictions[tower][hour] = (predictions[tower][hour] || 0) + 1;
+      });
+    });
+    return predictions;
+  },
+  
+  findFrequentVehicles: function() {
+    const vehicles = {};
+    const now = new Date();
+    const oneWeekAgo = new Date(now.setDate(now.getDate() - 7)).toISOString().split('T')[0];
+    cloudData.forEach(v => {
+      const plate = getField(v, ["رقم اللوحة", "🚗 رقم اللوحة"]) || v.plate || "";
+      if (!plate) return;
+      const date = fixExcelDate(getField(v, ["تاريخ الرصد", "📅 تاريخ الرصد"]) || v.obsDate || v.date || "");
+      if (date < oneWeekAgo) return;
+      if (!vehicles[plate]) vehicles[plate] = [];
+      vehicles[plate].push({
+        date: date,
+        time: getField(v, ["الوقت", "⏰ الوقت"]) || v.time || "",
+        tower: getField(v, ["البرج", "🏢 البرج"]) || v.tower || ""
+      });
+    });
+    const frequent = {};
+    Object.keys(vehicles).forEach(plate => {
+      if (vehicles[plate].length >= 3) {
+        frequent[plate] = vehicles[plate];
+      }
+    });
+    this.frequentVehicles = frequent;
+    return frequent;
+  },
+  
+  showSmartAlert: function(plate) {
+    if (!plate) return;
+    const frequent = this.frequentVehicles[plate];
+    if (!frequent) return;
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'smart-alert';
+    alertDiv.innerHTML = `
+      <div style="background: #e0f2fe; border-right: 4px solid #0284c7; padding: 10px 15px; border-radius: 8px; margin: 10px 0;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">🔄</span>
+          <div>
+            <strong style="color: #0369a1;">مركبة متكررة</strong>
+            <p style="font-size: 12px; color: #0c4a6e; margin-top: 3px;">
+              هذه المركبة رُصدت ${frequent.length} مرات خلال الأسبوع الماضي
+            </p>
+          </div>
+        </div>
+        <div style="margin-top: 8px; font-size: 11px; color: #0369a1;">
+          آخر رصد: ${frequent[frequent.length-1].date} ${frequent[frequent.length-1].time} - برج ${frequent[frequent.length-1].tower}
+        </div>
+      </div>
+    `;
+    
+    const plateField = document.querySelector('.plate-cells-wrap');
+    if (plateField && !document.querySelector('.smart-alert')) {
+      plateField.parentNode.insertBefore(alertDiv, plateField.nextSibling);
+      setTimeout(() => {
+        const alert = document.querySelector('.smart-alert');
+        if (alert) alert.remove();
+      }, 5000);
+    }
+  },
+  
+  showPredictionCard: function() {
+    const predictions = this.predictTodayCongestion();
+    const now = new Date();
+    const currentHour = now.getHours().toString();
+    let message = "";
+    
+    Object.keys(predictions).forEach(tower => {
+      if (predictions[tower][currentHour]) {
+        message += `برج ${tower}: ${predictions[tower][currentHour]} مركبة متوقعة هذه الساعة. `;
+      }
+    });
+    
+    if (message) {
+      const card = $("smartPredictionCard");
+      $("predictionText").textContent = message;
+      card.style.display = "block";
+      setTimeout(() => { card.style.display = "none"; }, 8000);
+    }
+  }
+};
+
+// ============================================================
+// 2. نظام تحليل سلوكي متقدم
+// ============================================================
+const BehavioralAnalyzer = {
+  guardPerformance: {},
+  
+  analyzeGuardPerformance: function() {
+    const guards = {};
+    cloudData.forEach(v => {
+      const guard = getField(v, ["رجل الأمن", "👤 رجل الأمن"]) || v.empName || "";
+      if (!guard) return;
+      if (!guards[guard]) {
+        guards[guard] = {
+          total: 0,
+          resolved: 0,
+          withPhotos: 0,
+          byTower: { A: 0, B: 0, C: 0 },
+          byDate: {}
+        };
+      }
+      guards[guard].total++;
+      const tower = getField(v, ["البرج", "🏢 البرج"]) || v.tower || "";
+      if (guards[guard].byTower[tower] !== undefined) {
+        guards[guard].byTower[tower]++;
+      }
+      const hasImg = getField(v, ["صورة", "📷 صورة"]) || v.hasImage || "";
+      if (hasImg === "نعم") guards[guard].withPhotos++;
+      const date = fixExcelDate(getField(v, ["تاريخ الرصد", "📅 تاريخ الرصد"]) || v.obsDate || v.date || "");
+      if (date) {
+        if (!guards[guard].byDate[date]) guards[guard].byDate[date] = 0;
+        guards[guard].byDate[date]++;
+      }
+    });
+    
+    resolvedData.forEach(v => {
+      const guard = getField(v, ["رجل الأمن", "👤 رجل الأمن"]) || v.empName || "";
+      if (!guard) return;
+      if (guards[guard]) {
+        guards[guard].resolved++;
+      }
+    });
+    
+    Object.keys(guards).forEach(g => {
+      const guard = guards[g];
+      guard.efficiency = guard.total > 0 ? Math.round((guard.resolved / guard.total) * 100) : 0;
+      guard.photoRate = guard.total > 0 ? Math.round((guard.withPhotos / guard.total) * 100) : 0;
+    });
+    
+    this.guardPerformance = guards;
+    return guards;
+  },
+  
+  detectAnomalies: function() {
+    const anomalies = [];
+    cloudData.forEach(v => {
+      const time = getField(v, ["الوقت", "⏰ الوقت"]) || v.time || "";
+      if (!time) return;
+      const hour = parseInt(time.split(":")[0]);
+      if (hour >= 0 && hour <= 4) {
+        anomalies.push({
+          type: "late_night",
+          severity: "medium",
+          plate: getField(v, ["رقم اللوحة", "🚗 رقم اللوحة"]) || v.plate || "",
+          time: time,
+          date: fixExcelDate(getField(v, ["تاريخ الرصد", "📅 تاريخ الرصد"]) || v.obsDate || v.date || "")
+        });
+      }
+    });
+    
+    const guards = this.guardPerformance;
+    const values = Object.values(guards).map(g => g.total);
+    if (values.length > 0) {
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      const threshold = avg * 2;
+      Object.keys(guards).forEach(g => {
+        if (guards[g].total > threshold) {
+          anomalies.push({
+            type: "high_activity",
+            severity: "low",
+            guard: g,
+            count: guards[g].total,
+            avg: Math.round(avg)
+          });
+        }
+      });
+    }
+    
+    if (anomalies.length > 0) {
+      const badge = $("anomalyBadge");
+      badge.textContent = `⚠️ ${anomalies.length} نمط شاذ`;
+      badge.style.display = "inline-block";
+    }
+    
+    return anomalies;
+  },
+  
+  renderPerformanceReport: function() {
+    const guards = this.analyzeGuardPerformance();
+    const container = $("guardPerformanceContainer");
+    if (!container) return;
+    
+    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">';
+    
+    Object.keys(guards).sort((a, b) => guards[b].total - guards[a].total).forEach(guard => {
+      const g = guards[guard];
+      const efficiencyColor = g.efficiency > 70 ? '#059669' : (g.efficiency > 40 ? '#d97706' : '#dc2626');
+      
+      html += `
+        <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <strong style="color: #0e2a5c; font-size: 14px;">${guard}</strong>
+            <span style="background: ${efficiencyColor}; color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 11px;">
+              كفاءة ${g.efficiency}%
+            </span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 11px; color: #64748b;">رصدات</div>
+              <div style="font-size: 20px; font-weight: 800; color: #0e2a5c;">${g.total}</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: #64748b;">معالجات</div>
+              <div style="font-size: 20px; font-weight: 800; color: #0891b2;">${g.resolved}</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+            <div style="background: #f8fafc; padding: 8px; border-radius: 8px;">
+              <div style="font-size: 10px; color: #64748b;">بصور</div>
+              <div style="font-size: 14px; font-weight: 700; color: #059669;">${g.withPhotos} (${g.photoRate}%)</div>
+            </div>
+            <div style="background: #f8fafc; padding: 8px; border-radius: 8px;">
+              <div style="font-size: 10px; color: #64748b;">معدل يومي</div>
+              <div style="font-size: 14px; font-weight: 700; color: #7c3aed;">${Math.round(g.total / (Object.keys(g.byDate).length || 1))}</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #64748b; margin-bottom: 4px;">توزيع الأبراج</div>
+            <div style="display: flex; gap: 6px;">
+              <span style="background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 6px; font-size: 10px;">A: ${g.byTower.A}</span>
+              <span style="background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 6px; font-size: 10px;">B: ${g.byTower.B}</span>
+              <span style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 6px; font-size: 10px;">C: ${g.byTower.C}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    $("performanceCard").style.display = "block";
+  }
+};
+
+// ============================================================
+// 3. نظام OCR متعلم (Self-Learning OCR)
+// ============================================================
+const SmartOCR = {
+  corrections: {},
+  
+  init: function() {
+    try {
+      const saved = localStorage.getItem('ocr_corrections');
+      if (saved) this.corrections = JSON.parse(saved);
+    } catch (e) {}
+  },
+  
+  saveCorrection: function(wrong, correct) {
+    if (!wrong || !correct || wrong === correct) return;
+    if (!this.corrections[wrong]) this.corrections[wrong] = [];
+    this.corrections[wrong].push({
+      correct: correct,
+      timestamp: new Date().toISOString(),
+      count: (this.corrections[wrong].length || 0) + 1
+    });
+    try {
+      localStorage.setItem('ocr_corrections', JSON.stringify(this.corrections));
+    } catch (e) {}
+  },
+  
+  enhanceResult: function(ocrResult) {
+    if (!ocrResult) return ocrResult;
+    if (this.corrections[ocrResult]) {
+      const lastCorrect = this.corrections[ocrResult][this.corrections[ocrResult].length - 1];
+      return lastCorrect.correct;
+    }
+    let enhanced = ocrResult;
+    const charMap = {
+      '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5',
+      '٦': '6', '٧': '7', '٨': '8', '٩': '9', '٠': '0',
+      'I': '1', 'O': '0', 'Z': '2', 'S': '5', 'B': '8'
+    };
+    enhanced = enhanced.split('').map(c => charMap[c] || c).join('');
+    return enhanced;
+  },
+  
+  showCorrectionDialog: function(wrongPlate) {
+    if (!wrongPlate) return;
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: #fff; border-radius: 16px; padding: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3); z-index: 10001;
+      width: 320px; border: 1px solid #e2e8f0;
+    `;
+    
+    dialog.innerHTML = `
+      <div style="margin-bottom: 16px;">
+        <strong style="font-size: 16px;">🔍 تصحيح قراءة اللوحة</strong>
+        <p style="font-size: 13px; color: #64748b; margin-top: 8px;">
+          تمت القراءة: <span style="font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">${wrongPlate}</span>
+        </p>
+      </div>
+      <input type="text" id="ocrCorrectInput" style="width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px; font-family: monospace; font-size: 16px;" placeholder="أدخل اللوحة الصحيحة">
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn btn-ghost btn-sm" id="ocrCancelCorrection">إلغاء</button>
+        <button class="btn btn-primary btn-sm" id="ocrSaveCorrection">حفظ</button>
+      </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    const input = document.getElementById('ocrCorrectInput');
+    input.focus();
+    
+    document.getElementById('ocrSaveCorrection').addEventListener('click', () => {
+      const correct = input.value.trim().toUpperCase();
+      if (correct) {
+        this.saveCorrection(wrongPlate, correct);
+        if (window.setPlateValue) window.setPlateValue(correct);
+        alert('✅ تم حفظ التصحيح. سيتحسن التعرف مستقبلاً.');
+      }
+      dialog.remove();
+    });
+    
+    document.getElementById('ocrCancelCorrection').addEventListener('click', () => {
+      dialog.remove();
+    });
+  }
+};
+
+// ============================================================
+// 4. نظام إنذار ذكي
+// ============================================================
+const SmartAlertSystem = {
+  watchlist: [],
+  
+  init: function() {
+    try {
+      const saved = localStorage.getItem('smart_watchlist');
+      if (saved) this.watchlist = JSON.parse(saved);
+    } catch (e) {}
+  },
+  
+  addToWatchlist: function(plate, reason, priority = 'medium') {
+    if (!plate) return;
+    this.watchlist.push({
+      plate: plate.toUpperCase().replace(/\s/g, ''),
+      reason: reason,
+      priority: priority,
+      addedAt: new Date().toISOString()
+    });
+    localStorage.setItem('smart_watchlist', JSON.stringify(this.watchlist));
+  },
+  
+  checkPlate: function(plate) {
+    if (!plate) return null;
+    const normalized = plate.toUpperCase().replace(/\s/g, '');
+    return this.watchlist.find(item => item.plate === normalized);
+  },
+  
+  showCriticalAlert: function(plate, reason, priority) {
+    const colors = {
+      critical: { bg: '#fee2e2', border: '#dc2626', text: '#991b1b', icon: '🚨' },
+      high: { bg: '#ffedd5', border: '#f97316', text: '#9a3412', icon: '⚠️' },
+      medium: { bg: '#fef9c3', border: '#eab308', text: '#854d0e', icon: '⚡' }
+    };
+    const style = colors[priority] || colors.medium;
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+      position: fixed; top: 20px; right: 20px; z-index: 10002;
+      background: ${style.bg}; border-right: 6px solid ${style.border};
+      border-radius: 12px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.2);
+      max-width: 350px; animation: slideIn 0.3s ease;
+    `;
+    
+    alertDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 30px;">${style.icon}</span>
+        <div>
+          <strong style="color: ${style.text}; font-size: 16px;">تنبيه أمني فوري</strong>
+          <p style="color: ${style.text}; font-size: 13px; margin-top: 4px;">
+            اللوحة: <span style="font-family: monospace; font-weight: 800;">${plate}</span>
+          </p>
+          <p style="color: ${style.text}; font-size: 12px; margin-top: 4px;">
+            ${reason}
+          </p>
+          <button id="dismissAlert" style="background: ${style.border}; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; margin-top: 10px; font-size: 12px; cursor: pointer;">
+            تم الإبلاغ
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    document.getElementById('dismissAlert').addEventListener('click', () => {
+      alertDiv.remove();
+    });
+    
+    if (priority === 'critical') {
+      $("smartAlert").textContent = "🚨 تنبيه أمني!";
+    }
+  }
+};
+
+// ============================================================
+// تعديل وظيفة OCR لاستخدام التحسينات
+// ============================================================
+const originalRecognizePlate = recognizePlate;
+recognizePlate = async function(imageBase64) {
+  const result = await originalRecognizePlate(imageBase64);
+  if (result) {
+    const enhanced = SmartOCR.enhanceResult(result);
+    if (enhanced !== result) {
+      setTimeout(() => {
+        if (confirm(`اقتراح ذكي: "${result}" ← "${enhanced}"\nهل تريد استخدام "${enhanced}"؟`)) {
+          if (window.setPlateValue) window.setPlateValue(enhanced);
+        }
+      }, 500);
+    }
+    return enhanced;
+  }
+  return result;
+};
+
+/* ══ LOGIN (معدل لإضافة التهيئة) ══ */
 var loginEmpId   = $("loginEmpId");
 var loginPassword= $("loginPassword");
 var loginBtn     = $("loginBtn");
@@ -1652,9 +2165,12 @@ function onLoginSuccess(){
   setTimeout(function(){
     loginScreen.style.display="none";
     appWrapper.classList.add("visible");
-    /* عرض البيانات المحلية فوراً بدون انتظار السحابة */
+    
+    // تهيئة الأنظمة الذكية
+    SmartOCR.init();
+    SmartAlertSystem.init();
+    
     renderTable();renderProcessedTable();updateStats();
-    /* ثم جلب البيانات من السحابة في الخلفية */
     loadFromCloud(cloudData.length===0);
   },300);
 }
@@ -1672,7 +2188,7 @@ $("btnLogout").addEventListener("click",doLogout);
 window.addEventListener("load",function(){if(loadSession()){onLoginSuccess();}else{loginEmpId.focus();}});
 
 /* ══════════════════════════════════════
-   DASHBOARD JS
+   DASHBOARD JS (معدل لإضافة تحليلات ذكية)
 ══════════════════════════════════════ */
 var _dCharts={};
 function _dDestroy(id){if(_dCharts[id]){_dCharts[id].destroy();delete _dCharts[id];}}
@@ -1761,7 +2277,6 @@ function renderDashboard(){
   var gLbls=gEntries.map(function(e){return e[0];}),gVals=gEntries.map(function(e){return e[1];});
   _dDestroy("guard");_dCharts["guard"]=new Chart($("dChartGuard"),{type:"bar",data:{labels:gLbls,datasets:[{data:gVals,backgroundColor:"rgba(139,92,246,.6)",borderColor:"rgba(139,92,246,1)",borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",plugins:{legend:{display:false},tooltip:{rtl:true,textDirection:"rtl",callbacks:{label:function(i){return " "+i.raw+" سجل";}}}},scales:{x:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"#475569",precision:0}},y:{grid:{display:false},ticks:{color:"#94a3b8",font:{size:10}}}}}});
 
-
   // Tower Progress
   function towerProg(tId,elId){
     var tv=vehicles.filter(function(v){return v.tower===tId;}),tot=tv.length||1;
@@ -1800,10 +2315,17 @@ function renderDashboard(){
     var chipCls=v.status==="مغبرة"?"dust":v.status==="حديثة"?"new":"mid";
     al.innerHTML+='<div class="d-act-item"><div class="d-act-dot" style="background:'+dc+';box-shadow:0 0 6px '+dc+';"></div><div class="d-act-txt">تم رصد <b>'+(v.plate||"—")+'</b> في برج '+v.tower+' — دور '+v.floor+'&nbsp;&nbsp;<span class="d-chip '+chipCls+'">'+(v.status||"—")+'</span></div><div class="d-act-time">'+v.date+' '+v.time+'</div></div>';
   });
+  
+  // تشغيل التحليلات الذكية بعد تحديث الداشبورد
+  setTimeout(() => {
+    SmartPredictor.analyzePeakHours(vehicles);
+    SmartPredictor.findFrequentVehicles();
+    BehavioralAnalyzer.analyzeGuardPerformance();
+    BehavioralAnalyzer.detectAnomalies();
+  }, 500);
 }
 
 function dPlate(p){p=String(p||"").trim().toUpperCase().replace(/\s/g,"");if(!p)return'<span style="color:#475569;">—</span>';var chars=p.split("").slice(0,7);while(chars.length<7)chars.push("");var html='<div class="d-plate">';for(var i=0;i<3;i++)html+='<span>'+(chars[i]||"&nbsp;")+"</span>";html+='<span class="d-sep"></span>';for(var i=3;i<7;i++)html+='<span>'+(chars[i]||"&nbsp;")+"</span>";return html+"</div>";}
-
 
 /* ══ TABS ══ */
 window.switchTab=function(tab){
@@ -1856,7 +2378,7 @@ var localImages={};
 var cameraStream=null;
 var isSyncing=false;
 var currentImgBase64=null;
-var pendingResolveRecord=null; // السجل المراد إنهاء إجراءاته
+var pendingResolveRecord=null;
 
 function renderPlate(plate){
   var chars=(plate||"").toUpperCase().replace(/\s/g,"").split("").slice(0,7);
@@ -1919,7 +2441,6 @@ function setSyncStatus(state,msg){var dotClass={loading:"pulse",ok:"ok",error:"e
 async function loadFromCloud(showLoader){
   if(isSyncing)return;
   isSyncing=true;els.btnSync.disabled=true;
-  /* عرض skeleton rows بدلاً من overlay مزعج */
   if(showLoader&&cloudData.length===0){
     var skRows="";
     for(var s=0;s<6;s++){
@@ -1931,7 +2452,6 @@ async function loadFromCloud(showLoader){
   }
   setSyncStatus("loading","⏳ جارٍ جلب البيانات…");
   try{
-    /* تشغيل الطلبين بالتوازي لتسريع التحميل */
     var results=await Promise.allSettled([
       jsonpCall(GS_URL+"?action=getAll",12000),
       jsonpCall(GS_URL+"?action=getResolved",12000)
@@ -1951,6 +2471,16 @@ async function loadFromCloud(showLoader){
     setSyncStatus("ok","✅ "+cloudData.length+" سجل | "+new Date().toLocaleTimeString("ar-SA"));
     setStatus("تم تحميل "+cloudData.length+" سجل");
     var p=els.plate.value.trim().toUpperCase();if(p)checkPlateExists(p);
+    
+    // تشغيل التحليلات الذكية بعد تحميل البيانات
+    setTimeout(() => {
+      SmartPredictor.analyzePeakHours(cloudData);
+      SmartPredictor.findFrequentVehicles();
+      SmartPredictor.showPredictionCard();
+      BehavioralAnalyzer.analyzeGuardPerformance();
+      BehavioralAnalyzer.detectAnomalies();
+    }, 1000);
+    
   }catch(err){
     setSyncStatus("error","⚠️ "+err.message);setStatus("❌ تعذّر الاتصال");cloudData=[];renderTable();renderProcessedTable();updateStats();
   }finally{
@@ -2014,9 +2544,18 @@ function checkPlateExists(plateVal){
     });
     els.ownerAlertCard.classList.add("show");
   }else{els.ownerAlertCard.classList.remove("show");}
+  
+  // فحص في قائمة المراقبة الذكية
+  const watchItem = SmartAlertSystem.checkPlate(target);
+  if (watchItem) {
+    SmartAlertSystem.showCriticalAlert(target, watchItem.reason, watchItem.priority);
+  }
+  
+  // فحص المركبات المتكررة
+  SmartPredictor.showSmartAlert(target);
 }
 
-/* ══ RESOLVE MODAL ══ */
+/* ══ RESOLVE MODAL (معدل) ══ */
 var resolveModalEl=$("resolveModal");
 
 function openResolveModal(record){
@@ -2032,7 +2571,6 @@ function openResolveModal(record){
 
   $("resolvePlateDisplay").textContent=plate||"— — —";
 
-  // ملء البيانات المعروفة من صاحب مركبة سابق
   var ownerMatch=resolvedData.filter(function(v){
     var p=String(v["رقم اللوحة"]||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
     return p===plate.trim().toUpperCase().replace(/\s/g,"")&&p!=="";
@@ -2087,7 +2625,6 @@ $("confirmResolve").addEventListener("click",async function(){
     "ملاحظات":$("resolveNotes").value.trim(),
     "رجل الأمن":currentUser.name,
     "الرقم الوظيفي":currentUser.empId,
-    /* نحفظ أيضاً المفاتيح الإنجليزية للإرسال للسيرفر */
     plate:plate,tower:tower,floor:floor,
     ownerName:ownerName,ownerIdNum:ownerIdNum,
     ownerPhone:$("ownerPhone").value.trim(),
@@ -2208,7 +2745,6 @@ function updateStats(){
   $("tabBadgeMonitor").textContent=list.length;
   $("tabBadgeProcessed").textContent=resolvedData.length;
 
-  // stats in processed tab
   var rLen=resolvedData.length;
   $("statProcessedTotal").textContent=rLen;
   if(rLen>0){
@@ -2232,7 +2768,6 @@ function normalizeDriveUrl(u){
 }
 
 function renderTable(){
-  /* استخدام DocumentFragment لأداء أسرع */
   var fragment=document.createDocumentFragment();
   els.tableBody.innerHTML="";
   if(!cloudData.length){
@@ -2303,7 +2838,6 @@ function renderTable(){
       '<td>'+(v.guard?'<span class="guard-pill">'+v.guard+'</span>':'<span style="color:var(--border);">—</span>')+'</td>'+
       '<td class="no-print">'+resolveBtn+'</td>';
 
-    // أحداث زر الإنهاء
     var btn=tr.querySelector(".resolve-btn-inline");
     if(btn){
       btn.addEventListener("click",function(){openResolveModal(v._raw);});
@@ -2322,7 +2856,6 @@ function renderTable(){
 }
 
 function getRF(v,arKey,enKey){
-  /* يقرأ الحقل من مصدرين: المفتاح العربي (بيانات السيرفر) أو المفتاح الإنجليزي (بيانات محلية) */
   var val=v[arKey];
   if(val===undefined||val===null||val==="")val=enKey?v[enKey]:"";
   return String(val||"").trim();
@@ -2490,6 +3023,14 @@ $("ocrFileInput").addEventListener("change",async function(e){
   };reader.readAsDataURL(file);
 });
 
+// زر تصحيح OCR
+$("btnCorrectOcr").addEventListener("click", function(){
+  const currentPlate = $("ocrPlateText").textContent;
+  if (currentPlate) {
+    SmartOCR.showCorrectionDialog(currentPlate);
+  }
+});
+
 window.copyScript=function(){
   var code=$("scriptCode").textContent;
   navigator.clipboard.writeText(code).then(function(){alert("✅ تم النسخ!");}).catch(function(){alert("انسخ الكود يدوياً.");});
@@ -2514,9 +3055,19 @@ els.closeImage.addEventListener("click",function(){els.imageModal.classList.remo
 els.imageModal.addEventListener("click",function(e){if(e.target===els.imageModal)els.imageModal.classList.remove("active");});
 els.plate.addEventListener("input",function(){checkPlateExists(els.plate.value.trim().toUpperCase());});
 
+// زر عرض تحليل الأداء
+$("btnShowPerformance").addEventListener("click", function(){
+  BehavioralAnalyzer.renderPerformanceReport();
+});
+
+// إغلاق بطاقة الأداء
+$("closePerformance").addEventListener("click", function(){
+  $("performanceCard").style.display = "none";
+});
+
 document.addEventListener("keydown",function(e){
   if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();addVehicle();}
-  if(e.key==="Escape"){closeCamera();els.imageModal.classList.remove("active");els.setupModal.classList.remove("active");resolveModalEl.classList.remove("active");}
+  if(e.key==="Escape"){closeCamera();els.imageModal.classList.remove("active");els.setupModal.classList.remove("active");resolveModalEl.classList.remove("active");$("performanceCard").style.display = "none";}
 });
 
 loadLocal();
@@ -2548,6 +3099,7 @@ window.debugResolved = function(){
   }
   alert(info);
 };
+
 window.openPdfModal = function(){
   $("pdfModal").classList.add("active");
   $("pdfGenStatus").style.display="none";
@@ -2561,6 +3113,7 @@ window.generatePDF = function(type) {
     if(type==="full") generateFullVehiclesPDF();
     else if(type==="summary") generateSummaryPDF();
     else if(type==="resolved") generateResolvedPDF();
+    else if(type==="performance") generatePerformancePDF();
   }, 100);
 };
 
@@ -2592,7 +3145,6 @@ function makeArabicPdfWindow(title, htmlContent) {
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'IBM Plex Sans Arabic',sans-serif;background:#f8f9fc;color:#0e2a5c;font-size:12px;line-height:1.6;}
   .page{max-width:1100px;margin:0 auto;padding:24px;}
-  /* HEADER */
   .report-header{background:linear-gradient(135deg,#0e2a5c,#1a56db);color:#fff;padding:28px 32px;border-radius:16px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;}
   .rh-logo{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;margin-left:16px;}
   .rh-title{font-size:22px;font-weight:800;letter-spacing:-.5px;}
@@ -2600,16 +3152,13 @@ function makeArabicPdfWindow(title, htmlContent) {
   .rh-meta{text-align:left;}
   .rh-meta-date{font-size:13px;font-weight:700;}
   .rh-meta-guard{font-size:11px;opacity:.7;margin-top:3px;}
-  /* KPI CARDS */
   .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
   .kpi-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;box-shadow:0 1px 8px rgba(0,0,0,.04);}
   .kpi-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;line-height:1;margin-bottom:4px;}
   .kpi-lbl{font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
   .kpi-card.blue .kpi-val{color:#1a56db;} .kpi-card.green .kpi-val{color:#059669;} .kpi-card.red .kpi-val{color:#dc2626;} .kpi-card.amber .kpi-val{color:#d97706;} .kpi-card.cyan .kpi-val{color:#0891b2;}
-  /* SECTION */
   .sec-title{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin:20px 0 12px;padding-bottom:8px;border-bottom:2px solid #e2e8f0;display:flex;align-items:center;gap:8px;}
   .sec-title::before{content:'';display:inline-block;width:4px;height:16px;background:#1a56db;border-radius:2px;}
-  /* TABLE */
   table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:11px;}
   thead tr{background:#0e2a5c;}
   th{padding:10px 12px;color:rgba(255,255,255,.8);font-weight:700;font-size:10px;text-align:right;letter-spacing:.4px;}
@@ -2625,7 +3174,6 @@ function makeArabicPdfWindow(title, htmlContent) {
   .s-mid{background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;}
   .s-dust{background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;}
   .guard-p{background:#f5f3ff;color:#5b21b6;padding:2px 8px;border-radius:4px;font-size:10px;}
-  /* SUMMARY */
   .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
   .summary-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;}
   .summary-card h4{font-size:12px;font-weight:700;color:#0e2a5c;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e2e8f0;}
@@ -2633,17 +3181,14 @@ function makeArabicPdfWindow(title, htmlContent) {
   .stat-row:last-child{border-bottom:none;}
   .stat-row .label{color:#64748b;}
   .stat-row .value{font-family:'JetBrains Mono',monospace;font-weight:700;color:#0e2a5c;}
-  /* CHART */
   .chart-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
   .chart-box{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;}
   .chart-box h4{font-size:11px;font-weight:700;color:#0e2a5c;margin-bottom:12px;}
   .chart-box canvas{max-height:180px;}
-  /* PRINT BTN */
   .print-bar{background:#1a56db;color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-radius:12px;margin-bottom:20px;}
   .print-bar h3{font-size:15px;font-weight:700;}
   .print-btn{background:#fff;color:#1a56db;border:none;padding:9px 20px;border-radius:8px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;}
   .print-btn:hover{background:#eff6ff;}
-  /* footer */
   .rpt-footer{margin-top:24px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#94a3b8;}
   @media print {
     body{background:#fff;}
@@ -2662,7 +3207,7 @@ function makeArabicPdfWindow(title, htmlContent) {
   ${htmlContent}
   <div class="rpt-footer">
     <span>تم الإنشاء بواسطة: ${guardName} (${guardId})</span>
-    <span>نظام رصد السيارات — Google Sheets</span>
+    <span>نظام رصد السيارات — النسخة فائقة الذكاء</span>
     <span>${dateStr} — ${timeStr}</span>
   </div>
 </div>
@@ -2723,7 +3268,7 @@ function generateFullVehiclesPDF() {
         <div class="rh-logo">🚗</div>
         <div>
           <div class="rh-title">تقرير السيارات المرصودة الكامل</div>
-          <div class="rh-sub">نظام المراقبة الذكي — Google Sheets</div>
+          <div class="rh-sub">نظام المراقبة الذكي — النسخة فائقة الذكاء</div>
         </div>
       </div>
       <div class="rh-meta">
@@ -2798,7 +3343,6 @@ function generateSummaryPDF() {
   var gM={};vehicles.forEach(function(v){if(v.guard){var g=v.guard.split(" ").slice(0,2).join(" ");gM[g]=(gM[g]||0)+1;}});
   var gTop=Object.entries(gM).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
 
-  // Build last 7 days
   var days7={};for(var i=6;i>=0;i--){var d2=new Date();d2.setDate(d2.getDate()-i);days7[d2.toISOString().slice(0,10)]=0;}
   vehicles.forEach(function(v){if(days7[v.date]!==undefined)days7[v.date]++;});
   var dayLbls=Object.keys(days7).map(function(d){return d.slice(5);});
@@ -2962,6 +3506,80 @@ function generateResolvedPDF() {
   makeArabicPdfWindow("تقرير المركبات المعالجة", html);
 }
 
+function generatePerformancePDF() {
+  const guards = BehavioralAnalyzer.analyzeGuardPerformance();
+  const anomalies = BehavioralAnalyzer.detectAnomalies();
+  const predictions = SmartPredictor.predictTodayCongestion();
+  
+  let guardsHtml = '';
+  Object.keys(guards).sort((a,b) => guards[b].total - guards[a].total).forEach(g => {
+    const grd = guards[g];
+    guardsHtml += `
+      <tr>
+        <td><b>${g}</b></td>
+        <td style="text-align:center;">${grd.total}</td>
+        <td style="text-align:center;">${grd.resolved}</td>
+        <td style="text-align:center;">${grd.withPhotos}</td>
+        <td style="text-align:center;">${grd.efficiency}%</td>
+        <td style="text-align:center;">${grd.photoRate}%</td>
+      </tr>
+    `;
+  });
+  
+  let anomaliesHtml = '';
+  anomalies.slice(0,10).forEach(a => {
+    if (a.type === 'late_night') {
+      anomaliesHtml += `<tr><td>⏰ رصد متأخر</td><td>${a.plate}</td><td>${a.date} ${a.time}</td><td class="anomaly-badge">متوسط</td></tr>`;
+    } else if (a.type === 'high_activity') {
+      anomaliesHtml += `<tr><td>📈 نشاط مرتفع</td><td>${a.guard}</td><td>${a.count} سجل</td><td class="anomaly-badge">منخفض</td></tr>`;
+    }
+  });
+  
+  let predictionsHtml = '';
+  Object.keys(predictions).forEach(t => {
+    const hours = Object.keys(predictions[t]).sort();
+    predictionsHtml += `<p>🏢 برج ${t}: ${hours.map(h => `الساعة ${h}: ${predictions[t][h]} مركبة`).join(' · ')}</p>`;
+  });
+  
+  const html = `
+    <div class="report-header" style="background:linear-gradient(135deg,#b45309,#d97706);">
+      <div style="display:flex;align-items:center;">
+        <div class="rh-logo">📈</div>
+        <div>
+          <div class="rh-title">تقرير تحليل الأداء</div>
+          <div class="rh-sub">تحليل متقدم لأداء رجال الأمن والأنماط الشاذة</div>
+        </div>
+      </div>
+      <div class="rh-meta">
+        <div class="rh-meta-date">${new Date().toLocaleDateString('ar-SA')}</div>
+        <div class="rh-meta-guard">تحليل ذكي تلقائي</div>
+      </div>
+    </div>
+    
+    <div class="summary-card" style="margin-bottom:20px;">
+      <h4>🔮 توقعات اليوم</h4>
+      ${predictionsHtml || '<p style="color:#94a3b8;">لا توجد بيانات كافية للتوقع</p>'}
+    </div>
+    
+    <div class="summary-card" style="margin-bottom:20px;">
+      <h4>👮 أداء رجال الأمن</h4>
+      <table style="width:100%;">
+        <thead><tr><th>الاسم</th><th>الرصدات</th><th>المعالجات</th><th>بصور</th><th>الكفاءة</th><th>نسبة الصور</th></tr></thead>
+        <tbody>${guardsHtml || '<tr><td colspan="6" style="text-align:center;">لا توجد بيانات</td></tr>'}</tbody>
+      </table>
+    </div>
+    
+    <div class="summary-card">
+      <h4>⚠️ الأنماط الشاذة</h4>
+      <table style="width:100%;">
+        <thead><tr><th>النوع</th><th>التفاصيل</th><th>التاريخ/الوقت</th><th>الخطورة</th></tr></thead>
+        <tbody>${anomaliesHtml || '<tr><td colspan="4" style="text-align:center;">لا توجد أنماط شاذة</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+  
+  makeArabicPdfWindow("تقرير تحليل الأداء", html);
+}
 
 })();
 </script>
