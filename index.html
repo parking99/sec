@@ -2198,21 +2198,25 @@ async function addVehicle(){
 
 function isResolved(plate,obsDate,obsTime){
   plate=String(plate||"").trim().toUpperCase().replace(/\s/g,"");
-  return resolvedData.some(function(v){
+  /* أحدث سجل معالجة لهذه اللوحة */
+  var matches=resolvedData.filter(function(v){
     var p=String(v["رقم اللوحة"]||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
-    if(p!==plate||p==="")return false;
-    /* إذا تاريخ+وقت الرصد أحدث من تاريخ+وقت المعالجة → مركبة جديدة */
-    if(obsDate){
-      var resolveDate=String(v["تاريخ المعالجة"]||v.resolveDate||"").trim();
-      var resolveTime=String(v["وقت المعالجة"]||v.resolveTime||"00:00").trim();
-      if(resolveDate){
-        var obsStamp=obsDate+"T"+(obsTime||"00:00");
-        var resStamp=resolveDate+"T"+resolveTime;
-        if(obsStamp>resStamp)return false;
-      }
-    }
-    return true;
+    return p===plate&&p!=="";
   });
+  if(!matches.length)return false;
+  /* إذا لم يُمرَّر تاريخ الرصد → نعتبرها معالجة */
+  if(!obsDate)return true;
+  /* نأخذ أحدث تاريخ معالجة */
+  var latestResolve=matches.reduce(function(best,v){
+    var rd=String(v["تاريخ المعالجة"]||v.resolveDate||"").trim();
+    var rt=String(v["وقت المعالجة"]||v.resolveTime||"00:00").trim();
+    var stamp=rd+"T"+rt;
+    return stamp>best?stamp:best;
+  },"");
+  /* وقت الرصد */
+  var obsStamp=String(obsDate).trim()+"T"+String(obsTime||"00:00").trim().slice(0,5);
+  /* إذا وقت الرصد مساوٍ أو أحدث من وقت المعالجة → مركبة جديدة (ليست معالجة) */
+  return obsStamp<latestResolve;
 }
 
 function updateStats(){
