@@ -2206,11 +2206,16 @@ function isResolved(plate){
 
 function updateStats(){
   var list=cloudData,today=new Date().toISOString().split("T")[0];
-  els.statTotal.textContent=list.length;
-  els.statToday.textContent=list.filter(function(v){return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===today;}).length;
-  els.statWithPhotos.textContent=list.filter(function(v){return(getField(v,["صورة","📷 صورة"])||v.hasImage||"")==="نعم";}).length;
+  /* قائمة المرصودة الفعلية (بدون المعالجة) */
+  var activeList=list.filter(function(v){
+    var vPlate=String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
+    return !isResolved(vPlate);
+  });
+  els.statTotal.textContent=activeList.length;
+  els.statToday.textContent=activeList.filter(function(v){return fixExcelDate(getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"")===today;}).length;
+  els.statWithPhotos.textContent=activeList.filter(function(v){return(getField(v,["صورة","📷 صورة"])||v.hasImage||"")==="نعم";}).length;
   els.statProcessed.textContent=resolvedData.length;
-  $("tabBadgeMonitor").textContent=list.length;
+  $("tabBadgeMonitor").textContent=activeList.length;
   $("tabBadgeProcessed").textContent=resolvedData.length;
 
   // stats in processed tab
@@ -2240,11 +2245,16 @@ function renderTable(){
   /* استخدام DocumentFragment لأداء أسرع */
   var fragment=document.createDocumentFragment();
   els.tableBody.innerHTML="";
-  if(!cloudData.length){
+  /* ── فلترة المركبات المعالجة من الجدول الحالي ── */
+  var activeData=cloudData.filter(function(v){
+    var vPlate=String(getField(v,["رقم اللوحة","🚗 رقم اللوحة"])||v.plate||"").trim().toUpperCase().replace(/\s/g,"");
+    return !isResolved(vPlate);
+  });
+  if(!activeData.length){
     els.tableBody.innerHTML='<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🚗</div><div class="empty-title">لا توجد بيانات بعد</div><div class="empty-sub">أضف سجلاً أو اضغط "تحديث"</div></div></td></tr>';
     els.footerCount.textContent="0 سجل";return;
   }
-  var rows=cloudData.map(function(v){
+  var rows=activeData.map(function(v){
     var rawDate=getField(v,["تاريخ الرصد","📅 تاريخ الرصد"])||v.obsDate||v.date||"";
     var rawTime=getField(v,["الوقت","⏰ الوقت"])||v.time||"";
     return {
