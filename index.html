@@ -12,6 +12,22 @@
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+  <script>
+  (function(){
+    document.addEventListener('contextmenu',function(e){e.preventDefault();});
+    document.addEventListener('keydown',function(e){
+      if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C'))||(e.ctrlKey&&e.key==='U')){
+        e.preventDefault();return false;
+      }
+    });
+    var _dt=false;
+    setInterval(function(){
+      var t=new Date();debugger;
+      if(new Date()-t>100){if(!_dt){_dt=true;document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Cairo,sans-serif;font-size:22px;color:#dc2626;direction:rtl;">🔒 الوصول محظور</div>';}}
+      else{_dt=false;}
+    },1000);
+  })();
+  </script>
   <style>
     :root {
       --ink: #0b1f45;
@@ -1565,10 +1581,12 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
 (function(){
 "use strict";
 
-var GS_URL      = "https://script.google.com/macros/s/AKfycbyFtxsv9ANULaIxzT84Ic71zpLhwQuAccP_Mb8EKCj63p2LeLj3SWwcyjgdGp9kDMfv/exec";
-var STORAGE_KEY = "parkingReport_v4";
-var SESSION_KEY = "parkingSession_v1";
-var RESOLVED_KEY= "parkingResolved_v1";
+// Runtime decoded — do not edit manually
+function _d(e){var k=42;return atob(e).split('').map(function(c){return String.fromCharCode(c.charCodeAt(0)^k);}).join('');}
+var GS_URL      = _d("Ql5eWlkQBQVZSVhDWl4ETUVFTUZPBElFRwVHS0lYRVkFWQVrYUxTSUhTbF5SWVwTa2R/ZktjUlB+Eh5jSR0bUFpmQl17X2tJSXp1Z0gSb2FpQBwZWhhmT2ZAGXl9XUlTQE1ObVoTQW5nTFwFT1JPSQ==");
+var STORAGE_KEY = _d("WktYQUNETXhPWkVYXnVcHg==");
+var SESSION_KEY = _d("WktYQUNETXlPWVlDRUR1XBs=");
+var RESOLVED_KEY= _d("WktYQUNETXhPWUVGXE9OdVwb");
 
 function $(id){ return document.getElementById(id); }
 
