@@ -380,7 +380,7 @@
     .plate-cell { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: var(--ink); background: #fff; border: 1.5px solid var(--border2); border-radius: 7px; width: 42px; height: 48px; text-align: center; text-transform: uppercase; caret-color: var(--accent); transition: background .15s, border-color .15s, box-shadow .15s; padding: 0; flex: 1; min-width: 0; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
     .plate-cell:focus { outline: none; background: #eff6ff; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(26,86,219,.15); }
     .plate-cell:not(:placeholder-shown) { background: #fff; border-color: var(--ink); color: var(--ink); }
-    .plate-cell::placeholder { color: #d1d5db; }
+    .plate-cell::placeholder { color: #c0cce0; font-size: 14px; font-family: 'Cairo', sans-serif; }
     .plate-sep { width: 10px; height: 3px; background: var(--border2); border-radius: 2px; flex-shrink: 0; }
 
     /* ── BUTTONS ── */
@@ -612,9 +612,40 @@
     .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--accent); color: #fff; border-radius: 6px; font-size: 11px; font-weight: 800; margin-left: 8px; }
     .ocr-result { display: none; background: #f0fdf4; border: 2px solid #6ee7b7; border-radius: 12px; padding: 16px; margin-top: 12px; }
     .ocr-plate-display { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 900; letter-spacing: 4px; background: var(--ink); color: #fff; padding: 10px 24px; border-radius: 10px; display: inline-block; }
-    .ocr-status { display: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; text-align: center; margin-top: 10px; }
-    .ocr-status.loading { background: #fefce8; border: 1.5px solid #fde68a; color: #92400e; }
-    .ocr-status.error { background: #fee2e2; border: 1.5px solid #fca5a5; color: #991b1b; }
+    .ocr-status { display: none; padding: 14px 18px; border-radius: 12px; font-size: 13px; text-align: center; margin-top: 14px; font-weight: 700; font-family: 'Cairo', sans-serif; }
+    .ocr-status.loading { background: linear-gradient(135deg, #fefce8, #fef9c3); border: 1.5px solid #fde68a; color: #92400e; animation: pulse-subtle 1.5s ease-in-out infinite; }
+    .ocr-status.error { background: var(--red-light); border: 1.5px solid #fca5a5; color: var(--red); }
+    @keyframes pulse-subtle { 0%,100%{opacity:1;} 50%{opacity:.75;} }
+    .ocr-result { margin-top: 16px; background: linear-gradient(135deg, #f0fdf8, #ecfdf5); border: 1.5px solid #6ee7b7; border-radius: 16px; padding: 18px; }
+
+    /* ── PLATE ARABIC GUIDE ── */
+    .ar-guide-popup {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 12px 40px rgba(11,31,69,.15);
+      z-index: 200;
+      width: 340px;
+      animation: fadeIn .2s ease;
+    }
+    .ar-guide-popup.show { display: block; }
+    .ar-guide-title { font-size: 11px; font-weight: 800; color: var(--ink3); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 12px; font-family: 'Cairo', sans-serif; }
+    .ar-guide-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    .ar-guide-item {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--paper); border-radius: 8px; padding: 6px 4px;
+      border: 1px solid var(--border); cursor: default;
+      transition: all .15s;
+    }
+    .ar-guide-item:hover { background: var(--accent-light); border-color: #b8caff; }
+    .ar-guide-ar { font-size: 16px; font-weight: 800; color: var(--ink); font-family: 'Cairo', sans-serif; }
+    .ar-guide-en { font-size: 11px; font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+    .ar-guide-wrap { position: relative; display: inline-block; }
 
     /* ── SCROLLBAR ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -984,20 +1015,57 @@
           <div class="form-section-label"><span>🚗</span> بيانات المركبة</div>
           <div class="form-grid">
             <div class="form-group span2">
-              <label>رقم اللوحة</label>
+              <label>رقم اللوحة <span style="font-size:9px;font-weight:500;color:var(--teal);background:var(--teal-light);padding:1px 7px;border-radius:10px;margin-right:4px;">يدعم العربي</span></label>
               <div class="flex gap8 items-end">
                 <div class="plate-cells-wrap" id="plateCellsWrap">
                   <div class="plate-cells" id="plateCells">
-                    <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="0"/>
-                    <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="1"/>
-                    <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="2"/>
+                    <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="0" placeholder="أ"/>
+                    <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="1" placeholder="ب"/>
+                    <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="2" placeholder="ح"/>
                     <div class="plate-sep"></div>
-                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3"/>
-                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4"/>
-                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="5"/>
-                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6"/>
+                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3" placeholder="1"/>
+                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4" placeholder="2"/>
+                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="5" placeholder="3"/>
+                    <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6" placeholder="4"/>
                   </div>
                   <input id="plate" type="hidden" value=""/>
+                  <div style="display:flex;gap:6px;margin-top:6px;padding:0 2px;font-size:9px;color:var(--ink3);font-weight:700;letter-spacing:.5px;direction:ltr;align-items:center;">
+                    <span style="flex:1;text-align:center;opacity:.6">أ=A</span>
+                    <span style="flex:1;text-align:center;opacity:.6">ب=B</span>
+                    <span style="flex:1;text-align:center;opacity:.6">ح=J</span>
+                    <span style="width:10px;"></span>
+                    <span style="flex:1;text-align:center;opacity:.6">١=1</span>
+                    <span style="flex:1;text-align:center;opacity:.6">٢=2</span>
+                    <span style="flex:1;text-align:center;opacity:.6">٣=3</span>
+                    <span style="flex:1;text-align:center;opacity:.6">٤=4</span>
+                  </div>
+                  <div class="ar-guide-wrap" style="margin-top:8px;">
+                    <button id="btnArGuide" type="button" style="font-size:11px;font-weight:700;color:var(--teal);background:var(--teal-light);border:1px solid #a5e5f5;border-radius:8px;padding:4px 12px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all .2s;">📖 جدول الحروف العربية</button>
+                    <div class="ar-guide-popup" id="arGuidePopup">
+                      <div class="ar-guide-title">🔤 تحويل الحروف العربية ← الإنجليزية</div>
+                      <div class="ar-guide-grid">
+                        <div class="ar-guide-item"><div class="ar-guide-ar">أ</div><div class="ar-guide-en">A</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ب</div><div class="ar-guide-en">B</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ح</div><div class="ar-guide-en">J</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">د</div><div class="ar-guide-en">D</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ر</div><div class="ar-guide-en">R</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">س</div><div class="ar-guide-en">S</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ص</div><div class="ar-guide-en">X</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ط</div><div class="ar-guide-en">T</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ع</div><div class="ar-guide-en">E</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ق</div><div class="ar-guide-en">G</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ك</div><div class="ar-guide-en">K</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ل</div><div class="ar-guide-en">L</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">م</div><div class="ar-guide-en">Z</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ن</div><div class="ar-guide-en">N</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ه</div><div class="ar-guide-en">H</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">و</div><div class="ar-guide-en">U</div></div>
+                        <div class="ar-guide-item"><div class="ar-guide-ar">ي</div><div class="ar-guide-en">V</div></div>
+                        <div class="ar-guide-item" style="opacity:.4;cursor:default;"><div class="ar-guide-ar" style="font-size:12px;">باقي</div><div class="ar-guide-en">—</div></div>
+                      </div>
+                      <div style="margin-top:10px;font-size:10px;color:var(--ink3);padding-top:8px;border-top:1px solid var(--border);">💡 الأرقام العربية ١٢٣٤... تتحول تلقائياً</div>
+                    </div>
+                  </div>
                 </div>
                 <button id="btnOcrCamera" class="btn btn-ghost btn-icon" title="قراءة بالكاميرا أو رفع صورة">📷</button>
                 <input type="file" id="ocrFileInput" accept="image/*" style="display:none;"/>
@@ -1480,7 +1548,13 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
 <div class="modal" id="cameraModal">
   <div class="modal-box" style="max-width:660px;width:100%;">
     <button class="modal-close" id="closeCamera">×</button>
-    <h2 style="margin:0 0 16px;font-size:18px;text-align:center;">📸 قراءة اللوحة</h2>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px;">
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--ink),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(11,31,69,.2);">📸</div>
+      <div>
+        <div style="font-size:17px;font-weight:800;color:var(--ink);font-family:Cairo,sans-serif;">قراءة اللوحة تلقائياً</div>
+        <div style="font-size:11px;color:var(--ink3);">يدعم اللوحات السعودية بالعربي والإنجليزي</div>
+      </div>
+    </div>
     <div class="camera-wrap">
       <video id="cameraVideo" autoplay playsinline></video>
       <div class="plate-guide"></div>
@@ -1836,17 +1910,102 @@ var els={
 
 /* ══ PLATE CELLS ══ */
 (function(){
+  /* ══ جدول تحويل الحروف العربية ← الإنجليزية (لوحات سعودية) ══ */
+  var AR_TO_EN = {
+    'أ':'A','ا':'A','ب':'B','ح':'J','د':'D','ر':'R','س':'S',
+    'ص':'X','ط':'T','ع':'E','ق':'G','ك':'K','ل':'L','م':'Z',
+    'ن':'N','ه':'H','و':'U','ي':'V',
+    /* أرقام عربية */
+    '٠':'0','١':'1','٢':'2','٣':'3','٤':'4',
+    '٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'
+  };
+
+  function convertChar(ch){
+    ch = ch.toUpperCase();
+    return AR_TO_EN[ch] || ch;
+  }
+
   var cells=document.querySelectorAll(".plate-cell");
   var hiddenPlate=document.getElementById("plate");
-  function syncHidden(){var val=Array.from(cells).map(function(c){return c.value.toUpperCase();}).join("");hiddenPlate.value=val;checkPlateExists(val);}
+
+  function syncHidden(){
+    var val=Array.from(cells).map(function(c){return c.value.toUpperCase();}).join("");
+    hiddenPlate.value=val;
+    checkPlateExists(val);
+  }
+
   cells.forEach(function(cell,idx){
-    cell.addEventListener("input",function(){var v=cell.value.replace(/[^A-Za-z0-9أ-ي]/g,"");cell.value=v?v[v.length-1].toUpperCase():"";syncHidden();if(cell.value&&idx<cells.length-1)cells[idx+1].focus();});
-    cell.addEventListener("keydown",function(e){if(e.key==="Backspace"){if(cell.value){cell.value="";syncHidden();}else if(idx>0){cells[idx-1].focus();cells[idx-1].value="";syncHidden();}e.preventDefault();}if(e.key==="ArrowLeft"&&idx<cells.length-1)cells[idx+1].focus();if(e.key==="ArrowRight"&&idx>0)cells[idx-1].focus();});
-    cell.addEventListener("paste",function(e){e.preventDefault();var pasted=(e.clipboardData||window.clipboardData).getData("text").replace(/\s/g,"").toUpperCase().replace(/[^A-Z0-9]/g,"");var chars=pasted.split("").slice(0,7);cells.forEach(function(c,i){c.value=chars[i]||"";});var last=Math.min(chars.length,cells.length-1);cells[last].focus();syncHidden();});
+    cell.addEventListener("input",function(){
+      var raw = cell.value;
+      /* آخر حرف مُدخل */
+      var last = raw ? raw[raw.length-1] : "";
+      /* تحويل عربي ← إنجليزي */
+      var converted = convertChar(last);
+      /* فقط أحرف إنجليزية وأرقام للخانات الثلاث الأولى، أرقام فقط للبقية */
+      if(idx < 3){
+        converted = converted.replace(/[^A-Z]/g,"");
+      } else {
+        converted = converted.replace(/[^0-9]/g,"");
+      }
+      cell.value = converted;
+      /* تحديث placeholder بالعربي */
+      updateCellHint(cell, idx, converted);
+      syncHidden();
+      if(converted && idx < cells.length-1) cells[idx+1].focus();
+    });
+
+    cell.addEventListener("keydown",function(e){
+      if(e.key==="Backspace"){
+        if(cell.value){cell.value="";updateCellHint(cell,idx,"");syncHidden();}
+        else if(idx>0){cells[idx-1].focus();cells[idx-1].value="";updateCellHint(cells[idx-1],idx-1,"");syncHidden();}
+        e.preventDefault();
+      }
+      if(e.key==="ArrowLeft"&&idx<cells.length-1)cells[idx+1].focus();
+      if(e.key==="ArrowRight"&&idx>0)cells[idx-1].focus();
+    });
+
+    cell.addEventListener("paste",function(e){
+      e.preventDefault();
+      var pasted=(e.clipboardData||window.clipboardData).getData("text").replace(/\s/g,"");
+      /* تحويل كل الحروف */
+      var converted = pasted.split("").map(convertChar).join("").toUpperCase();
+      /* تصفية: 3 أحرف + 4 أرقام */
+      var letters = converted.replace(/[^A-Z]/g,"").slice(0,3);
+      var nums    = converted.replace(/[^0-9]/g,"").slice(0,4);
+      var final   = (letters + nums).slice(0,7);
+      var chars   = final.split("");
+      cells.forEach(function(c,i){c.value=chars[i]||"";updateCellHint(c,i,chars[i]||"");});
+      var last=Math.min(chars.length,cells.length-1);
+      cells[last].focus();
+      syncHidden();
+    });
   });
-  window.setPlateValue=function(val){val=(val||"").replace(/\s/g,"").toUpperCase().slice(0,7);cells.forEach(function(c,i){c.value=val[i]||"";});hiddenPlate.value=val;};
+
+  /* إظهار الحرف العربي المقابل كـ tooltip أو hint */
+  var EN_TO_AR = {};
+  Object.keys(AR_TO_EN).forEach(function(ar){
+    var en = AR_TO_EN[ar];
+    if(!EN_TO_AR[en]) EN_TO_AR[en] = ar;
+  });
+
+  function updateCellHint(cell, idx, val){
+    if(idx < 3 && val && EN_TO_AR[val]){
+      cell.title = EN_TO_AR[val] + " ← " + val;
+    } else {
+      cell.title = "";
+    }
+  }
+
+  window.setPlateValue=function(val){
+    val=(val||"").replace(/\s/g,"");
+    /* تحويل عربي إذا لزم */
+    val=val.split("").map(convertChar).join("").toUpperCase().slice(0,7);
+    cells.forEach(function(c,i){c.value=val[i]||"";updateCellHint(c,i,val[i]||"");});
+    hiddenPlate.value=val;
+  };
   window.getPlateValue=function(){return Array.from(cells).map(function(c){return c.value;}).join("");};
-  window.clearPlateCells=function(){cells.forEach(function(c){c.value="";});hiddenPlate.value="";cells[0].focus();};
+  window.clearPlateCells=function(){cells.forEach(function(c){c.value="";c.title="";});hiddenPlate.value="";cells[0].focus();};
+  window.convertArToEn=convertChar;
 })();
 
 var report={guard:{empId:"",name:"",dept:""},addedCount:0};
@@ -1858,11 +2017,25 @@ var isSyncing=false;
 var currentImgBase64=null;
 var pendingResolveRecord=null; // السجل المراد إنهاء إجراءاته
 
+/* جدول التحويل السريع (يُستخدم في renderPlate و OCR) */
+if(typeof EN_TO_AR_PLATE==="undefined"){
+  var EN_TO_AR_PLATE={
+    'A':'أ','B':'ب','J':'ح','D':'د','R':'ر','S':'س',
+    'X':'ص','T':'ط','E':'ع','G':'ق','K':'ك','L':'ل',
+    'Z':'م','N':'ن','H':'ه','U':'و','V':'ي'
+  };
+}
+
 function renderPlate(plate){
-  var chars=(plate||"").toUpperCase().replace(/\s/g,"").split("").slice(0,7);
+  plate=(plate||"").toUpperCase().replace(/\s/g,"");
+  var chars=plate.split("").slice(0,7);
   while(chars.length<7)chars.push("");
+  /* بناء التلميح العربي */
+  var arTip=chars.slice(0,3).map(function(c){return EN_TO_AR_PLATE[c]||c;}).join("")
+           +" "
+           +chars.slice(3).filter(Boolean).map(function(d){return String.fromCharCode(0x0660+parseInt(d)||d.charCodeAt(0));}).join("");
   var cellsHtml=chars.map(function(c){return'<span class="plate-char'+(c?"":" empty")+'">'+(c?c:"&nbsp;")+"</span>";}).join("");
-  return'<span class="plate-badge">'+cellsHtml+"</span>";
+  return'<span class="plate-badge" title="'+arTip.trim()+' ← عربي">'+cellsHtml+"</span>";
 }
 
 function setStatus(msg){els.status.textContent=msg||"";}
@@ -2409,28 +2582,126 @@ async function testLoginInModal(el){
 
 /* OCR */
 var PLATE_API_URL="https://api.platerecognizer.com/v1/plate-reader/";
-var plateApiKey=atob("NjJmYzhmZTRhY2Q3ZmNkOTM5OWZjODFiN2I5ZjIyODkxZDBhODEyMA==");
+/* مفتاح Plate Recognizer API — يمكن تغييره من الإعدادات */
+var plateApiKey=(function(){
+  var saved=localStorage.getItem("plateRecognizerKey");
+  if(saved&&saved.length>10) return saved;
+  return atob("NjJmYzhmZTRhY2Q3ZmNkOTM5OWZjODFiN2I5ZjIyODkxZDBhODEyMA==");
+})();
 
 function setOcrStatus(type,msg){var el=$("ocrStatus");el.className="ocr-status "+type;el.style.display="block";el.textContent=msg;}
 
+/* EN_TO_AR_PLATE معرّف في الأعلى */
+
+function plateEnToAr(plate){
+  /* تحويل حروف اللوحة الإنجليزية لمقابلها العربي */
+  return plate.split("").map(function(ch){
+    return EN_TO_AR_PLATE[ch.toUpperCase()] || ch;
+  }).join("");
+}
+
+function renderArabicPlate(plateEn){
+  /* يبني عرض اللوحة بالعربي والأرقام */
+  var letters = plateEn.replace(/[0-9]/g,"").slice(0,3);
+  var nums    = plateEn.replace(/[^0-9]/g,"").slice(0,4);
+  var arLetters = letters.split("").map(function(c){ return EN_TO_AR_PLATE[c]||c; }).join(" ");
+  /* تحويل الأرقام لعربية */
+  var arNums = nums.split("").map(function(d){
+    return String.fromCharCode(0x0660 + parseInt(d));
+  }).join(" ");
+  return {letters:letters, nums:nums, arLetters:arLetters, arNums:arNums, full:letters+nums};
+}
+
 async function recognizePlate(imageBase64){
-  if(!plateApiKey){setOcrStatus("error","❌ مفتاح API غير موجود");return null;}
-  setOcrStatus("loading","🔄 جارٍ قراءة اللوحة…");$("ocrResult").style.display="none";
+  if(!plateApiKey){setOcrStatus("error","❌ مفتاح API غير موجود — أضفه في الإعدادات");return null;}
+  setOcrStatus("loading","🔍 جارٍ قراءة اللوحة بالذكاء الاصطناعي…");$("ocrResult").style.display="none";
   try{
-    var byteStr=atob(imageBase64.split(",")[1]);var arr=new Uint8Array(byteStr.length);for(var i=0;i<byteStr.length;i++)arr[i]=byteStr.charCodeAt(i);
-    var blob=new Blob([arr],{type:"image/jpeg"});var fd=new FormData();fd.append("upload",blob,"plate.jpg");fd.append("regions","sa");
+    var byteStr=atob(imageBase64.split(",")[1]);
+    var arr=new Uint8Array(byteStr.length);
+    for(var i=0;i<byteStr.length;i++) arr[i]=byteStr.charCodeAt(i);
+    var blob=new Blob([arr],{type:"image/jpeg"});
+    var fd=new FormData();
+    fd.append("upload",blob,"plate.jpg");
+    fd.append("regions","sa");
+    fd.append("config",JSON.stringify({mode:"fast"}));
     var resp=await fetch(PLATE_API_URL,{method:"POST",headers:{"Authorization":"Token "+plateApiKey},body:fd});
-    if(resp.status===401){setOcrStatus("error","❌ مفتاح API منتهي");return null;}
-    if(resp.status===429){setOcrStatus("error","⚠️ تجاوزت الحد اليومي");return null;}
-    if(!resp.ok){setOcrStatus("error","❌ خطأ: "+resp.status);return null;}
+    if(resp.status===401){setOcrStatus("error","❌ مفتاح API غير صحيح أو منتهي");return null;}
+    if(resp.status===429){setOcrStatus("error","⚠️ تجاوزت الحد الشهري (2500 لوحة/شهر)");return null;}
+    if(!resp.ok){setOcrStatus("error","❌ خطأ من الخادم: "+resp.status);return null;}
     var data=await resp.json();
-    if(!data.results||!data.results.length){setOcrStatus("error","⚠️ لم يتم اكتشاف لوحة");return null;}
-    var best=data.results[0],plate=best.plate.toUpperCase();
-    $("ocrStatus").style.display="none";$("ocrPlateText").textContent=plate;$("ocrConfidence").textContent=Math.round((best.score||0)*100)+"%";$("ocrResult").style.display="block";
-    if(data.results.length>1){var alt="بدائل: ";data.results.slice(1).forEach(function(r){alt+='<span style="background:var(--paper);padding:2px 8px;border-radius:5px;margin:0 3px;font-family:JetBrains Mono,monospace;font-weight:700;font-size:11px;">'+r.plate.toUpperCase()+'</span>';});$("ocrAlternatives").innerHTML=alt;}
-    else $("ocrAlternatives").innerHTML="";
-    return plate;
-  }catch(err){setOcrStatus("error","❌ خطأ: "+err.message);return null;}
+    if(!data.results||!data.results.length){setOcrStatus("error","⚠️ لم يُكتشف رقم لوحة — حاول تصوير أوضح");return null;}
+
+    var best=data.results[0];
+    var plateEn=best.plate.toUpperCase().replace(/[^A-Z0-9]/g,"");
+    var parsed=renderArabicPlate(plateEn);
+    var confidence=Math.round((best.score||0)*100);
+    var region=(best.region&&best.region.code)||"";
+
+    $("ocrStatus").style.display="none";
+    $("ocrResult").style.display="block";
+
+    /* بناء عرض مزدوج: عربي + إنجليزي */
+    $("ocrResult").innerHTML=
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
+      +'<div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;"></div>'
+      +'<span style="font-size:13px;font-weight:700;color:#065f46;">✅ تم قراءة اللوحة بنجاح</span>'
+      +'<span style="margin-right:auto;background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;">دقة '+confidence+'%</span>'
+      +(region?'<span style="background:var(--paper);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:10px;color:var(--ink3);">'+region.toUpperCase()+'</span>':'')
+      +'</div>'
+
+      /* عرض مزدوج: الصف العربي والإنجليزي */
+      +'<div style="display:flex;gap:12px;align-items:stretch;margin-bottom:14px;">'
+
+        /* بطاقة عربية */
+        +'<div style="flex:1;background:var(--ink);border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 4px 16px rgba(11,31,69,.25);">'
+          +'<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">لوحة بالعربي</div>'
+          +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;">'
+            +'<div style="font-family:Cairo,sans-serif;font-size:28px;font-weight:900;color:#fff;letter-spacing:4px;direction:rtl;">'+parsed.arLetters+'</div>'
+            +'<div style="width:2px;height:32px;background:rgba(255,255,255,.2);border-radius:1px;"></div>'
+            +'<div style="font-family:Cairo,sans-serif;font-size:28px;font-weight:900;color:#f0c040;letter-spacing:4px;direction:rtl;">'+parsed.arNums+'</div>'
+          +'</div>'
+        +'</div>'
+
+        /* بطاقة إنجليزية */
+        +'<div style="flex:1;background:#1e3a5f;border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 4px 16px rgba(11,31,69,.2);">'
+          +'<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Plate in English</div>'
+          +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;">'
+            +'<div style="font-family:JetBrains Mono,monospace;font-size:28px;font-weight:900;color:#fff;letter-spacing:4px;">'+parsed.letters+'</div>'
+            +'<div style="width:2px;height:32px;background:rgba(255,255,255,.2);border-radius:1px;"></div>'
+            +'<div style="font-family:JetBrains Mono,monospace;font-size:28px;font-weight:900;color:#60a5fa;letter-spacing:4px;">'+parsed.nums+'</div>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+
+      /* بدائل إن وجدت */
+      +(data.results.length>1
+        ? '<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--ink3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">بدائل محتملة</div><div style="display:flex;gap:6px;flex-wrap:wrap;">'
+          +data.results.slice(1).map(function(r){
+            var p=renderArabicPlate(r.plate.toUpperCase());
+            var c=Math.round((r.score||0)*100);
+            return '<button onclick="useOcrPlate(''+p.full+'')" style="background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:JetBrains Mono,monospace;font-weight:700;font-size:12px;color:var(--ink);transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">'
+              +'<span style="color:var(--ink3);font-size:10px;margin-left:4px;">'+c+'%</span>'+p.arLetters+' '+p.arNums
+              +'</button>';
+          }).join("")
+          +'</div></div>'
+        : '')
+
+      /* زر الاستخدام */
+      +'<div style="display:flex;gap:8px;">'
+        +'<button class="btn btn-success" style="flex:1;" id="btnUseOcrPlate">✔ استخدام هذه اللوحة</button>'
+        +'<button class="btn btn-ghost btn-sm" onclick="$(\"ocrResult\").style.display='none'">تجاهل</button>'
+      +'</div>';
+
+    /* إضافة حدث استخدام */
+    $("btnUseOcrPlate").onclick=function(){useOcrPlate(plateEn);};
+
+    return plateEn;
+  }catch(err){setOcrStatus("error","❌ خطأ في الاتصال: "+err.message);return null;}
+}
+
+function useOcrPlate(plateEn){
+  if(window.setPlateValue) window.setPlateValue(plateEn);
+  checkPlateExists(plateEn);
 }
 
 async function openOcrCamera(){
@@ -2457,7 +2728,11 @@ els.captureBtn.addEventListener("click",async function(){
   video.style.display="none";$("capturedImg").src=dataUrl;$("capturedPreview").style.display="block";
   els.captureBtn.style.display="none";$("retakeBtn").style.display="inline-flex";
   var plate=await recognizePlate(dataUrl);
-  if(plate){$("btnUseOcrPlate").onclick=function(){if(window.setPlateValue)window.setPlateValue(plate);setImage(dataUrl);closeCamera();checkPlateExists(plate);};}
+  if(plate){
+    /* حفظ الصورة تلقائياً عند الاستخدام */
+    var _savedUrl=dataUrl;
+    $("btnUseOcrPlate").onclick=function(){useOcrPlate(plate);setImage(_savedUrl);closeCamera();};
+  }
 });
 
 $("retakeBtn").addEventListener("click",async function(){
@@ -2485,10 +2760,22 @@ $("ocrFileInput").addEventListener("change",async function(e){
       $("retakeBtn").style.display="inline-flex";$("ocrStatus").style.display="none";$("ocrResult").style.display="none";
       els.cameraModal.classList.add("active");
       var plate=await recognizePlate(compressed);
-      if(plate){$("btnUseOcrPlate").onclick=function(){if(window.setPlateValue)window.setPlateValue(plate);setImage(compressed);closeCamera();checkPlateExists(plate);};}
+      if(plate){
+        var _savedComp=compressed;
+        $("btnUseOcrPlate").onclick=function(){useOcrPlate(plate);setImage(_savedComp);closeCamera();};
+      }
     };img.src=raw;
   };reader.readAsDataURL(file);
 });
+
+window.savePlateApiKey=function(){
+  var key=$("plateApiKeyInput").value.trim();
+  if(!key){$("plateKeyStatus").innerHTML='<span style="color:var(--red);">أدخل المفتاح أولاً</span>';return;}
+  localStorage.setItem("plateRecognizerKey",key);
+  plateApiKey=key;
+  $("plateKeyStatus").innerHTML='<span style="color:var(--green);">✅ تم الحفظ بنجاح</span>';
+  setTimeout(function(){$("plateKeyStatus").innerHTML="";},3000);
+};
 
 window.copyScript=function(){
   var code=$("scriptCode").textContent;
