@@ -4,9 +4,14 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>رصد السيارات — تسجيل الدخول</title>
+  <meta name="theme-color" content="#0b1f45">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700;800&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="dns-prefetch" href="https://script.google.com">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet"></noscript>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
   <style>
     :root {
       --ink: #0b1f45;
@@ -39,7 +44,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
+      font-family: 'Cairo', system-ui, sans-serif;
       background: var(--paper);
       color: var(--ink);
       min-height: 100vh;
@@ -90,7 +95,7 @@
     .login-field { display: flex; flex-direction: column; gap: 7px; }
     .login-field label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .7px; }
     .login-input-wrap { position: relative; direction: ltr; }
-    .login-input { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 15px; color: #fff; background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.12); border-radius: 12px; padding: 13px 16px; width: 100%; transition: all .2s; letter-spacing: 0.3px; direction: rtl; text-align: right; }
+    .login-input { font-family: 'Cairo', system-ui, sans-serif; font-size: 15px; color: #fff; background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.12); border-radius: 12px; padding: 13px 16px; width: 100%; transition: all .2s; letter-spacing: 0.3px; direction: rtl; text-align: right; }
     .login-input::placeholder { color: rgba(255,255,255,.25); }
     .login-input:focus { outline: none; border-color: var(--accent); background: rgba(26,86,219,.15); box-shadow: 0 0 0 3px rgba(26,86,219,.2); }
     .login-input.plate-style { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; letter-spacing: 2px; direction: ltr; text-align: center; }
@@ -232,7 +237,7 @@
     /* ── MAIN ── */
     .main { max-width: 1440px; margin: 0 auto; padding: 28px 36px; }
     .tab-content { display: none; }
-    .tab-content.active { display: block; animation: fadeIn .3s cubic-bezier(.4,0,.2,1); }
+    .tab-content.active { display: block; animation: fadeIn .3s cubic-bezier(.4,0,.2,1); will-change: opacity, transform; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
     /* ── STATS ── */
@@ -246,6 +251,7 @@
       transition: all .3s cubic-bezier(.4,0,.2,1);
       position: relative;
       overflow: hidden;
+      contain: layout style;
     }
     .stat-card::before {
       content: '';
@@ -330,7 +336,7 @@
     .form-group.span2 { grid-column: span 2; }
     .form-group.span3 { grid-column: span 3; }
     label { font-size: 11px; font-weight: 800; color: var(--ink3); text-transform: uppercase; letter-spacing: .7px; font-family: 'Cairo', sans-serif; }
-    input, select, textarea { font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif; font-size: 13px; color: var(--ink); background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xs); padding: 10px 14px; transition: all .2s cubic-bezier(.4,0,.2,1); width: 100%; }
+    input, select, textarea { font-family: 'Cairo', system-ui, sans-serif; font-size: 13px; color: var(--ink); background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xs); padding: 10px 14px; transition: all .2s cubic-bezier(.4,0,.2,1); width: 100%; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: var(--white); box-shadow: 0 0 0 3px rgba(24,71,209,.12); }
     input[readonly] { background: #f1f5f9; color: var(--ink3); cursor: default; }
     /* ── FORM SECTIONS ── */
@@ -559,6 +565,23 @@
     .img-thumb:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0,0,0,.2); }
     .img-drive-link { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 6px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; text-decoration: none; box-shadow: 0 2px 8px rgba(26,86,219,.5); line-height: 1; transition: background .15s, transform .15s; }
     .img-drive-link:hover { background: var(--accent2); transform: translateY(-50%) scale(1.1); }
+
+    /* ── SKELETON LOADING ── */
+    @keyframes shimmer {
+      0% { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
+    }
+    .skeleton-row td { padding: 14px 18px; }
+    .skeleton-cell {
+      height: 16px; border-radius: 6px;
+      background: linear-gradient(90deg, var(--border) 25%, #eef2f8 50%, var(--border) 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.5s infinite linear;
+    }
+    .skeleton-cell.wide { width: 80%; }
+    .skeleton-cell.mid { width: 55%; }
+    .skeleton-cell.short { width: 35%; }
+    .skeleton-cell.plate { width: 120px; height: 28px; border-radius: 8px; }
 
     .empty-state { text-align: center; padding: 70px 20px; color: var(--border2); }
     .empty-icon { font-size: 52px; margin-bottom: 16px; filter: grayscale(.3); }
@@ -1586,9 +1609,9 @@ $("togglePwd").addEventListener("click",function(){
 async function doLogin(){
   var id=loginEmpId.value.trim(),pwd=loginPassword.value.trim();
   if(!id||!pwd){showLoginError("أدخل الرقم الوظيفي وكلمة السر");return;}
-  loginBtn.disabled=true;loginBtn.textContent="⏳ جارٍ التحقق…";loginError.classList.remove("show");
+  loginBtn.disabled=true;loginBtn.textContent="⏳ جارٍ التحقق…";loginBtn.style.opacity=".8";loginError.classList.remove("show");
   try{
-    var data=await jsonpCall(GS_URL+"?action=login&empId="+encodeURIComponent(id)+"&password="+encodeURIComponent(pwd),15000);
+    var data=await jsonpCall(GS_URL+"?action=login&empId="+encodeURIComponent(id)+"&password="+encodeURIComponent(pwd),10000);
     if(!data){showLoginError("❌ لم يصل رد من الخادم");return;}
     if(data.success){saveSession({empId:data.empId,name:data.name,dept:data.dept||"",role:data.role||"guard"});onLoginSuccess();}
     else if(data.error==="no_sheet"){showLoginError("⚠️ ورقة 'الموظفون' غير موجودة");}
@@ -1626,7 +1649,14 @@ function onLoginSuccess(){
   if(pd)pd.textContent=now.getDate()+" "+months[now.getMonth()]+" "+now.getFullYear()+" — "+("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
   if(pg&&currentUser)pg.textContent="الحارس: "+currentUser.name+" | الرقم: "+currentUser.empId+(currentUser.dept?" | "+currentUser.dept:"");
   loginScreen.classList.add("hidden");
-  setTimeout(function(){loginScreen.style.display="none";appWrapper.classList.add("visible");loadFromCloud(true);},500);
+  setTimeout(function(){
+    loginScreen.style.display="none";
+    appWrapper.classList.add("visible");
+    /* عرض البيانات المحلية فوراً بدون انتظار السحابة */
+    renderTable();renderProcessedTable();updateStats();
+    /* ثم جلب البيانات من السحابة في الخلفية */
+    loadFromCloud(cloudData.length===0);
+  },300);
 }
 
 function doLogout(){
@@ -1840,7 +1870,7 @@ function setStatus(msg){els.status.textContent=msg||"";}
 function setNow(){
   function pad(n){return(n<10?"0":"")+n;}
   function tick(){var d=new Date();var months=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];els.reportDate.textContent=d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear();els.reportTime.textContent=pad(d.getHours())+":"+pad(d.getMinutes());if(!els.obsDate.value)els.obsDate.value=d.toISOString().slice(0,10);}
-  tick();setInterval(tick,15000);
+  tick();setInterval(tick,30000);
 }
 setNow();
 
@@ -1889,20 +1919,37 @@ function setSyncStatus(state,msg){var dotClass={loading:"pulse",ok:"ok",error:"e
 async function loadFromCloud(showLoader){
   if(isSyncing)return;
   isSyncing=true;els.btnSync.disabled=true;
-  if(showLoader)els.loadingOverlay.classList.add("active");
+  /* عرض skeleton rows بدلاً من overlay مزعج */
+  if(showLoader&&cloudData.length===0){
+    var skRows="";
+    for(var s=0;s<6;s++){
+      skRows+='<tr class="skeleton-row"><td><div class="skeleton-cell short" style="width:20px;margin:auto;"></div></td><td><div class="skeleton-cell plate"></div></td><td><div class="skeleton-cell short" style="width:30px;margin:auto;"></div></td><td><div class="skeleton-cell short"></div></td><td><div class="skeleton-cell mid"></div></td><td><div class="skeleton-cell mid"></div></td><td><div class="skeleton-cell wide"></div></td><td><div class="skeleton-cell short"></div></td><td><div class="skeleton-cell mid"></div></td><td><div class="skeleton-cell short"></div></td><td><div class="skeleton-cell short"></div></td><td><div class="skeleton-cell mid"></div></td><td><div class="skeleton-cell short"></div></td><td></td></tr>';
+    }
+    els.tableBody.innerHTML=skRows;
+  } else if(showLoader){
+    els.loadingOverlay.classList.add("active");
+  }
   setSyncStatus("loading","⏳ جارٍ جلب البيانات…");
   try{
-    var data=await jsonpCall(GS_URL+"?action=getAll",15000);
-    if(!Array.isArray(data))throw new Error("بيانات غير صحيحة");
-    cloudData=data;
-    // جلب المعالجة
-    try{
-      var rData=await jsonpCall(GS_URL+"?action=getResolved",10000);
-      if(Array.isArray(rData))resolvedData=rData;
-    }catch(e){/* نتحمل الخطأ */}
+    /* تشغيل الطلبين بالتوازي لتسريع التحميل */
+    var results=await Promise.allSettled([
+      jsonpCall(GS_URL+"?action=getAll",12000),
+      jsonpCall(GS_URL+"?action=getResolved",12000)
+    ]);
+    var mainResult=results[0];
+    var resolvedResult=results[1];
+    if(mainResult.status==="fulfilled"&&Array.isArray(mainResult.value)){
+      cloudData=mainResult.value;
+    } else {
+      throw new Error(mainResult.reason?mainResult.reason.message:"بيانات غير صحيحة");
+    }
+    if(resolvedResult.status==="fulfilled"&&Array.isArray(resolvedResult.value)){
+      resolvedData=resolvedResult.value;
+      saveResolvedLocal();
+    }
     renderTable();renderProcessedTable();updateStats();
-    setSyncStatus("ok","✅ "+data.length+" سجل | "+new Date().toLocaleTimeString("ar-SA"));
-    setStatus("تم تحميل "+data.length+" سجل");
+    setSyncStatus("ok","✅ "+cloudData.length+" سجل | "+new Date().toLocaleTimeString("ar-SA"));
+    setStatus("تم تحميل "+cloudData.length+" سجل");
     var p=els.plate.value.trim().toUpperCase();if(p)checkPlateExists(p);
   }catch(err){
     setSyncStatus("error","⚠️ "+err.message);setStatus("❌ تعذّر الاتصال");cloudData=[];renderTable();renderProcessedTable();updateStats();
@@ -2162,10 +2209,17 @@ function updateStats(){
   $("tabBadgeProcessed").textContent=resolvedData.length;
 
   // stats in processed tab
-  $("statProcessedTotal").textContent=resolvedData.length;
-  $("statProcessedToday").textContent=resolvedData.filter(function(v){var d=fixExcelDate(v["تاريخ المعالجة"]||v.resolveDate||"");return d===today;}).length;
-  $("statWithIdCard").textContent=resolvedData.filter(function(v){return String(v["رقم الهوية"]||v.ownerIdNum||"").trim()!=="";}).length;
-  $("statWithPhone").textContent=resolvedData.filter(function(v){return String(v["رقم الجوال"]||v.ownerPhone||"").trim()!=="";}).length;
+  var rLen=resolvedData.length;
+  $("statProcessedTotal").textContent=rLen;
+  if(rLen>0){
+    $("statProcessedToday").textContent=resolvedData.filter(function(v){var d=fixExcelDate(v["تاريخ المعالجة"]||v.resolveDate||"");return d===today;}).length;
+    $("statWithIdCard").textContent=resolvedData.filter(function(v){return String(v["رقم الهوية"]||v.ownerIdNum||"").trim()!=="";}).length;
+    $("statWithPhone").textContent=resolvedData.filter(function(v){return String(v["رقم الجوال"]||v.ownerPhone||"").trim()!=="";}).length;
+  } else {
+    $("statProcessedToday").textContent=0;
+    $("statWithIdCard").textContent=0;
+    $("statWithPhone").textContent=0;
+  }
 }
 
 function normalizeDriveUrl(u){
@@ -2178,6 +2232,8 @@ function normalizeDriveUrl(u){
 }
 
 function renderTable(){
+  /* استخدام DocumentFragment لأداء أسرع */
+  var fragment=document.createDocumentFragment();
   els.tableBody.innerHTML="";
   if(!cloudData.length){
     els.tableBody.innerHTML='<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🚗</div><div class="empty-title">لا توجد بيانات بعد</div><div class="empty-sub">أضف سجلاً أو اضغط "تحديث"</div></div></td></tr>';
@@ -2253,8 +2309,9 @@ function renderTable(){
       btn.addEventListener("click",function(){openResolveModal(v._raw);});
     }
 
-    els.tableBody.appendChild(tr);
+    fragment.appendChild(tr);
   });
+  els.tableBody.appendChild(fragment);
 
   els.tableBody.querySelectorAll("img.img-thumb").forEach(function(img){
     img.addEventListener("click",function(){viewImage(img.getAttribute("data-src")||img.src);});
@@ -2273,8 +2330,8 @@ function getRF(v,arKey,enKey){
 
 function renderProcessedTable(){
   var tbody=$("processedBody");
+  var fragment=document.createDocumentFragment();
   tbody.innerHTML="";
-  console.log("[DEBUG] resolvedData length="+resolvedData.length, resolvedData.length?resolvedData[0]:{});
   if(!resolvedData.length){
     tbody.innerHTML='<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">لا توجد مركبات معالجة بعد</div><div class="empty-sub">سيظهر هنا سجل المركبات التي تمّت معالجتها</div></div></td></tr>';
     $("processedFooterCount").textContent="0 سجل";return;
@@ -2309,8 +2366,9 @@ function renderProcessedTable(){
       '<td>'+(time?'<span class="time-pill">'+time+'</span>':dash)+'</td>'+
       '<td><span class="notes-text">'+(notes?notes.slice(0,30)+(notes.length>30?"…":""):dash)+'</span></td>'+
       '<td>'+(guard?'<span class="guard-pill">'+guard+'</span>':dash)+'</td>';
-    tbody.appendChild(tr);
+    fragment.appendChild(tr);
   });
+  tbody.appendChild(fragment);
   $("processedFooterCount").textContent=resolvedData.length+" سجل";
 }
 
@@ -2468,7 +2526,7 @@ renderTable();
 renderProcessedTable();
 updateStats();
 
-setInterval(function(){if(currentUser)loadFromCloud(false);},60000);
+setInterval(function(){if(currentUser&&!isSyncing)loadFromCloud(false);},90000);
 
 /* ══ DEBUG ══ */
 window.debugResolved = function(){
