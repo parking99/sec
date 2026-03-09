@@ -1132,9 +1132,9 @@
               <label>رقم اللوحة</label>
               <div class="plate-cells-wrap" id="plateCellsWrap">
                 <div class="plate-cells" id="plateCells">
-                  <input class="plate-cell plate-cell-letter" maxlength="1" inputmode="text" autocomplete="off" data-idx="0" placeholder="ح"/>
-                  <input class="plate-cell plate-cell-letter" maxlength="1" inputmode="text" autocomplete="off" data-idx="1" placeholder="ر"/>
-                  <input class="plate-cell plate-cell-letter" maxlength="1" inputmode="text" autocomplete="off" data-idx="2" placeholder="ف"/>
+                  <input class="plate-cell plate-cell-letter" maxlength="1" inputmode="text" autocomplete="off" data-idx="0" placeholder="A"/>
+                  <input class="plate-cell plate-cell-letter" maxlength="1" inputmode="text" autocomplete="off" data-idx="1" placeholder="B"/>
+                  <input class="plate-cell plate-cell-letter" maxlength="1" inputmode="text" autocomplete="off" data-idx="2" placeholder="C"/>
                   <div class="plate-sep"></div>
                   <input class="plate-cell plate-cell-num" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3" placeholder="1"/>
                   <input class="plate-cell plate-cell-num" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4" placeholder="2"/>
@@ -1142,9 +1142,9 @@
                   <input class="plate-cell plate-cell-num" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6" placeholder="4"/>
                 </div>
                 <div class="plate-hint">
-                  <span class="plate-hint-letters">▪ حروف</span>
+                  <span class="plate-hint-letters">▪ ABC حروف</span>
                   <span class="plate-hint-sep">—</span>
-                  <span class="plate-hint-nums">▪ أرقام</span>
+                  <span class="plate-hint-nums">▪ 1234 أرقام</span>
                 </div>
                 <input id="plate" type="hidden" value=""/>
               </div>
@@ -1994,7 +1994,15 @@ var els={
     cell.addEventListener("keydown",function(e){if(e.key==="Backspace"){if(cell.value){cell.value="";syncHidden();}else if(idx>0){cells[idx-1].focus();cells[idx-1].value="";syncHidden();}e.preventDefault();}if(e.key==="ArrowLeft"&&idx<cells.length-1)cells[idx+1].focus();if(e.key==="ArrowRight"&&idx>0)cells[idx-1].focus();});
     cell.addEventListener("paste",function(e){e.preventDefault();var pasted=(e.clipboardData||window.clipboardData).getData("text").replace(/\s/g,"").toUpperCase().replace(/[^A-Z0-9]/g,"");var chars=pasted.split("").slice(0,7);cells.forEach(function(c,i){c.value=chars[i]||"";});var last=Math.min(chars.length,cells.length-1);cells[last].focus();syncHidden();});
   });
-  window.setPlateValue=function(val){val=(val||"").replace(/\s/g,"").toUpperCase().slice(0,7);cells.forEach(function(c,i){c.value=val[i]||"";});hiddenPlate.value=val;};
+  window.setPlateValue=function(val){
+    val=(val||"").replace(/\s/g,"").toUpperCase();
+    // فصل الحروف عن الأرقام وترتيبهم: حروف (0-2) ثم أرقام (3-6)
+    var letters=val.replace(/[^A-Z\u0621-\u064A]/g,"").slice(0,3);
+    var nums=val.replace(/[^0-9]/g,"").slice(0,4);
+    var ordered=(letters+"    ").slice(0,3)+(nums+"    ").slice(0,4);
+    cells.forEach(function(c,i){c.value=ordered[i]&&ordered[i].trim()?ordered[i]:"";});
+    hiddenPlate.value=letters+nums;
+  };
   window.getPlateValue=function(){return Array.from(cells).map(function(c){return c.value;}).join("");};
   window.clearPlateCells=function(){cells.forEach(function(c){c.value="";});hiddenPlate.value="";cells[0].focus();};
 })();
