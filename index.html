@@ -2001,10 +2001,14 @@ var els={
   });
   window.setPlateValue=function(val){
     val=(val||"").replace(/\s/g,"").toUpperCase();
-    // فصل الحروف عن الأرقام وترتيبهم: حروف (0-2) ثم أرقام (3-6)
+    // فصل الحروف عن الأرقام
     var letters=val.replace(/[^A-Z\u0621-\u064A]/g,"").slice(0,3);
     var nums=val.replace(/[^0-9]/g,"").slice(0,4);
-    var ordered=(letters+"    ").slice(0,3)+(nums+"    ").slice(0,4);
+    // عكس الترتيب لأن الخلايا RTL (اليمين أول)
+    var lettersR=letters.split("").reverse().join("");
+    var numsR=nums.split("").reverse().join("");
+    // الخلايا: 0,1,2 = حروف | 3,4,5,6 = أرقام
+    var ordered=(lettersR+"   ").slice(0,3)+(numsR+"    ").slice(0,4);
     cells.forEach(function(c,i){c.value=ordered[i]&&ordered[i].trim()?ordered[i]:"";});
     hiddenPlate.value=letters+nums;
   };
