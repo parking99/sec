@@ -655,6 +655,8 @@
     /* ── PRINT REPORT HEADER ── */
     .print-report-header { display: none; }
 
+    .cam-btn-label { display: none; font-size: 12px; font-weight: 700; }
+
     @media (max-width: 900px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .header { padding: 0 20px; }
@@ -665,11 +667,134 @@
       .login-box { padding: 28px 20px; }
     }
     @media (max-width: 600px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .form-grid { grid-template-columns: 1fr 1fr; }
-      .form-group.span2, .form-group.span3 { grid-column: span 2; }
+      body { font-size: 15px; }
+
+      /* ── Header ── */
+      .header { padding: 0 14px; height: 58px; }
+      .header-title { font-size: 15px; }
+      .header-sub { display: none; }
+      .header-icon { width: 36px; height: 36px; font-size: 17px; }
+      .header-brand { gap: 10px; }
+      .header-actions { gap: 6px; }
+      .logout-btn { padding: 7px 10px; font-size: 12px; }
+      /* Hide less important header buttons on mobile */
+      #btnPrint, #btnExportCSV, #btnShowSetup { display: none; }
+      #btnSync { padding: 8px 12px; font-size: 12px; }
+      .user-pill { padding: 5px 10px 5px 8px; }
       .user-pill span { display: none; }
-      .tab-btn { padding: 12px 12px; font-size: 12px; }
+      .user-avatar { width: 26px; height: 26px; font-size: 12px; }
+
+      /* ── Tabs Bar ── */
+      .tabs-bar { padding: 0 8px; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .tabs-bar::-webkit-scrollbar { display: none; }
+      .tab-btn { padding: 0 14px; height: 48px; font-size: 12px; flex-shrink: 0; }
+      .tab-badge { font-size: 9px; padding: 1px 7px; }
+
+      /* ── Sync bar ── */
+      .sync-bar { padding: 7px 14px; font-size: 11px; }
+
+      /* ── Main area ── */
+      .main { padding: 12px 14px; }
+
+      /* ── Stats grid ── */
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+      .stat-card { padding: 16px 14px 13px; border-radius: 14px; }
+      .stat-value { font-size: 26px; }
+      .stat-label { font-size: 11px; }
+      .stat-card-icon { font-size: 22px; }
+
+      /* ── Cards ── */
+      .card { border-radius: 16px; margin-bottom: 14px; }
+      .card-header { padding: 13px 14px; flex-wrap: wrap; gap: 8px; }
+      .card-title { font-size: 14px; }
+      .card-body { padding: 14px; }
+
+      /* ── Guard card ── */
+      .guard-card { padding: 14px; }
+      .guard-avatar { width: 44px; height: 44px; font-size: 20px; }
+      .guard-name { font-size: 16px; }
+
+      /* ── Form ── */
+      .form-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .form-group.span2, .form-group.span3 { grid-column: span 2; }
+      .form-section { margin-bottom: 16px; }
+      .form-section-label { font-size: 12px; padding: 7px 10px; }
+      .form-group label { font-size: 12px; margin-bottom: 5px; }
+      input, select, textarea {
+        font-size: 16px !important; /* prevent iOS zoom */
+        padding: 11px 13px !important;
+        border-radius: 10px !important;
+        min-height: 46px;
+      }
+
+      /* ── Plate cells ── */
+      .plate-cells-wrap { width: 100%; }
+      .plate-cells { gap: 5px; }
+      .plate-cell {
+        width: 36px !important;
+        height: 44px !important;
+        font-size: 16px !important;
+        border-radius: 9px !important;
+      }
+
+      /* ── CAMERA BUTTON — big & prominent on mobile ── */
+      .cam-btn-label { display: inline !important; }
+      #btnOcrCamera {
+        width: 52px !important;
+        height: 52px !important;
+        font-size: 22px !important;
+        border-radius: 14px !important;
+        background: linear-gradient(135deg, var(--accent), #3b6ef0) !important;
+        color: #fff !important;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(24,71,209,.45) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        transition: transform .15s, box-shadow .15s !important;
+      }
+      #btnOcrCamera:active { transform: scale(.93) !important; box-shadow: 0 2px 8px rgba(24,71,209,.3) !important; }
+
+      /* ── Submit button ── */
+      .btn-submit { min-height: 52px; font-size: 15px; border-radius: 14px; }
+
+      /* ── Table — horizontal scroll ── */
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 0 0 14px 14px; }
+      table { min-width: 700px; }
+      td, th { padding: 10px 12px; font-size: 12px; }
+      td { font-size: 12px; }
+
+      /* ── Image thumbnail ── */
+      .img-thumb { width: 56px; height: 40px; }
+
+      /* ── Modals ── */
+      .modal-box { padding: 20px 16px; border-radius: 16px; max-width: 100%; }
+      .resolve-box { padding: 20px 16px; border-radius: 16px; }
+      .resolve-title { font-size: 15px; }
+      .resolve-plate-preview { font-size: 22px; padding: 10px 14px; letter-spacing: 3px; }
+      .resolve-section-title { font-size: 11px; }
+
+      /* ── Dashboard mobile ── */
+      .d-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .d-kpi-value { font-size: 28px; }
+      .dash-inner { padding: 14px; }
+      .d-banner { flex-direction: column; gap: 14px; align-items: flex-start; }
+      .d-banner-title { font-size: 16px; }
+      .d-charts-grid { grid-template-columns: 1fr; }
+      .d-charts-grid .d-chart-card:first-child { grid-column: span 1; }
+      .d-charts-grid2 { grid-template-columns: 1fr; }
+      .d-charts-grid2 .d-chart-card:last-child { grid-column: span 1; }
+      .d-tower-grid { grid-template-columns: 1fr; }
+      .d-tbls-grid { grid-template-columns: 1fr; }
+
+      /* ── Login ── */
+      .login-box { padding: 28px 18px; border-radius: 22px; }
+      .login-logo-icon { width: 60px; height: 60px; font-size: 26px; border-radius: 16px; }
+      .login-title { font-size: 20px; }
+      .login-input { font-size: 16px !important; padding: 13px 16px !important; }
+      .login-input.plate-style { font-size: 18px !important; }
+      .login-btn { min-height: 52px; font-size: 15px; border-radius: 14px; }
     }
 
     @media print {
@@ -1015,7 +1140,7 @@
                   </div>
                   <input id="plate" type="hidden" value=""/>
                 </div>
-                <button id="btnOcrCamera" class="btn btn-ghost btn-icon" title="قراءة بالكاميرا أو رفع صورة">📷</button>
+                <button id="btnOcrCamera" class="btn btn-ghost" title="قراءة بالكاميرا أو رفع صورة" style="display:inline-flex;align-items:center;gap:6px;">📷 <span class="cam-btn-label">كاميرا</span></button>
                 <input type="file" id="ocrFileInput" accept="image/*" style="display:none;"/>
               </div>
             </div>
