@@ -396,8 +396,26 @@
     .plate-cell { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: var(--ink); background: #fff; border: 1.5px solid var(--border2); border-radius: 7px; width: 42px; height: 48px; text-align: center; text-transform: uppercase; caret-color: var(--accent); transition: background .15s, border-color .15s, box-shadow .15s; padding: 0; flex: 1; min-width: 0; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
     .plate-cell:focus { outline: none; background: #eff6ff; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(26,86,219,.15); }
     .plate-cell:not(:placeholder-shown) { background: #fff; border-color: var(--ink); color: var(--ink); }
-    .plate-cell::placeholder { color: #d1d5db; }
+    .plate-cell::placeholder { color: #c4c9d4; font-size: 16px; }
     .plate-sep { width: 10px; height: 3px; background: var(--border2); border-radius: 2px; flex-shrink: 0; }
+
+    /* Letter cells — light blue tint */
+    .plate-cell-letter { background: #eff6ff; border-color: #bfdbfe; }
+    .plate-cell-letter:focus { background: #dbeafe; border-color: var(--accent); }
+    .plate-cell-letter::placeholder { color: #93c5fd; }
+    .plate-cell-letter:not(:placeholder-shown) { background: #fff; border-color: var(--accent); color: var(--accent2); }
+
+    /* Number cells — light green tint */
+    .plate-cell-num { background: #f0fdf4; border-color: #bbf7d0; }
+    .plate-cell-num:focus { background: #dcfce7; border-color: var(--green); }
+    .plate-cell-num::placeholder { color: #86efac; }
+    .plate-cell-num:not(:placeholder-shown) { background: #fff; border-color: var(--green); color: var(--green); }
+
+    /* Hint row below plate */
+    .plate-hint { display: flex; align-items: center; gap: 8px; margin-top: 7px; font-size: 11px; font-weight: 700; padding: 0 4px; }
+    .plate-hint-letters { color: var(--accent); }
+    .plate-hint-sep { color: var(--border2); font-size: 9px; margin: 0 2px; }
+    .plate-hint-nums { color: var(--green); }
 
     /* ── BUTTONS ── */
     .btn { font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 700; border: none; border-radius: var(--radius-xs); cursor: pointer; padding: 10px 20px; transition: all .22s cubic-bezier(.4,0,.2,1); display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; letter-spacing: .2px; }
@@ -729,13 +747,16 @@
 
       /* ── Plate cells ── */
       .plate-cells-wrap { width: 100%; }
-      .plate-cells { gap: 5px; }
+      .plate-cells { gap: 5px; padding: 10px; }
       .plate-cell {
-        width: 36px !important;
-        height: 44px !important;
-        font-size: 16px !important;
-        border-radius: 9px !important;
+        width: 38px !important;
+        height: 52px !important;
+        font-size: 20px !important;
+        border-radius: 10px !important;
+        border-width: 2px !important;
       }
+      .plate-cell::placeholder { font-size: 17px !important; }
+      .plate-hint { font-size: 12px; margin-top: 8px; }
 
       /* camera button now below plate, full width */
 
@@ -1111,14 +1132,19 @@
               <label>رقم اللوحة</label>
               <div class="plate-cells-wrap" id="plateCellsWrap">
                 <div class="plate-cells" id="plateCells">
-                  <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="0"/>
-                  <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="1"/>
-                  <input class="plate-cell" maxlength="1" inputmode="text" autocomplete="off" data-idx="2"/>
+                  <input class="plate-cell plate-cell-letter" maxlength="1" inputmode="text" autocomplete="off" data-idx="0" placeholder="ح"/>
+                  <input class="plate-cell plate-cell-letter" maxlength="1" inputmode="text" autocomplete="off" data-idx="1" placeholder="ر"/>
+                  <input class="plate-cell plate-cell-letter" maxlength="1" inputmode="text" autocomplete="off" data-idx="2" placeholder="ف"/>
                   <div class="plate-sep"></div>
-                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3"/>
-                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4"/>
-                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="5"/>
-                  <input class="plate-cell" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6"/>
+                  <input class="plate-cell plate-cell-num" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="3" placeholder="1"/>
+                  <input class="plate-cell plate-cell-num" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="4" placeholder="2"/>
+                  <input class="plate-cell plate-cell-num" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="5" placeholder="3"/>
+                  <input class="plate-cell plate-cell-num" maxlength="1" inputmode="numeric" autocomplete="off" data-idx="6" placeholder="4"/>
+                </div>
+                <div class="plate-hint">
+                  <span class="plate-hint-letters">▪ حروف</span>
+                  <span class="plate-hint-sep">—</span>
+                  <span class="plate-hint-nums">▪ أرقام</span>
                 </div>
                 <input id="plate" type="hidden" value=""/>
               </div>
