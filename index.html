@@ -393,7 +393,7 @@
     .plate-cells-wrap { flex: 1; }
     .plate-cells { display: inline-flex; align-items: center; gap: 6px; background: #f8f9fc; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; width: 100%; box-sizing: border-box; transition: border-color .18s, box-shadow .18s; }
     .plate-cells:focus-within { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
-    .plate-cell { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: var(--ink); background: #fff; border: 1.5px solid var(--border2); border-radius: 7px; width: 42px; height: 48px; text-align: center; text-transform: uppercase; caret-color: var(--accent); transition: background .15s, border-color .15s, box-shadow .15s; padding: 0; flex: 1; min-width: 0; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .plate-cell { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: var(--ink); background: #fff; border: 1.5px solid var(--border2); border-radius: 7px; width: 42px; height: 48px; text-align: center; text-transform: uppercase; caret-color: var(--accent); transition: background .15s, border-color .15s, box-shadow .15s; padding: 0 0 0 0; margin: 0; flex: 1; min-width: 0; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: block; line-height: 48px; -webkit-appearance: none; appearance: none; }
     .plate-cell:focus { outline: none; background: #eff6ff; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(26,86,219,.15); }
     .plate-cell:not(:placeholder-shown) { background: #fff; border-color: var(--ink); color: var(--ink); }
     .plate-cell::placeholder { color: #c4c9d4; font-size: 16px; }
@@ -754,8 +754,13 @@
         font-size: 20px !important;
         border-radius: 10px !important;
         border-width: 2px !important;
+        padding: 0 !important;
+        line-height: 52px !important;
+        text-align: center !important;
+        display: block !important;
+        -webkit-appearance: none !important;
       }
-      .plate-cell::placeholder { font-size: 17px !important; }
+      .plate-cell::placeholder { font-size: 17px !important; text-align: center !important; }
       .plate-hint { font-size: 12px; margin-top: 8px; }
 
       /* camera button now below plate, full width */
