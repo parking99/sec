@@ -14,18 +14,36 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
   <script>
   (function(){
+  (function(){
+    // منع كليك يمين
     document.addEventListener('contextmenu',function(e){e.preventDefault();});
+    // منع اختصارات DevTools
     document.addEventListener('keydown',function(e){
-      if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C'))||(e.ctrlKey&&e.key==='U')){
+      if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C'||e.key==='K'))||(e.ctrlKey&&e.key==='U')||(e.ctrlKey&&e.key==='S')){
         e.preventDefault();return false;
       }
     });
+    // إخفاء console methods
+    try{
+      var noop=function(){};
+      ['log','warn','info','error','debug','table','dir','trace'].forEach(function(m){
+        try{Object.defineProperty(console,m,{get:function(){return noop;},set:function(){},configurable:false});}catch(x){}
+      });
+    }catch(e){}
+    // كشف DevTools المفتوح
     var _dt=false;
     setInterval(function(){
       var t=new Date();debugger;
-      if(new Date()-t>100){if(!_dt){_dt=true;document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Cairo,sans-serif;font-size:22px;color:#dc2626;direction:rtl;">🔒 الوصول محظور</div>';}}
-      else{_dt=false;}
-    },1000);
+      if(new Date()-t>100){
+        if(!_dt){_dt=true;
+          document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Cairo,sans-serif;font-size:22px;color:#dc2626;direction:rtl;background:#0b1f45;color:#fff;">🔒 الوصول محظور — أعد تحميل الصفحة</div>';
+        }
+      }else{_dt=false;}
+    },800);
+    // منع النسخ والحفظ
+    document.addEventListener('copy',function(e){e.preventDefault();});
+    document.addEventListener('cut',function(e){e.preventDefault();});
+  })();
   })();
   </script>
   <style>
@@ -1392,9 +1410,20 @@
       <p style="font-size:12px;margin:6px 0 0;">أضف ورقة باسم <b>المعالجة</b> في Sheets تلقائياً عند أول حفظ</p>
     </div>
 
+    <div class="setup-step" style="background:#fef2f2;border-color:#fca5a5;">
+      <strong style="color:#991b1b;">🔐 خطوة أمان مهمة — API Secret</strong>
+      <p style="font-size:12px;margin:6px 0 0;">في كود Apps Script، غيّر قيمة <b>API_SECRET</b> إلى نص عشوائي طويل خاص بك (مثل: <code>xK9#mP2@qL7!nR4$wT6^yA1&</code>)، ثم شفّره وضعه في HTML باستخدام أداة التشفير بالأسفل.</p>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input id="secretInput" placeholder="أدخل API_SECRET الجديد هنا..." style="flex:1;min-width:200px;padding:7px 10px;border:1.5px solid #fca5a5;border-radius:8px;font-size:12px;font-family:monospace;"/>
+        <button onclick="encodeSecret()" style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🔒 شفّر</button>
+      </div>
+      <div id="secretOutput" style="display:none;margin-top:8px;background:#0f172a;border-radius:8px;padding:10px;font-family:monospace;font-size:11px;color:#86efac;word-break:break-all;"></div>
+    </div>
+
     <div class="setup-step" style="background:#fffbeb;border-color:#fde68a;">
       <strong style="color:#92400e;">📋 ورقة الموظفين — مع كلمة السر</strong>
       <p style="font-size:12px;margin:6px 0 0;">ورقة باسم <b>الموظفون</b> | A: الرقم الوظيفي | B: الاسم | C: القسم | D: كلمة السر</p>
+      <p style="font-size:11px;margin:4px 0 0;color:#92400e;">💡 لتشفير كلمة السر: استخدم SHA-256 hash وضع النتيجة في العمود D</p>
     </div>
 
     <div class="setup-step">
@@ -1407,10 +1436,39 @@ const GUARDS_SHEET   = "الموظفون";
 const RESOLVED_SHEET = "المعالجة";
 const DRIVE_FOLDER   = "صور مركبات الرصد";
 
+// ═══════════════════════════════════════════════
+// 🔐 الأمان: ضع مفتاح سري خاص بك هنا (أي نص عشوائي طويل)
+// مثال: "xK9#mP2@qL7!nR4$wT6^"
+const API_SECRET = "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_KEY";
+// ═══════════════════════════════════════════════
+
+// Rate limiting — يمنع أكثر من 20 طلب في الدقيقة من نفس المستخدم
+const RATE_CACHE = CacheService.getScriptCache();
+function checkRateLimit_(id) {
+  var key = "rl_" + id;
+  var val = parseInt(RATE_CACHE.get(key) || "0");
+  if (val > 20) return false;
+  RATE_CACHE.put(key, String(val + 1), 60);
+  return true;
+}
+
+// Hash بسيط للتحقق من الباسورد (SHA-256 عبر Utilities)
+function hashPwd_(pwd) {
+  var raw = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, pwd);
+  return raw.map(function(b){return (b<0?b+256:b).toString(16).padStart(2,"0");}).join("");
+}
+
 function doGet(e) {
   const p      = (e && e.parameter) ? e.parameter : {};
   const cb     = p.callback || "";
   const action = p.action   || "getAll";
+  const secret = p.secret   || "";
+
+  // ✅ التحقق من المفتاح السري في كل طلب
+  if (secret !== API_SECRET) {
+    return makeResponse({ error: "unauthorized" }, cb);
+  }
+
   if (action === "add")         return handleAdd(p, cb);
   if (action === "getAll")      return handleGetAll(cb);
   if (action === "getResolved") return handleGetResolved(cb);
@@ -1424,6 +1482,8 @@ function doGet(e) {
 function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) ? e.postData.contents : "{}");
+    // ✅ التحقق من المفتاح السري في POST أيضاً
+    if ((body.secret || "") !== API_SECRET) return makeResponse({ error: "unauthorized" }, "");
     if (body.action === "uploadImage") return handleImageUpload(body);
     if (body.action === "addResolved") return handleAddResolved(body, "");
     return handleAdd(body, "");
@@ -1475,13 +1535,23 @@ function handleLogin(p, cb) {
   const id  = String(p.empId||"").trim();
   const pwd = String(p.password||"").trim();
   if(!id || !pwd) return makeResponse({error:"missing_fields"}, cb);
+
+  // ✅ Rate limiting — يمنع هجمات brute force
+  if (!checkRateLimit_("login_" + id)) {
+    return makeResponse({error:"rate_limit", msg:"محاولات كثيرة، انتظر دقيقة"}, cb);
+  }
+
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(GUARDS_SHEET);
   if(!sheet) return makeResponse({error:"no_sheet", msg:"أنشئ ورقة: "+GUARDS_SHEET}, cb);
   const rows = sheet.getDataRange().getValues();
   for(let i=1; i<rows.length; i++) {
     if(String(rows[i][0]).trim() === id) {
       const storedPwd = String(rows[i][3]||"").trim();
-      if(storedPwd === pwd) {
+      // ✅ دعم كلمات السر المشفرة (SHA-256) والعادية للتوافق
+      const pwdMatch = storedPwd.length === 64
+        ? (hashPwd_(pwd) === storedPwd)   // مشفرة بـ SHA-256
+        : (storedPwd === pwd);             // نص عادي (قديم)
+      if(pwdMatch) {
         return makeResponse({
           success: true, empId: id,
           name: String(rows[i][1]||""),
@@ -1489,10 +1559,13 @@ function handleLogin(p, cb) {
           role: String(rows[i][4]||"guard")
         }, cb);
       } else {
+        // تأخير مصطنع لإبطاء brute force
+        Utilities.sleep(500);
         return makeResponse({error:"wrong_password"}, cb);
       }
     }
   }
+  Utilities.sleep(500);
   return makeResponse({error:"not_found"}, cb);
 }
 
@@ -1718,12 +1791,14 @@ function updateImageUrl_(plate,date,time,url,rowHint) {
 (function(){
 "use strict";
 
-// Runtime decoded — do not edit manually
-function _d(e){var k=42;return atob(e).split('').map(function(c){return String.fromCharCode(c.charCodeAt(0)^k);}).join('');}
-var GS_URL      = _d("Ql5eWlkQBQVZSVhDWl4ETUVFTUZPBElFRwVHS0lYRVkFWQVrYUxTSUhTbF5SWVwTa2R/ZktjUlB+Eh5jSR0bUFpmQl17X2tJSXp1Z0gSb2FpQBwZWhhmT2ZAGXl9XUlTQE1ObVoTQW5nTFwFT1JPSQ==");
-var STORAGE_KEY = _d("WktYQUNETXhPWkVYXnVcHg==");
-var SESSION_KEY = _d("WktYQUNETXlPWVlDRUR1XBs=");
-var RESOLVED_KEY= _d("WktYQUNETXhPWUVGXE9OdVwb");
+// Runtime decoded — multi-layer obfuscation
+function _d(e){var k=42,rk=[73,29,117,5,88,61],b=atob(e),r="";for(var i=0;i<b.length;i++){var x=b.charCodeAt(i);x=x^rk[i%rk.length];x=x^k;r+=String.fromCharCode(x);}return r;}
+var GS_URL      = _d("C0MrXwEtTBgsTAB+E0NxSB14BFs6ARF4DhgyThFlDERwXF1WKFEmTBBuJUMnXAQuInkKYxNeG00LF0ZeAABuVQJbC0AOWjN0AGcAYhAvJnwcRUQkEwUTSj59UGQIWBFuCVA7aAIuCHMSSQQ4Bk86TA==");
+var STORAGE_KEY = _d("E1YtRBt5BGU6Xx1lF2gpGw==");
+var SESSION_KEY = _d("E1YtRBt5BGQ6XAF+DFkAWUM=");
+var RESOLVED_KEY= _d("E1YtRBt5BGU6XB17FVI7cAQm");
+// ⚠️ بعد تغيير API_SECRET في Apps Script، شفّر القيمة الجديدة وضعها هنا
+var _AS         = _d("IH8eYTVSPGMXZiFIN3gAbi1bLHkYcCBWLXMQYi1EJnQNaiZIKHIG");
 
 function $(id){ return document.getElementById(id); }
 
@@ -1735,6 +1810,9 @@ function clearSession(){ currentUser=null; try{sessionStorage.removeItem(SESSION
 
 function jsonpCall(url,ms){
   ms=ms||12000;
+  // ✅ إضافة المفتاح السري لكل طلب
+  var sep=url.indexOf("?")>=0?"&":"?";
+  url=url+sep+"secret="+encodeURIComponent(_AS);
   return new Promise(function(resolve,reject){
     var cb="gs_"+Date.now()+"_"+Math.floor(Math.random()*99999);
     var scr=document.createElement("script");
@@ -2610,7 +2688,7 @@ async function testLoginInModal(el){
 
 /* OCR */
 var PLATE_API_URL="https://api.platerecognizer.com/v1/plate-reader/";
-var plateApiKey=atob("NjJmYzhmZTRhY2Q3ZmNkOTM5OWZjODFiN2I5ZjIyODkxZDBhODEyMA==");
+var plateApiKey=_d("VQU5TEpxBgM+TBYgBVQ7FkEuWlE8F0N1VFVmSUAlWw5uS0J2WwZtHw==");
 
 function setOcrStatus(type,msg){var el=$("ocrStatus");el.className="ocr-status "+type;el.style.display="block";el.textContent=msg;}
 
@@ -2694,6 +2772,19 @@ $("ocrFileInput").addEventListener("change",async function(e){
 window.copyScript=function(){
   var code=$("scriptCode").textContent;
   navigator.clipboard.writeText(code).then(function(){alert("✅ تم النسخ!");}).catch(function(){alert("انسخ الكود يدوياً.");});
+};
+
+// أداة تشفير API_SECRET
+window.encodeSecret=function(){
+  var val=($("secretInput")||{}).value||"";
+  if(!val.trim()){alert("أدخل API_SECRET أولاً");return;}
+  var k=42,rk=[73,29,117,5,88,61],b=val.split("").map(function(c,i){var x=c.charCodeAt(0);x=x^k;x=x^rk[i%rk.length];return x;});
+  var enc=btoa(String.fromCharCode.apply(null,b));
+  var out=$("secretOutput");
+  out.style.display="block";
+  out.innerHTML='<div style="color:#94a3b8;margin-bottom:4px;font-size:10px;">ضع هذا في HTML بدل القيمة القديمة لـ _AS:</div>'
+    +'<div style="color:#86efac;">var _AS = _d("'+enc+'");</div>'
+    +'<button onclick="navigator.clipboard.writeText(\'var _AS = _d(\\"'+enc+'\\");\').then(function(){alert(\'✅ تم النسخ!\');})" style="margin-top:8px;background:#1e3a5f;border:1px solid #3b82f6;color:#93c5fd;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">📋 نسخ</button>';
 };
 
 els.imgUploadArea.addEventListener("click",function(){els.vehicleImg.click();});
